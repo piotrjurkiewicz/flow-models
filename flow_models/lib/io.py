@@ -1,24 +1,20 @@
 import argparse
-
 import contextlib
+import pathlib
+import subprocess
+import sys
+import threading
 import time
-
-import math
+import warnings
 
 import array
-import pathlib
-import sys
-import subprocess
-import warnings
 import mmap
-import threading
 
 class ZeroArray:
     def __getitem__(self, item):
         return 0
 
 class FlowKeyFields:
-
     fields = {
         'af': 'B',
         'prot': 'B',
@@ -39,7 +35,6 @@ class FlowKeyFields:
     __slots__ = ['af', 'prot', 'inif', 'outif', 'sa0', 'sa1', 'sa2', 'sa3', 'da0', 'da1', 'da2', 'da3', 'sp', 'dp']
 
 class FlowValFields:
-
     fields = {
         'first': 'I',
         'first_ms': 'H',
@@ -141,7 +136,8 @@ def read_binary(in_dir, key_fields=None, val_fields=None):
                         assert len(mv) == size
                     setattr(mvs, name, mv)
                 except FileNotFoundError:
-                    warnings.warn(f"Array file for flow field '{name}' not found in directory {d}. Assuming None as value of this field")
+                    warnings.warn(f"Array file for flow field '{name}' not found in directory {d}."
+                                  " Assuming None as value of this field")
                     setattr(mvs, name, ZeroArray())
             else:
                 setattr(mvs, name, ZeroArray())
@@ -307,6 +303,7 @@ def measure_memory(on=False):
             while running:
                 memstats.extend(int(line.split()[1]) for line in open('/proc/self/status') if 'RssAnon' in line)
                 time.sleep(0.1)
+
         thread = threading.Thread(target=collect, daemon=True)
         thread.start()
     try:

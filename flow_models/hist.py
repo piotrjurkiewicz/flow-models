@@ -2,8 +2,8 @@
 
 import argparse
 
-from .lib.io import prepare_file_list, io_parser, write_none, write_line, IN_FORMATS
 from .lib.io import logmsg, bin_calc_one, bin_calc_log
+from .lib.io import prepare_file_list, io_parser, write_none, write_line, IN_FORMATS
 
 X_VALUES = ['length', 'size', 'duration', 'rate']
 OUT_FORMATS = {'csv': write_line, 'none': write_none}

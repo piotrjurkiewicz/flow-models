@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
 import argparse
+import concurrent.futures
+import functools
+import os
 import pathlib
 import sys
-import functools
-import concurrent.futures
-import os
 
 import numpy as np
 

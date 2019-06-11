@@ -21,7 +21,8 @@ class Flow:
         self.val.aggs = aggs or 1
 
     def to_tuple(self):
-        return self.key, self.val.first, self.val.first_ms, self.val.last, self.val.last_ms, self.val.packets, self.val.octets, self.val.aggs
+        return self.key, self.val.first, self.val.first_ms, self.val.last, self.val.last_ms, \
+               self.val.packets, self.val.octets, self.val.aggs
 
 def merge(in_files, out_file, in_format='nfdump', out_format='line', inactive_timeout=15.0, active_timeout=300.0):
     """
