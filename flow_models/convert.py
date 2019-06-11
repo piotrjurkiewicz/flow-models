@@ -2,9 +2,10 @@
 
 import argparse
 
-from .lib.io import logmsg, prepare_file_list, io_parser, IN_FORMATS, OUT_FORMATS
+from .lib.io import prepare_file_list, io_parser, IN_FORMATS, OUT_FORMATS
+from .lib.util import logmsg
 
-def convert(in_files, out_file, in_format='nfdump', out_format='line'):
+def convert(in_files, out_file, in_format='nfcapd', out_format='flow_csv'):
     """
     Convert one flow format to another.
 

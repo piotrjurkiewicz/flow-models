@@ -1,10 +1,7 @@
 import argparse
-import contextlib
 import pathlib
 import subprocess
 import sys
-import threading
-import time
 import warnings
 
 import array
@@ -47,7 +44,7 @@ class FlowValFields:
 
     __slots__ = ['first', 'first_ms', 'last', 'last_ms', 'packets', 'octets', 'aggs']
 
-def flow_to_line(flow):
+def flow_to_csv_line(flow):
     return f'{str(flow[0])[1:-1]}, {str(flow[1:])[1:-1]}'
 
 def flow_append(flow, keys, vals):
@@ -73,13 +70,11 @@ def flow_append(flow, keys, vals):
     vals.octets.append(flow[6])
     vals.aggs.append(flow[7])
 
-def read_nfdump(file, key_fields=None, val_fields=None):
+def read_flow_csv(in_file, key_fields=None, val_fields=None):
     """
-    Read and yield all flows in a nfdump file.
+    Read and yield all flows in a flow_csv file/stream.
 
-    This function calls nfdump program to parse nfdump file.
-
-    :param os.PathLike file: nfdump file to read
+    :param os.PathLike | _io.IOWrapper in_file: flow_csv file or stream to read
     :param key_fields: read only these key fields, other can be zeros
     :param val_fields: read only these val fields, other can be zeros
 
@@ -87,8 +82,47 @@ def read_nfdump(file, key_fields=None, val_fields=None):
     :rtype: (tuple, int, int, int, int, int, int, int)
     """
 
-    nfdump_process = subprocess.Popen(['nfdump', '-r', str(file), '-q', '-o', 'pipe'], stdout=subprocess.PIPE)
-    stream = nfdump_process.stdout
+    if in_file is sys.stdin:
+        stream = in_file
+    else:
+        stream = open(str(in_file), 'r')
+
+    for line in stream:
+        af, prot, inif, outif, \
+            sa0, sa1, sa2, sa3, \
+            da0, da1, da2, da3, \
+            sp, dp, first, first_ms, last, last_ms, \
+            packets, octets, aggs = line.split(',')
+        if key_fields is None or key_fields:
+            key = (int(af), int(prot), int(inif), int(outif),
+                   int(sa0), int(sa1), int(sa2), int(sa3),
+                   int(da0), int(da1), int(da2), int(da3),
+                   int(sp), int(dp))
+        else:
+            key = ()
+        yield key, int(first), int(first_ms), int(last), int(last_ms), int(packets), int(octets), int(aggs)
+
+    if in_file is not sys.stdin:
+        stream.close()
+
+def read_pipe(in_file, key_fields=None, val_fields=None):
+    """
+    Read and yield all flows in a nfdump pipe file/stream.
+
+    This function calls nfdump program to parse nfdump file.
+
+    :param os.PathLike | _io.IOWrapper in_file: nfdump pipe file or stream to read
+    :param key_fields: read only these key fields, other can be zeros
+    :param val_fields: read only these val fields, other can be zeros
+
+    :return: key, first, first_ms, last, last_ms, packets, octets, aggs
+    :rtype: (tuple, int, int, int, int, int, int, int)
+    """
+
+    if in_file is sys.stdin:
+        stream = in_file
+    else:
+        stream = open(str(in_file), 'r')
 
     for line in stream:
         af, first, first_ms, last, last_ms, prot, \
@@ -104,12 +138,34 @@ def read_nfdump(file, key_fields=None, val_fields=None):
             key = ()
         yield key, int(first), int(first_ms), int(last), int(last_ms), int(packets), int(octets), 0
 
+    if in_file is not sys.stdin:
+        stream.close()
+
+def read_nfcapd(in_file, key_fields=None, val_fields=None):
+    """
+    Read and yield all flows in a nfdump nfpcapd file.
+
+    This function calls nfdump program to parse nfpcapd file.
+
+    :param os.PathLike in_file: nfdump nfpcapd file to read
+    :param key_fields: read only these key fields, other can be zeros
+    :param val_fields: read only these val fields, other can be zeros
+
+    :return: key, first, first_ms, last, last_ms, packets, octets, aggs
+    :rtype: (tuple, int, int, int, int, int, int, int)
+    """
+
+    nfdump_process = subprocess.Popen(['nfdump', '-r', str(in_file), '-q', '-o', 'pipe'], stdout=subprocess.PIPE)
+    stream = nfdump_process.stdout
+
+    yield from read_pipe(stream, key_fields, val_fields)
+
     if nfdump_process is not None:
         rc = nfdump_process.wait()
         if rc != 0:
             raise subprocess.CalledProcessError(nfdump_process.returncode, nfdump_process.args)
 
-def read_binary(in_dir, key_fields=None, val_fields=None):
+def read_flow_binary(in_dir, key_fields=None, val_fields=None):
     """
     Read and yield all flows in a directory containing array files.
 
@@ -191,7 +247,7 @@ def write_line(out_file, header_line=None):
     if out_file is not sys.stdout:
         stream.close()
 
-def write_flow_line(out_file):
+def write_flow_csv(out_file):
     if out_file is sys.stdout:
         stream = out_file
     else:
@@ -199,7 +255,7 @@ def write_flow_line(out_file):
     try:
         while True:
             flow = yield
-            print(flow_to_line(flow), file=stream)
+            print(flow_to_csv_line(flow), file=stream)
     except GeneratorExit:
         pass
     if out_file is not sys.stdout:
@@ -293,47 +349,12 @@ def load_array_mv(path, mode='r'):
     mv = memoryview(mm).cast(dtype)
     return name, dtype, mv
 
-@contextlib.contextmanager
-def measure_memory(on=False):
-    memstats = []
-    running = True
-    thread = None
-    if on:
-        def collect():
-            while running:
-                memstats.extend(int(line.split()[1]) for line in open('/proc/self/status') if 'RssAnon' in line)
-                time.sleep(0.1)
 
-        thread = threading.Thread(target=collect, daemon=True)
-        thread.start()
-    try:
-        yield
-    finally:
-        if on:
-            running = False
-            thread.join()
-            print('Memory min/avg/max:', min(memstats), sum(memstats) / len(memstats), max(memstats))
-
-def logmsg(*msg):
-    print(f'{time.time() - start_ts:.2f}', *msg, file=sys.stderr)
-
-def bin_calc_one(x, _):
-    return x, x + 1
-
-def bin_calc_log(x, b):
-    bin_width = 1 << max(0, x.bit_length() - b)
-    bin_lo = (x // bin_width) * bin_width
-    bin_hi = bin_lo + bin_width
-    return bin_lo, bin_hi
-
-
-start_ts = time.time()
-
-IN_FORMATS = {'nfdump': read_nfdump, 'binary': read_binary}
-OUT_FORMATS = {'line': write_flow_line, 'binary': write_flow_binary, 'none': write_none}
+IN_FORMATS = {'csv_flow': read_flow_csv, 'pipe': read_pipe, 'nfcapd': read_nfcapd, 'binary': read_flow_binary}
+OUT_FORMATS = {'csv_flow': write_flow_csv, 'binary': write_flow_binary, 'none': write_none}
 
 io_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, add_help=False)
 io_parser.add_argument('files', nargs='+', help='input files or dirs')
-io_parser.add_argument('-i', default='nfdump', choices=IN_FORMATS, help='format of input files')
-io_parser.add_argument('-o', default='line', choices=OUT_FORMATS, help='format of output')
+io_parser.add_argument('-i', default='nfcapd', choices=IN_FORMATS, help='format of input files')
+io_parser.add_argument('-o', default='csv_flow', choices=OUT_FORMATS, help='format of output')
 io_parser.add_argument('-O', default=sys.stdout, help='file or directory for output')

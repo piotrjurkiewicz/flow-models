@@ -3,7 +3,8 @@
 import argparse
 import warnings
 
-from .lib.io import logmsg, FlowValFields, prepare_file_list, io_parser, IN_FORMATS, OUT_FORMATS
+from .lib.io import FlowValFields, prepare_file_list, io_parser, IN_FORMATS, OUT_FORMATS
+from .lib.util import logmsg
 
 class Flow:
 
@@ -24,7 +25,7 @@ class Flow:
         return self.key, self.val.first, self.val.first_ms, self.val.last, self.val.last_ms, \
                self.val.packets, self.val.octets, self.val.aggs
 
-def merge(in_files, out_file, in_format='nfdump', out_format='line', inactive_timeout=15.0, active_timeout=300.0):
+def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', inactive_timeout=15.0, active_timeout=300.0):
     """
     Merge flows splitted due to timeout.
 

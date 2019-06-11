@@ -9,15 +9,15 @@ import sys
 
 import numpy as np
 
-from .lib.io import load_array_np, write_line, write_none, measure_memory
-from .lib.io import logmsg, bin_calc_log
+from .lib.io import load_array_np, write_line, write_none
+from .lib.util import logmsg, bin_calc_log, measure_memory
 
 # MAX_MEM = 64 * (1024 ** 3)
 MAX_MEM = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES') // 4
 N_JOBS = 4
 
 X_VALUES = ['length', 'size']
-OUT_FORMATS = {'csv': write_line, 'none': write_none}
+OUT_FORMATS = {'csv_hist': write_line, 'none': write_none}
 
 def get_column_array(mm, column, start, stop):
     if column in mm:
@@ -142,7 +142,7 @@ def calc_dir(path,  x_value, columns):
 
     return results
 
-def histogram(in_files, out_file, in_format='binary', out_format='csv', bin_width=0, x_value='length', additional_columns=()):
+def histogram(in_files, out_file, in_format='binary', out_format='csv_hist', bin_width=0, x_value='length', additional_columns=()):
 
     assert in_format == 'binary'
 
@@ -208,7 +208,7 @@ def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, description=__doc__)
     parser.add_argument('files', nargs='+', help='input dirs')
     parser.add_argument('-i', default='binary', choices=['binary'], help='format of input files')
-    parser.add_argument('-o', default='csv', choices=['csv'], help='format of output')
+    parser.add_argument('-o', default='csv_hist', choices=['csv_hist'], help='format of output')
     parser.add_argument('-O', default=sys.stdout, help='file for output')
     parser.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
     parser.add_argument('-b', default=0, type=int, help='bin width exponent of 2')

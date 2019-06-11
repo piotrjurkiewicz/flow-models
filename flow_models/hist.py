@@ -2,11 +2,11 @@
 
 import argparse
 
-from .lib.io import logmsg, bin_calc_one, bin_calc_log
 from .lib.io import prepare_file_list, io_parser, write_none, write_line, IN_FORMATS
+from .lib.util import logmsg, bin_calc_one, bin_calc_log
 
 X_VALUES = ['length', 'size', 'duration', 'rate']
-OUT_FORMATS = {'csv': write_line, 'none': write_none}
+OUT_FORMATS = {'csv_hist': write_line, 'none': write_none}
 
 class FlowBin:
 
@@ -25,7 +25,7 @@ class FlowBin:
     def to_line(self, fields):
         return ','.join(str(int(getattr(self, c))) for c in fields)
 
-def histogram(in_files, out_file, in_format='nfdump', out_format='csv', bin_width=0, x_value='length', additional_columns=()):
+def histogram(in_files, out_file, in_format='nfcapd', out_format='csv_hist', bin_width=0, x_value='length', additional_columns=()):
 
     if bin_width == 0:
         bin_calc_fn = bin_calc_one
@@ -84,7 +84,7 @@ def main():
 
     parser = argparse.ArgumentParser(description=__doc__, parents=[io_parser])
     parser._option_string_actions['-o'].choices = OUT_FORMATS
-    parser._option_string_actions['-o'].default = 'csv'
+    parser._option_string_actions['-o'].default = 'csv_hist'
     parser.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
     parser.add_argument('-b', default=0, type=int, help='bin width exponent of 2')
     parser.add_argument('-c', action='append', default=[], help='additional column to sum')

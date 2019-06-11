@@ -5,7 +5,8 @@ import pathlib
 
 import numpy as np
 
-from .lib.io import logmsg, load_array_np, measure_memory
+from .lib.io import load_array_np
+from .lib.util import logmsg, measure_memory
 
 def create_index(key_files, index_file):
     keys = []
