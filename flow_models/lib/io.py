@@ -299,26 +299,6 @@ def dump_binary(keys, vals, files):
         arr.tofile(files[name])
         del arr[:]
 
-def prepare_file_list(file_paths):
-    files = []
-    for file_path in file_paths:
-        if file_path == '-':
-            files.append(sys.stdin)
-        else:
-            path = pathlib.Path(file_path)
-            if not path.exists():
-                raise ValueError(f'File {path} does not exist')
-            if path.is_dir():
-                for path in sorted(path.glob('**/*')):
-                    if path.is_file():
-                        files.append(path)
-            else:
-                if path.is_file():
-                    files.append(path)
-                else:
-                    raise ValueError(f'File {path} is not file')
-    return files
-
 def find_array_path(path):
     p = pathlib.Path(path)
     if not p.suffix:

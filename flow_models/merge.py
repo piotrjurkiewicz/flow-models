@@ -3,8 +3,8 @@
 import argparse
 import warnings
 
-from .lib.io import FlowValFields, prepare_file_list, io_parser, IN_FORMATS, OUT_FORMATS
-from .lib.util import logmsg
+from .lib.io import FlowValFields, io_parser, IN_FORMATS, OUT_FORMATS
+from .lib.util import logmsg, prepare_file_list
 
 class Flow:
 
