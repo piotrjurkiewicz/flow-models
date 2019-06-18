@@ -142,11 +142,11 @@ def calc_dir(path,  x_value, columns):
 
     return results
 
-def histogram(in_files, out_file, in_format='binary', out_format='csv_hist', bin_width=0, x_value='length', additional_columns=()):
+def histogram(in_files, out_file, in_format='binary', out_format='csv_hist', bin_exp=0, x_value='length', additional_columns=()):
 
     assert in_format == 'binary'
 
-    if bin_width == 0:
+    if bin_exp == 0:
         bin_calc_fn = None
     else:
         bin_calc_fn = bin_calc_log
@@ -186,14 +186,14 @@ def histogram(in_files, out_file, in_format='binary', out_format='csv_hist', bin
             writer.send(f'{bin_lo},{bin_lo + 1},' + ','.join(str(int(float(s[n]))) for s in sums.values()))
             written += 1
     else:
-        bin_lo, bin_hi = bin_calc_fn(bins[0], bin_width)
+        bin_lo, bin_hi = bin_calc_fn(bins[0], bin_exp)
         bin_sums = [0.0] * len(sums)
         for n, x in enumerate(bins):
             x = int(x)
             if x >= bin_hi:
                 writer.send(f'{bin_lo},{bin_hi},' + ','.join(str(int(float(s))) for s in bin_sums))
                 written += 1
-                bin_lo, bin_hi = bin_calc_fn(x, bin_width)
+                bin_lo, bin_hi = bin_calc_fn(x, bin_exp)
                 bin_sums = [0.0] * len(sums)
             for i, s in enumerate(sums.values()):
                 bin_sums[i] += s[n]

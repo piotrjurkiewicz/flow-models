@@ -225,6 +225,7 @@ def read_flow_binary(in_dir, key_fields=None, val_fields=None):
                 mv.release()
                 obj.close()
     except AttributeError:
+        # Bug in PyPy: https://bitbucket.org/pypy/pypy/issues/3016/attributeerror-memoryview-object-has-no
         pass
 
 def write_none(_):

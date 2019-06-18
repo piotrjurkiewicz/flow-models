@@ -13,9 +13,9 @@ The framework currently includes the following tools:
 - `convert` -- converts supported flow records formats between each other
 - `sort_np` -- sorts flow records according to specified key fields (requires `numpy`)
 - `hist` -- calculates histograms of flows length, size, duration or rate
-- `hist_np` -- calculates histograms using multiple threads and `numpy` (much faster, but requires more memory)
+- `hist_np` -- calculates histograms using multiple threads (requires `numpy`, much faster, but uses more memory)
 - `fit` -- creates General Mixture Models (GMMs) fitted to flow records
-- `plot` -- generates PDF and CDF plots from flow records and fitted models
+- `plot` -- generates plots from flow records and fitted models (requires `pandas` and `scipy`)
 
 Each tool is a separate Python program. Features they provide are orthogonal and they are tailored to be used together in data processing pipelines.
 

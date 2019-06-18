@@ -4,8 +4,10 @@ import sys
 import threading
 import time
 
+start_time = time.time()
+
 def logmsg(*msg):
-    print(f'{time.time() - start_ts:.2f}', *msg, file=sys.stderr)
+    print(f'{time.time() - start_time:.2f}', *msg, file=sys.stderr)
 
 def bin_calc_one(x, _):
     return x, x + 1
@@ -15,8 +17,6 @@ def bin_calc_log(x, b):
     bin_lo = (x // bin_width) * bin_width
     bin_hi = bin_lo + bin_width
     return bin_lo, bin_hi
-
-start_ts = time.time()
 
 @contextlib.contextmanager
 def measure_memory(on=False):

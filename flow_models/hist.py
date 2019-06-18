@@ -25,17 +25,17 @@ class FlowBin:
     def to_line(self, fields):
         return ','.join(str(int(getattr(self, c))) for c in fields)
 
-def histogram(in_files, out_file, in_format='nfcapd', out_format='csv_hist', bin_width=0, x_value='length', additional_columns=()):
+def histogram(in_files, out_file, in_format='nfcapd', out_format='csv_hist', bin_exp=0, x_value='length', additional_columns=()):
 
-    if bin_width == 0:
+    if bin_exp == 0:
         bin_calc_fn = bin_calc_one
     else:
         bin_calc_fn = bin_calc_log
 
-    bin_calc_function = {'length': lambda p, o, d, r: bin_calc_fn(p, bin_width),
-                         'size': lambda p, o, d, r: bin_calc_fn(o, bin_width),
-                         'duration': lambda p, o, d, r: bin_calc_fn(d, bin_width),
-                         'rate': lambda p, o, d, r: bin_calc_fn(r, bin_width)}
+    bin_calc_function = {'length': lambda p, o, d, r: bin_calc_fn(p, bin_exp),
+                         'size': lambda p, o, d, r: bin_calc_fn(o, bin_exp),
+                         'duration': lambda p, o, d, r: bin_calc_fn(d, bin_exp),
+                         'rate': lambda p, o, d, r: bin_calc_fn(r, bin_exp)}
 
     bin_calc = bin_calc_function[x_value]
     bins = {}
