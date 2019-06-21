@@ -11,9 +11,10 @@ setup(
         description='',
         entry_points={
             'console_scripts': ['flow-models-convert=flow_models.convert:main',
-                                'flow-models-merge=flow_models.merge:main',
                                 'flow-models-hist=flow_models.hist:main',
                                 'flow-models-hist_np=flow_models.hist_np:main',
-                                'flow-models-sort_np=flow_models.sort_np:main']
+                                'flow-models-merge=flow_models.merge:main',
+                                'flow-models-plot=flow_models.plot:main',
+                                'flow-models-sort=flow_models.sort:main']
         }
 )

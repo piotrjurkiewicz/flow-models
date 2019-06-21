@@ -62,7 +62,8 @@ def plot(objects, x_val='length', ext='png', one=False, normalize=True, fft=Fals
                     mixtures[ff.stem] = load_mixture(ff)
                 data[file] = mixtures
             else:
-                data[file] = pd.read_csv(file, index_col=0, sep=',', low_memory=False, usecols=lambda col: not col.endswith('_ssq'))
+                data[file] = pd.read_csv(file, index_col=0, sep=',', low_memory=False,
+                                         usecols=lambda col: not col.endswith('_ssq'))
             logmsg(f'Loaded file {file}')
         else:
             data[id(obj)] = obj
@@ -132,7 +133,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--format', default='png', help='plot file format')
     parser.add_argument('--one', action='store_true', help='plot PDF and CDF in one file')
-    parser.add_argument('--no-normalize', action='store_false', help='do not normalize PDF data')
+    parser.add_argument('--no-normalize', action='store_false', help='do not normalize PDF datapoints')
     parser.add_argument('--fft', action='store_true', help='use FFT for calculating KDE')
     parser.add_argument('-C', nargs='*', default=(), help='additional CDF plot modes')
     parser.add_argument('-P', nargs='*', default=(), help='additional PDF plot modes')
@@ -140,7 +141,8 @@ def main():
     parser.add_argument('files', nargs='+', help='csv_hist files to plot')
     app_args = parser.parse_args()
 
-    plot(app_args.files, app_args.x, app_args.format, app_args.one, app_args.no_normalize, app_args.fft, app_args.C, app_args.P)
+    plot(app_args.files, app_args.x, app_args.format, app_args.one, app_args.no_normalize, app_args.fft,
+         app_args.C, app_args.P)
 
 
 if __name__ == '__main__':
