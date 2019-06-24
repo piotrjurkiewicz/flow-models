@@ -7,7 +7,7 @@ import scipy.interpolate
 import scipy.stats
 
 from .kde import gaussian_kde
-from .mix import mix_pdf, mix_cdf, mix_pdf_components, mix_cdf_components
+from .mix import pdf, cdf, pdf_components, cdf_components
 from .util import bin_calc_one, bin_calc_log, logmsg
 
 UNITS = {
@@ -95,34 +95,35 @@ def set_log_limits(xmin, xmax, ymin, ymax):
     plt.ylim(ymin * 10 ** (-ybuf), ymax * 10 ** ybuf)
 
 def plot_mixture(data, idx, what, mode, fun):
+    # TODO: move to mix
     if isinstance(data, dict):
         data = data[what]
     if 'mixture' in mode:
         fit = []
         label = 'mixture'
         if fun == 'cdf':
-            fit = mix_cdf(data[1], idx)
+            fit = cdf(data[1], idx)
             label = what + ' mixture'
         if fun == 'pdf':
-            fit = mix_pdf(data[1], idx)
+            fit = pdf(data[1], idx)
 
         plt.plot(idx, fit, 'k-', lw=1, ms=1, alpha=0.5, label=label)
 
     if 'components' in mode:
         components = {}
         if fun == 'cdf':
-            components = mix_cdf_components(data[1], idx)
+            components = cdf_components(data[1], idx)
         if fun == 'pdf':
-            components = mix_pdf_components(data[1], idx)
+            components = pdf_components(data[1], idx)
         for weight, dd in components.items():
             plt.plot(idx, dd, lw=0.1, label=str(weight))
 
     if 'components_stack' in mode:
         components = {}
         if fun == 'cdf':
-            components = mix_cdf_components(data[1], idx)
+            components = cdf_components(data[1], idx)
         if fun == 'pdf':
-            components = mix_pdf_components(data[1], idx)
+            components = pdf_components(data[1], idx)
         plt.stackplot(idx, *components.values(), lw=0.1, labels=components.keys(), alpha=0.5)
 
 def plot_pdf(data, idx=None, what='flows', mode=frozenset(['points', 'mixture']), normalize=True, fft=False):
@@ -220,7 +221,8 @@ def calc_avg(data, idx, what):
     return avg_points, avg_line
 
 def calc_avg_mix(data, idx, what):
-    avg_mix = (data[what][0] / data['flows'][0]) * mix_pdf(data[what][1], idx) / mix_pdf(data['flows'][1], idx)
+    # TODO: move to mix
+    avg_mix = (data[what][0] / data['flows'][0]) * pdf(data[what][1], idx) / pdf(data['flows'][1], idx)
     return avg_mix
 
 def plot_avg(data, idx=None, what='packets', mode=frozenset(['mixture'])):
@@ -266,6 +268,7 @@ def plot_avg(data, idx=None, what='packets', mode=frozenset(['mixture'])):
 
     elif 'mixture' in mode:
 
+        # TODO: move to mix
         if what in ['packets', 'octets']:
             avg_mix = calc_avg_mix(data, idx, what)
             plt.xscale('log')
@@ -287,6 +290,6 @@ def plot_avg(data, idx=None, what='packets', mode=frozenset(['mixture'])):
             raise ValueError
 
         plt.plot(idx, avg_mix, 'k-', lw=2, ms=1, alpha=0.5,
-                 label='mixture')
+                 label='infered from mixtures')
 
     plt.legend(frameon=False)
