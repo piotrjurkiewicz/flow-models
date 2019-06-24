@@ -6,7 +6,7 @@ import pathlib
 import numpy as np
 
 from .lib.io import load_array_np
-from .lib.util import logmsg, measure_memory
+from .lib.util import logmsg, measure_memory, prepare_file_list
 
 def create_index(key_files, index_file):
     keys = []
@@ -40,7 +40,7 @@ def create_index(key_files, index_file):
 
     logmsg('Create index: sorting keys')
 
-    result = np.lexsort(reversed(keys))
+    result = np.lexsort(list(reversed(keys)))
 
     logmsg('Create index: sorting keys completed')
 
@@ -76,6 +76,7 @@ def sort_array(input_file, output_dir, index_array):
     assert in_mm.size == size
 
     if mode == 'r':
+        output_dir.mkdir(parents=True, exist_ok=True)
         out_file = output_dir / f'{name}.{dtype}'
         out_mm = np.memmap(out_file, dtype=dtype, mode='w+', shape=(size,))
         logmsg('Sort array: sorting:', input_file, 'to new file:', out_file)
@@ -108,7 +109,7 @@ def sort_array(input_file, output_dir, index_array):
 def main():
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, description=__doc__)
-    parser.add_argument('-i', default='__index', help='index file suffix')
+    parser.add_argument('-I', default='__index', help='index file suffix')
     parser.add_argument('-k', nargs='*', help='ordered key array files')
     parser.add_argument('-O', help='directory for output')
     parser.add_argument('--measure-memory', action='store_true', help='collect and print memory statistics')
@@ -121,14 +122,14 @@ def main():
 
     with measure_memory(app_args.measure_memory):
         try:
-            _, _, index = load_array_np(app_args.i)
+            _, _, index = load_array_np(app_args.I)
             logmsg('Using existing index file...')
         except FileNotFoundError:
             logmsg('Index file not exists, will be created...')
-            create_index(app_args.k, app_args.i)
-            _, _, index = load_array_np(app_args.i)
+            create_index(app_args.k, app_args.I)
+            _, _, index = load_array_np(app_args.I)
 
-        for f in app_args.files:
+        for f in prepare_file_list(app_args.files):
             sort_array(f, app_args.O, index)
 
 
