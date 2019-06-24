@@ -1,4 +1,5 @@
 import argparse
+import io
 import pathlib
 import subprocess
 import sys
@@ -82,7 +83,7 @@ def read_flow_csv(in_file, key_fields=None, val_fields=None):
     :rtype: (tuple, int, int, int, int, int, int, int)
     """
 
-    if in_file is sys.stdin:
+    if isinstance(in_file, io.IOBase):
         stream = in_file
     else:
         stream = open(str(in_file), 'r')
@@ -102,7 +103,7 @@ def read_flow_csv(in_file, key_fields=None, val_fields=None):
             key = ()
         yield key, int(first), int(first_ms), int(last), int(last_ms), int(packets), int(octets), int(aggs)
 
-    if in_file is not sys.stdin:
+    if not isinstance(in_file, io.IOBase):
         stream.close()
 
 def read_pipe(in_file, key_fields=None, val_fields=None):
@@ -119,7 +120,7 @@ def read_pipe(in_file, key_fields=None, val_fields=None):
     :rtype: (tuple, int, int, int, int, int, int, int)
     """
 
-    if in_file is sys.stdin:
+    if isinstance(in_file, io.IOBase):
         stream = in_file
     else:
         stream = open(str(in_file), 'r')
@@ -138,7 +139,7 @@ def read_pipe(in_file, key_fields=None, val_fields=None):
             key = ()
         yield key, int(first), int(first_ms), int(last), int(last_ms), int(packets), int(octets), 0
 
-    if in_file is not sys.stdin:
+    if not isinstance(in_file, io.IOBase):
         stream.close()
 
 def read_nfcapd(in_file, key_fields=None, val_fields=None):
@@ -233,7 +234,7 @@ def write_none(_):
         _ = yield
 
 def write_line(out_file, header_line=None):
-    if out_file is sys.stdout:
+    if isinstance(out_file, io.IOBase):
         stream = out_file
     else:
         stream = open(str(out_file), 'w')
@@ -245,11 +246,11 @@ def write_line(out_file, header_line=None):
             print(line, file=stream)
     except GeneratorExit:
         pass
-    if out_file is not sys.stdout:
+    if not isinstance(out_file, io.IOBase):
         stream.close()
 
 def write_flow_csv(out_file):
-    if out_file is sys.stdout:
+    if isinstance(out_file, io.IOBase):
         stream = out_file
     else:
         stream = open(str(out_file), 'w')
@@ -259,7 +260,7 @@ def write_flow_csv(out_file):
             print(flow_to_csv_line(flow), file=stream)
     except GeneratorExit:
         pass
-    if out_file is not sys.stdout:
+    if not isinstance(out_file, io.IOBase):
         stream.close()
 
 def write_flow_binary(out_dir):
