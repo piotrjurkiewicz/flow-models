@@ -248,13 +248,15 @@ def plot_avg(data, idx=None, what='packets', mode=frozenset(['mixture'])):
             avg_line = num_avg_line / packets_avg_line
             color = 'm'
             mn, avg, mx = avg_points.min(), data[num + '_sum'].sum() / data['packets_sum'].sum(), avg_points.max()
+            lab_x = 10 ** (np.log10(idx.max() - idx.min()) * 0.25 + np.log10(idx.min()))
             if what == 'packet_size':
                 plt.axhline(y=mn, alpha=0.1)
-                plt.text(100, mn, f'min = {mn:.2f}', va='center', ha='center', backgroundcolor='w')
+                plt.text(lab_x, mn, f'min = {mn:.2f}', va='center', ha='center', backgroundcolor='w')
+                plt.ylim(0, 2000)
             plt.axhline(y=avg, alpha=0.1)
-            plt.text(100, avg, f'avg = {avg:.2f}', va='center', ha='center', backgroundcolor='w')
+            plt.text(lab_x, avg, f'avg = {avg:.2f}', va='center', ha='center', backgroundcolor='w')
             plt.axhline(y=mx, alpha=0.1)
-            plt.text(100, mx, f'max = {mx:.2f}', va='center', ha='center', backgroundcolor='w')
+            plt.text(lab_x, mx, f'max = {mx:.2f}', va='center', ha='center', backgroundcolor='w')
             plt.xscale('log')
         else:
             raise ValueError
