@@ -119,11 +119,11 @@ def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', inactiv
                     # add it to cache
                     cache[key] = new_flow
 
-        logmsg(f'Finished: {file}. Cached: {len(cache)} Wrong: {wrong} Merged: {merged} Written: {written}')
+        logmsg(f'Finished: {file} Cached: {len(cache)} Wrong: {wrong} Merged: {merged} Written: {written}')
 
     for flow in cache.values():
         # dump all remaining flows
-        writer.send(flow)
+        writer.send(flow.to_tuple())
         written += 1
 
     writer.close()
