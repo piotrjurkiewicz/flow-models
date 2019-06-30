@@ -39,7 +39,7 @@ def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', inactiv
     inactive_s, inactive_ms = divmod(inactive_timeout, 1)
     inactive_s, inactive_ms = int(inactive_s), int(inactive_ms * 1000)
 
-    active_time = active_timeout - 15
+    active_time = active_timeout - inactive_timeout
 
     cache = {}
 
