@@ -45,9 +45,15 @@ def histogram(in_files, out_file, in_format='nfcapd', out_format='csv_hist', bin
     flows = 0
     written = 0
 
+    val_fields = ['packets', 'octets']
+    if 'duration' in additional_columns or 'rate' in additional_columns:
+        val_fields += ['first', 'first_ms', 'last', 'last_ms']
+    if 'aggs' in additional_columns:
+        val_fields += ['aggs']
+
     try:
         for file in in_files:
-            for key, first, first_ms, last, last_ms, packets, octets, aggs in reader(file, key_fields=[]):
+            for key, first, first_ms, last, last_ms, packets, octets, aggs in reader(file, key_fields=[], val_fields=val_fields):
                 duration = 0 if packets == 1 else (last - first) * 1000 + last_ms - first_ms
                 rate = 0 if duration == 0 else (8000 * octets) / duration
                 bin_lo, bin_hi = bin_calc(packets, octets, duration, rate)
