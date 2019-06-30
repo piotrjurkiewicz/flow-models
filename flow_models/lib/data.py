@@ -97,33 +97,35 @@ def set_log_limits(xmin, xmax, ymin, ymax):
 def plot_mixture(data, idx, what, mode, fun):
     # TODO: move to mix
     if isinstance(data, dict):
-        data = data[what]
+        data = data.get(what)
+        if data is None:
+            return
     if 'mixture' in mode:
         fit = []
         label = 'mixture'
         if fun == 'cdf':
-            fit = cdf(data[1], idx)
+            fit = cdf(data, idx)
             label = what + ' mixture'
         if fun == 'pdf':
-            fit = pdf(data[1], idx)
+            fit = pdf(data, idx)
 
         plt.plot(idx, fit, 'k-', lw=1, ms=1, alpha=0.5, label=label)
 
     if 'components' in mode:
         components = {}
         if fun == 'cdf':
-            components = cdf_components(data[1], idx)
+            components = cdf_components(data, idx)
         if fun == 'pdf':
-            components = pdf_components(data[1], idx)
+            components = pdf_components(data, idx)
         for weight, dd in components.items():
             plt.plot(idx, dd, lw=0.1, label=str(weight))
 
     if 'components_stack' in mode:
         components = {}
         if fun == 'cdf':
-            components = cdf_components(data[1], idx)
+            components = cdf_components(data, idx)
         if fun == 'pdf':
-            components = pdf_components(data[1], idx)
+            components = pdf_components(data, idx)
         plt.stackplot(idx, *components.values(), lw=0.1, labels=components.keys(), alpha=0.5)
 
 def plot_pdf(data, idx=None, what='flows', mode=frozenset(['points', 'mixture']), normalize=True, fft=False):
@@ -222,7 +224,7 @@ def calc_avg(data, idx, what):
 
 def calc_avg_mix(data, idx, what):
     # TODO: move to mix
-    avg_mix = (data[what][0] / data['flows'][0]) * pdf(data[what][1], idx) / pdf(data['flows'][1], idx)
+    avg_mix = (data[what]['sum'] / data['flows']['sum']) * pdf(data[what], idx) / pdf(data['flows'], idx)
     return avg_mix
 
 def plot_avg(data, idx=None, what='packets', mode=frozenset(['mixture'])):

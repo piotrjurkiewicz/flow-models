@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import argparse
+import json
 import pathlib
 
 import matplotlib
@@ -8,7 +9,6 @@ import numpy as np
 import pandas as pd
 
 from .lib.data import plot_pdf, plot_cdf, UNITS, LINE_NBINS, plot_avg
-from .lib.mix import load_mixture
 from .lib.util import logmsg
 
 X_VALUES = ['length', 'size', 'duration', 'rate']
@@ -55,11 +55,11 @@ def plot(objects, x_val='length', ext='png', one=False, normalize=True, fft=Fals
             file = pathlib.Path(obj)
             logmsg(f'Loading file {file}')
             if file.suffix == '.json':
-                data[file] = load_mixture(file)
+                data[file] = json.load(open(file))
             elif file.is_dir():
                 mixtures = {}
                 for ff in file.glob('*.json'):
-                    mixtures[ff.stem] = load_mixture(ff)
+                    mixtures[ff.stem] = json.load(open(str(ff)))
                 data[file] = mixtures
             else:
                 data[file] = pd.read_csv(file, index_col=0, sep=',', low_memory=False,
@@ -116,13 +116,13 @@ def plot(objects, x_val='length', ext='png', one=False, normalize=True, fft=Fals
         plt.close(fig)
         logmsg('Done', out)
 
-    for what in ['packets', 'octets', 'packet_size', 'packet_iat']:
+    for what in ['packets', 'octets', 'packet_size']:
         fig, ax = plt.subplots(figsize=FIGSIZE)
         for obj, df in data.items():
             logmsg('Drawing AVG', obj, what)
             plot_avg(df, idx, what, mode={'line', 'mixture', *avg_modes})
         ax.set_xlabel(f'Flow {x_val} ({UNITS[x_val]})')
-        ax.set_ylabel(f'Average {what}')
+        ax.set_ylabel(f'Average {what} (bytes)')
         out = f'avg-{x_val}-{what}'
         logmsg('Saving', out)
         save_figure(fig, out, ext=ext)

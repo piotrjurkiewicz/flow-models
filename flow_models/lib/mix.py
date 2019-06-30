@@ -3,12 +3,12 @@ import json
 import numpy as np
 import scipy.stats
 
-def rvs(mix, size, x_val):
+def rvs(mix, x_val, size=1, random_state=None):
     weights = np.array([mx[0] for mx in mix])
     weights /= weights.sum()  # in case these did not add up to 1
     data = np.zeros((size, len(mix)))
-    for n, (weight, distr) in enumerate(mix):
-        data[:, n] = distr.rvs(size=size)
+    for n, (weight, dist, args) in enumerate(mix):
+        data[:, n] = getattr(scipy.stats, dist).rvs(*args, size=size, random_state=random_state)
     random_n = np.random.choice(np.arange(len(mix)), size=[size], p=weights)
     sample = data[np.arange(size), random_n]
     if x_val in ['length', 'size']:
@@ -18,11 +18,13 @@ def rvs(mix, size, x_val):
     return sample
 
 def cdf(mix, x):
+    if isinstance(mix, dict):
+        mix = mix['mix']
     weights = np.array([mx[0] for mx in mix])
     weights /= weights.sum()  # in case these did not add up to 1
     data = np.zeros(len(x))
-    for n, (weight, distr) in enumerate(mix):
-        data += weights[n] * distr.cdf(x)
+    for n, (weight, dist, args) in enumerate(mix):
+        data += weights[n] * getattr(scipy.stats, dist).cdf(x, *args)
     return data
 
 def pdf(mix, x):
@@ -30,11 +32,13 @@ def pdf(mix, x):
     return np.hstack((data[0], np.diff(data) / np.diff(x)))
 
 def cdf_components(mix, x):
+    if isinstance(mix, dict):
+        mix = mix['mix']
     weights = np.array([mx[0] for mx in mix])
     weights /= weights.sum()  # in case these did not add up to 1
     data = {}
-    for n, (weight, distr) in enumerate(mix):
-        data[str(weight) + ' ' + distr.dist.name] = weights[n] * distr.cdf(x)
+    for n, (weight, dist, args) in enumerate(mix):
+        data[f'{weight} {dist}'] = weights[n] * getattr(scipy.stats, dist).cdf(x, *args)
     return data
 
 def pdf_components(mix, x):
@@ -44,9 +48,11 @@ def pdf_components(mix, x):
         data[k] = np.hstack((v[0], np.diff(v) / np.diff(x)))
     return data
 
-def load_mixture(file):
-    obj = json.load(open(file))
-    mixture = []
-    for row in obj['mix']:
-        mixture.append((row[0], getattr(scipy.stats, row[1])(*row[2])))
-    return obj['sum'], mixture
+def to_json(mix, sum=None):
+    s = ''
+    if sum:
+        s += '{\n' + f'  "sum": {sum},\n' + '  "mix": '
+    s += '[\n    ' + ',\n    '.join(json.dumps(c, default=lambda v: v.item()) for c in mix) + '\n  ]'
+    if sum:
+        s += '\n}'
+    return s
