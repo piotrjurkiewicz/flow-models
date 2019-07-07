@@ -12,7 +12,9 @@ from .util import bin_calc_one, bin_calc_log, logmsg
 
 UNITS = {
     'length': 'packets',
-    'size': 'bytes'
+    'size': 'octets',
+    'duration': 'milliseconds',
+    'rate': 'bps'
 }
 
 STYLE = {
