@@ -49,6 +49,15 @@ def normalize_data(org_data, bin_exp=None):
     data['bin_hi'] = bh
     return data
 
+def detect_x_value(x):
+    if x.min() == 1:
+        x_value = 'length'
+    elif x.min() == 64:
+        x_value = 'size'
+    else:
+        raise ValueError
+    return x_value
+
 def log_gaussian_kde(x, y, xmin=None, xmax=None, ymin=None, ymax=None, nbins=KDE_NBINS, weights=None, fft=False):
     xmin = np.log10(xmin if xmin else x.min())
     xmax = np.log10(xmax if xmax else x.max())
