@@ -156,7 +156,7 @@ def plot_pdf(data, idx=None, what='flows', mode=frozenset(['points', 'mixture'])
 
         if 'line' in mode:
             plt.plot(idx, pdfi, STYLE[what][0] + '-', lw=2, ms=1, alpha=0.5,
-                     label='data')
+                     label='data (line calculated from the CDF)')
 
         values_sum = data[what + '_sum'].sum()
         weights = data['flows_sum'].values
@@ -170,9 +170,14 @@ def plot_pdf(data, idx=None, what='flows', mode=frozenset(['points', 'mixture'])
 
         if 'points' in mode:
             logmsg('Plotting points')
-            plt.plot(pdf.index, pdf,
-                     STYLE[what][0] + ',', lw=1, ms=1, alpha=1,
-                     label=what + ' data', rasterized=True)
+            if normalize:
+                plt.plot(pdf.index, pdf,
+                         STYLE[what][0] + ',', lw=1, ms=1, alpha=1,
+                         label='normalized datapoints', rasterized=True)
+            else:
+                plt.plot(pdf.index, pdf,
+                         'c' + ',', lw=1, ms=1, alpha=1,
+                         label='log-binned datapoints', rasterized=True)
 
         if 'hist' in mode:
             logmsg('Plotting hist')
@@ -276,7 +281,7 @@ def plot_avg(data, idx=None, what='packets', mode=frozenset(['mixture'])):
 
         plt.plot(avg_points.index, avg_points,
                  color + ',', lw=1, ms=1, alpha=1,
-                 label='data', rasterized=True)
+                 label='datapoints', rasterized=True)
 
         plt.plot(idx, avg_line, color + '-', lw=2, ms=1, alpha=0.5,
                  label='data')
