@@ -15,9 +15,20 @@ merged: cleaned
 sorted: merged
 	PYTHONPATH=../../../flow_models nice python3 -m flow_models.sort -k merged/last merged/last_ms -O sorted merged
 
-histograms: sorted
+histograms/length.csv: sorted
 	mkdir -p histograms
 	PYTHONPATH=../../../flow_models nice pypy3 -m flow_models.hist -i binary -x length -b 12 sorted > histograms/length.csv
+
+histograms/length_b0.csv: sorted
+	mkdir -p histograms
 	PYTHONPATH=../../../flow_models nice pypy3 -m flow_models.hist -i binary -x length -b 0 sorted > histograms/length_b0.csv
+
+histograms/size.csv: sorted
+	mkdir -p histograms
 	PYTHONPATH=../../../flow_models nice pypy3 -m flow_models.hist -i binary -x size -b 12 sorted > histograms/size.csv
+
+histograms/size_b0.csv: sorted
+	mkdir -p histograms
 	PYTHONPATH=../../../flow_models nice pypy3 -m flow_models.hist -i binary -x size -b 0 sorted > histograms/size_b0.csv
+
+histograms: histograms/length.csv histograms/length_b0.csv histograms/size.csv histograms/size_b0.csv
