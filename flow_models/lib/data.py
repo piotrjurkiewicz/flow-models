@@ -7,7 +7,7 @@ import scipy.interpolate
 import scipy.stats
 
 from .kde import gaussian_kde
-from .mix import pdf, cdf, pdf_components, cdf_components
+from .mix import pdf, cdf, pdf_comp, cdf_comp
 from .util import bin_calc_one, bin_calc_log, logmsg
 
 UNITS = {
@@ -111,22 +111,22 @@ def plot_mixture(data, idx, what, mode, fun):
 
         plt.plot(idx, fit, 'k-', lw=1, ms=1, alpha=0.5, label=label)
 
-    if 'components' in mode:
-        components = {}
+    if 'comp' in mode:
+        comp = {}
         if fun == 'cdf':
-            components = cdf_components(data, idx)
+            comp = cdf_comp(data, idx)
         if fun == 'pdf':
-            components = pdf_components(data, idx)
-        for weight, dd in components.items():
-            plt.plot(idx, dd, lw=0.1, label=str(weight))
+            comp = pdf_comp(data, idx)
+        for weight, dd in comp.items():
+            plt.plot(idx, dd, '--', dashes=(20, 20), lw=0.1, label=str(weight) if 'comp_labels' in mode else None)
 
-    if 'components_stack' in mode:
-        components = {}
+    if 'comp_stack' in mode:
+        comp = {}
         if fun == 'cdf':
-            components = cdf_components(data, idx)
+            comp = cdf_comp(data, idx)
         if fun == 'pdf':
-            components = pdf_components(data, idx)
-        plt.stackplot(idx, *components.values(), lw=0.1, labels=components.keys(), alpha=0.5)
+            comp = pdf_comp(data, idx)
+        plt.stackplot(idx, *comp.values(), lw=0.1, labels=comp.keys() if 'comp_labels' in mode else None, alpha=0.5)
 
 def plot_pdf(data, idx=None, what='flows', mode=frozenset(['points', 'mixture']), normalize=True, fft=False):
     kwargs = {'cmap': STYLE[what][1]}

@@ -31,7 +31,7 @@ def pdf(mix, x):
     data = cdf(mix, x)
     return np.hstack((data[0], np.diff(data) / np.diff(x)))
 
-def cdf_components(mix, x):
+def cdf_comp(mix, x):
     if isinstance(mix, dict):
         mix = mix['mix']
     weights = np.array([mx[0] for mx in mix])
@@ -41,10 +41,10 @@ def cdf_components(mix, x):
         data[f'{weight} {dist}'] = weights[n] * getattr(scipy.stats, dist).cdf(x, *args)
     return data
 
-def pdf_components(mix, x):
-    ccc = cdf_components(mix, x)
+def pdf_comp(mix, x):
+    cdf_components = cdf_comp(mix, x)
     data = {}
-    for k, v in ccc.items():
+    for k, v in cdf_components.items():
         data[k] = np.hstack((v[0], np.diff(v) / np.diff(x)))
     return data
 
