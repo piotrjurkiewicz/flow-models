@@ -14,7 +14,7 @@ from .lib.util import logmsg
 X_VALUES = ['length', 'size', 'duration', 'rate']
 
 SIZE = 0.6
-FIGSIZE = [SIZE * 1.25 * 10.8, SIZE * 8.1]
+FIGSIZE = [SIZE * 11.2, SIZE * 6.8]
 PDF_NONE_METADATA = {'Creator': None, 'Producer': None, 'CreationDate': None}
 matplotlib.rcParams['figure.dpi'] *= 2
 matplotlib.rcParams['figure.subplot.hspace'] = 0
@@ -71,11 +71,13 @@ def plot(objects, x_val='length', ext='png', one=False, normalize=True, fft=Fals
     idx = None
 
     if one:
-        fig = plt.figure(figsize=[FIGSIZE[0] * 2.1, FIGSIZE[1] * 2.1])
+        fig = plt.figure(figsize=[FIGSIZE[0] * 2.132, FIGSIZE[1] * 2])
         ax = plt.subplot(2, 2, 1)
     else:
         fig = plt.figure(figsize=FIGSIZE)
         ax = plt.subplot(1, 1, 1)
+
+    plt.subplots_adjust(0, 0, 1, 1)
 
     for obj, df in data.items():
         if idx is None:
@@ -97,6 +99,7 @@ def plot(objects, x_val='length', ext='png', one=False, normalize=True, fft=Fals
             ax = plt.subplot(2, 2, n + 2, sharex=ax)
         else:
             fig, ax = plt.subplots(figsize=FIGSIZE)
+        plt.subplots_adjust(0, 0, 1, 1)
         for obj, df in data.items():
             logmsg('Drawing PDF', obj, what)
             plot_pdf(df, idx, what, mode={'line', 'mixture', *pdf_modes}, normalize=normalize, fft=fft)
