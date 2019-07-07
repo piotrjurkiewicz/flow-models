@@ -16,6 +16,7 @@ setup(
                                 'flow-models-hist_np=flow_models.hist_np:main',
                                 'flow-models-merge=flow_models.merge:main',
                                 'flow-models-plot=flow_models.plot:main',
-                                'flow-models-sort=flow_models.sort:main']
+                                'flow-models-sort=flow_models.sort:main',
+                                'flow-models-summary=flow_models.summmary:main']
         }
 )
