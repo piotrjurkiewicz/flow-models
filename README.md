@@ -4,7 +4,6 @@ Packages like `flow-tools` or `nfdump` provide tools for filtering and calculati
 from network flow records. They lack, however, any capabilities for analysis and modeling of flow features (length,
 size, duration, rate, etc.) distributions. The goal of this framework is to fill this gap.
 
-
 ## Provided tools
 
 The framework currently includes the following tools:
@@ -17,7 +16,7 @@ The framework currently includes the following tools:
 - `fit` -- creates General Mixture Models (GMMs) fitted to flow records (requires `scipy`)
 - `plot` -- generates plots from flow records and fitted models (requires `pandas` and `scipy`)
 
-Each tool is a separate Python program. Features they provide are orthogonal and they are tailored to be used together in data processing pipelines.
+Each tool is a separate Python program. Features provided by the tools are orthogonal and are tailored to be used together in data-processing pipelines.
 
 ## File formats
 
@@ -34,15 +33,29 @@ Additionally, the framework currently supports the following flow histograms for
 
 ### `csv_flow` file format
 
+File contains the following fields:
+
     af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
 
-### `csv_hist` file format
-
-    bin_lo, bin_hi, flows_sum, packets_sum, octets_sum, duration_sum, rate_sum, aggs_sum
+- `af` -- address family
+- `prot` -- IP protocol number
+- `inif` -- input interface number
+- `outif` -- output interface number
+- `sa0:sa3` -- consecutive 32-bit words forming source IP address
+- `da0:da3` -- consecutive 32-bit words forming destination IP address
+- `sp` -- source transport layer port
+- `dp` -- destination transport layer port
+- `first` -- timestamp of first packet (seconds component)
+- `first_ms` -- timestamp of first packet (milliseconds component)
+- `last` -- timestamp of last packet (seconds component)
+- `last_ms` -- timestamp of last packet (milliseconds component)
+- `packets` -- number of packets (flow length)
+- `octets` -- number of octets (bytes) (flow size)
+- `aggs` -- number of aggregated flow records forming this record
 
 ### `binary` file format
 
-The `binary` file format is also used as an internal on-disk format to exchange data between tools included in the framework.
+The `binary` file format is used as an effective internal on-disk format to exchange data between tools included in the framework.
 Each flows trace is a directory, which contains several binary files. Each binary file stores one
 field as an array of binary values with a specified type.
 
@@ -103,3 +116,21 @@ Example:
         ├── octets.Q          │
         └── packets.Q        ─┘
 
+### `csv_hist` file format
+
+File contains the following fields:
+
+    bin_lo, bin_hi, flows_sum, packets_sum, octets_sum, duration_sum, rate_sum, aggs_sum
+
+- `bin_lo` -- lower edge of a bin (inclusive)
+- `bin_hi` -- upper edge of a bin (exclusive)
+- `flows_sum` -- number of flows within a particular bin
+- `packets_sum` -- sum of packets of all flows within a bin
+- `octets_sum` -- sum of octets of all flows within a bin
+- `duration_sum` -- sum of duration of all flows within a bin (in milliseconds)
+- `rate_sum` -- sum of rates of all flows within a bin (in bps)
+- `aggs_sum` -- sum of aggregated flows of all flows within a bin
+
+Histograms can be calculated using `hist` or `hist_np` modules. The former is a pure Python implementation which can take advantage of unlimited width integer support in Python in order to perform more accurate calculations. The latter uses the `numpy` package to perform binning, which can utilise SIMD instructions and multiple threads and is therefore many orders of magnitude faster but requires more memory and can introduce rounding errors due to the operation on doubles having limited precision. Both tools output a CSV file which can be directly used to plot a histogram, CDF or PDF of a particular flow feature.
+
+The framework user can specify a parameter *b*, which is a power-of-two defining starting point for logarithmic binning. For example, *b = 12* means that bin widths will start increasing for values *> 4096* (for lower values bin width will be equal to one). Therefore, values between 4096-8192 would be binned into bins of width 2, between 8192-16384 into bins of width 4, etc.
