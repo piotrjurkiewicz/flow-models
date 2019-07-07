@@ -40,3 +40,8 @@ mixtures: histograms
 	PYTHONPATH=../../../flow_models python3 -m flow_models.fit -i 400 -U 0 -L 8 -y flows histograms/size.csv
 	PYTHONPATH=../../../flow_models python3 -m flow_models.fit -i 400 -U 0 -L 5 -y packets histograms/size.csv
 	PYTHONPATH=../../../flow_models python3 -m flow_models.fit -i 400 -U 0 -L 5 -y octets histograms/size.csv
+
+plots: mixtures
+	mkdir -p plots
+	cd plots; PYTHONPATH=../../../../flow_models python3 -m flow_models.plot --one -P hist comp --format pdf -x length ../histograms/length.csv ../mixtures/length
+	cd plots; PYTHONPATH=../../../../flow_models python3 -m flow_models.plot --one -P hist comp --format pdf -x size ../histograms/size.csv ../mixtures/size
