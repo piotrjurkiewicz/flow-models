@@ -135,3 +135,33 @@ File contains the following fields:
 Histograms can be calculated using `hist` or `hist_np` modules. The former is a pure Python implementation which can take advantage of unlimited width integer support in Python in order to perform more accurate calculations. The latter uses the `numpy` package to perform binning, which can utilise SIMD instructions and multiple threads and is therefore many orders of magnitude faster but requires more memory and can introduce rounding errors due to the operation on doubles having limited precision. Both tools output a CSV file which can be directly used to plot a histogram, CDF or PDF of a particular flow feature.
 
 The framework user can specify a parameter *b*, which is a power-of-two defining starting point for logarithmic binning. For example, *b = 12* means that bin widths will start increasing for values *> 4096* (for lower values bin width will be equal to one). Therefore, values between 4096-8192 would be binned into bins of width 2, between 8192-16384 into bins of width 4, etc.
+
+
+## Models repository
+
+The `data` directory contains histogram CSV files, fitted mixture models and plots. It does not include full flow records.
+
+### agh_201506
+
+P. Jurkiewicz, G. Rzym and P. Boryło, "How Many Mice Make an Elephant? Modelling Flow Length and Size Distribution of Internet Traffic", arXiv:1809.03486, 2018. Available: http://arxiv.org/abs/1809.03486
+
+Based on NetFlow records collected on the Internet-facing interface of the AGH University of Science and Technology network during the consecutive period of 30 days.
+
+Dormitories, populated with nearly 8000 students, generated 69% of the traffic. The rest of the university (over 4000 employees) generated 31%. In the case of dormitories, 91% of traffic was downstream traffic (from the Internet).
+In the case of rest of the university, downstream traffic made up 73% of the total traffic. Therefore, this model can also be considered as representative of residential traffic.
+
+| Parameter | Value | Unit |
+| - | -: | -: |
+| Dataset name| agh_201506 | |
+| Exporter | Cisco router | |
+| L2 technology | Ethernet | |
+| Sampling rate | none | |
+| Active timeout | 300 | seconds |
+| Inactive timeout | 15 | seconds|
+| | | |
+| Number of flows | 4 032 376 751 | flows |
+| Number of packets | 316 857 594 090 | packets |
+| Number of bytes | 275 858 498 994 998 | bytes |
+| Average flow length | 78.578370 | packets |
+| Average flow size | 68410.894128 | octets |
+| Average packet size | 870.607188 | bytes |
