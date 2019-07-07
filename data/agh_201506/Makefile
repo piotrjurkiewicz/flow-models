@@ -45,3 +45,7 @@ plots: mixtures
 	mkdir -p plots
 	cd plots; PYTHONPATH=../../../../flow_models python3 -m flow_models.plot --one -P hist comp --format pdf -x length ../histograms/length.csv ../mixtures/length
 	cd plots; PYTHONPATH=../../../../flow_models python3 -m flow_models.plot --one -P hist comp --format pdf -x size ../histograms/size.csv ../mixtures/size
+
+summary: plots
+	PYTHONPATH=../../../flow_models python3 -m flow_models.summary histograms/length.csv
+	PYTHONPATH=../../../flow_models python3 -m flow_models.summary histograms/size.csv
