@@ -32,3 +32,11 @@ histograms/size_b0.csv: sorted
 	PYTHONPATH=../../../flow_models nice pypy3 -m flow_models.hist -i binary -x size -b 0 sorted > histograms/size_b0.csv
 
 histograms: histograms/length.csv histograms/length_b0.csv histograms/size.csv histograms/size_b0.csv
+
+mixtures: histograms
+	PYTHONPATH=../../../flow_models python3 -m flow_models.fit -i 400 -U 6 -L 4 -y flows histograms/length.csv
+	PYTHONPATH=../../../flow_models python3 -m flow_models.fit -i 400 -U 6 -L 4 -y packets histograms/length.csv
+	PYTHONPATH=../../../flow_models python3 -m flow_models.fit -i 400 -U 6 -L 4 -y octets histograms/length.csv
+	PYTHONPATH=../../../flow_models python3 -m flow_models.fit -i 400 -U 0 -L 8 -y flows histograms/size.csv
+	PYTHONPATH=../../../flow_models python3 -m flow_models.fit -i 400 -U 0 -L 5 -y packets histograms/size.csv
+	PYTHONPATH=../../../flow_models python3 -m flow_models.fit -i 400 -U 0 -L 5 -y octets histograms/size.csv
