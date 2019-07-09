@@ -1,6 +1,6 @@
 dumps:
 	mkdir -p dumps
-	cd dumps; zstd -d --stdout ~/nfcaps.tar.zst | tar --strip-components 1 -xvf -
+	cd dumps; zstd -d --stdout ~/nfcaps.tar.zst | tar --strip-components 1 --wildcards -xvf - 'nfcaps/2015-06-*'
 
 cleaned: dumps
 	mkdir -p cleaned
@@ -47,5 +47,5 @@ plots: mixtures
 	cd plots; PYTHONPATH=../../../../flow_models python3 -m flow_models.plot --one -P hist comp --format pdf -x size ../histograms/size.csv ../mixtures/size
 
 summary: plots
-	PYTHONPATH=../../../flow_models python3 -m flow_models.summary histograms/length.csv
-	PYTHONPATH=../../../flow_models python3 -m flow_models.summary histograms/size.csv
+	PYTHONPATH=../../../flow_models python3 -m flow_models.summary histograms/length_b0.csv
+	PYTHONPATH=../../../flow_models python3 -m flow_models.summary histograms/size_b0.csv

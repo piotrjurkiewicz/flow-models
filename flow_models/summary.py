@@ -25,6 +25,7 @@ def summary(obj, x_val=None):
     print(stats_summary(data))
     print('\n')
     print(cdf_summary(data, x_val))
+    print('\n')
 
 def stats_summary(data):
     if isinstance(data, pd.DataFrame):
@@ -72,7 +73,7 @@ def cdf_summary(data, x_val):
             vals[what] = cdfi * 100
         s = ['\\begin{tabular}{lrrr}',
              '\\toprule',
-             '\\textbf{Flows of length up to} & \\multicolumn{3}{c}{\\textbf{Make up \\%}} \\\\',
+             '\\textbf{Flows of %s up to} & ' % x_val + '\\multicolumn{3}{c}{\\textbf{Make up \\%}} \\\\',
              '\\cmidrule(lr){2-4}',
              '\\multicolumn{1}{c}{(%s)} & ' % UNITS[x_val] + ' & '.join(Y_VALUES) + ' \\\\',
              '\\midrule']

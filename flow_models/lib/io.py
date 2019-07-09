@@ -73,9 +73,9 @@ def flow_append(flow, keys, vals):
 
 def read_flow_csv(in_file, key_fields=None, val_fields=None):
     """
-    Read and yield all flows in a flow_csv file/stream.
+    Read and yield all flows in a csv_flow file/stream.
 
-    :param os.PathLike | _io.IOWrapper in_file: flow_csv file or stream to read
+    :param os.PathLike | _io.IOWrapper in_file: csv_flow file or stream to read
     :param key_fields: read only these key fields, other can be zeros
     :param val_fields: read only these val fields, other can be zeros
 

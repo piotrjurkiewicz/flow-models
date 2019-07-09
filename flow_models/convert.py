@@ -5,7 +5,7 @@ import argparse
 from .lib.io import io_parser, IN_FORMATS, OUT_FORMATS
 from .lib.util import logmsg, prepare_file_list
 
-def convert(in_files, out_file, in_format='nfcapd', out_format='flow_csv'):
+def convert(in_files, out_file, in_format='nfcapd', out_format='csv_flow'):
     """
     Convert one flow format to another.
 

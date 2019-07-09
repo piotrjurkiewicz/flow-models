@@ -206,7 +206,7 @@ def fit(path, x_value, y_value, size_limit=None, max_iter=100, initial=None, max
     result_mix = fit_mix(x, mix, weights, max_iter=max_iter, max_pareto_w=max_pareto_w)
     print(to_json(result_mix))
 
-    mixtures = {}
+    mixtures = {y_value: {}}
     for ff in (path.parent.parent / 'mixtures' / x_value).glob('*.json'):
         mixtures[ff.stem] = json.load(open(str(ff)))
 
@@ -248,8 +248,10 @@ def main():
         new_mixtures = fit(app_args.file, app_args.x, app_args.y, app_args.s, app_args.i, initial=initial, max_pareto_w=app_args.mpw)
         if input('Save mixture to file?\n').startswith('y'):
             for key, val in new_mixtures.items():
-                (pathlib.Path(app_args.file).parent.parent / 'mixtures' / key / (app_args.y + '.json')).write_text(to_json(**val) + '\n')
-                (pathlib.Path(app_args.file).parent.parent / 'mixtures' / key / (app_args.y + '.mode')).write_text(json.dumps(vars(app_args)) + '\n')
+                directory = pathlib.Path(app_args.file).parent.parent / 'mixtures' / key
+                directory.mkdir(parents=True, exist_ok=True)
+                (directory / (app_args.y + '.json')).write_text(to_json(**val) + '\n')
+                (directory / (app_args.y + '.mode')).write_text(json.dumps(vars(app_args)) + '\n')
 
 
 if __name__ == '__main__':

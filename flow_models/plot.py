@@ -84,7 +84,7 @@ def plot(objects, x_val='length', ext='png', one=False, normalize=True, fft=Fals
             idx = np.unique(np.rint(np.geomspace(df.index.min(), df.index.max(), LINE_NBINS)).astype(int))
         for what in ['flows', 'packets', 'octets']:
             logmsg('Drawing CDF', obj, what)
-            plot_cdf(df, idx, what, mode={'mixture', *cdf_modes})
+            plot_cdf(df, idx, x_val, what, mode={'mixture', *cdf_modes})
     ax.set_xlabel(f'Flow {x_val} ({UNITS[x_val]})')
     ax.set_ylabel('CDFs')
     if not one:
@@ -102,7 +102,7 @@ def plot(objects, x_val='length', ext='png', one=False, normalize=True, fft=Fals
         plt.subplots_adjust(0, 0, 1, 1)
         for obj, df in data.items():
             logmsg('Drawing PDF', obj, what)
-            plot_pdf(df, idx, what, mode={'line', 'mixture', *pdf_modes}, normalize=normalize, fft=fft)
+            plot_pdf(df, idx, x_val, what, mode={'line', 'mixture', *pdf_modes}, normalize=normalize, fft=fft)
         ax.set_xlabel(f'Flow {x_val} ({UNITS[x_val]})')
         ax.set_ylabel(f'PDF of {what}')
         if not one:
@@ -123,7 +123,7 @@ def plot(objects, x_val='length', ext='png', one=False, normalize=True, fft=Fals
         fig, ax = plt.subplots(figsize=FIGSIZE)
         for obj, df in data.items():
             logmsg('Drawing AVG', obj, what)
-            plot_avg(df, idx, what, mode={'line', 'mixture', *avg_modes})
+            plot_avg(df, idx, x_val, what, mode={'line', 'mixture', *avg_modes})
         ax.set_xlabel(f'Flow {x_val} ({UNITS[x_val]})')
         ax.set_ylabel(f'Average {what} (bytes)')
         out = f'avg-{x_val}-{what}'

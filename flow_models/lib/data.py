@@ -7,7 +7,7 @@ import scipy.interpolate
 import scipy.stats
 
 from .kde import gaussian_kde
-from .mix import pdf, cdf, pdf_comp, cdf_comp
+from .mix import pdf, cdf, pdf_comp, cdf_comp, avg
 from .util import bin_calc_one, bin_calc_log, logmsg
 
 UNITS = {
@@ -105,8 +105,7 @@ def set_log_limits(xmin, xmax, ymin, ymax):
     plt.xlim(xmin * 10 ** (-xbuf), xmax * 10 ** xbuf)
     plt.ylim(ymin * 10 ** (-ybuf), ymax * 10 ** ybuf)
 
-def plot_mixture(data, idx, what, mode, fun):
-    # TODO: move to mix
+def plot_mixture(data, idx, x_val, what, mode, fun):
     if isinstance(data, dict):
         data = data.get(what)
         if data is None:
@@ -118,7 +117,7 @@ def plot_mixture(data, idx, what, mode, fun):
             fit = cdf(data, idx)
             label = what + ' mixture'
         if fun == 'pdf':
-            fit = pdf(data, idx)
+            fit = pdf(data, idx, x_val)
 
         plt.plot(idx, fit, 'k-', lw=1, ms=1, alpha=0.5, label=label)
 
@@ -127,7 +126,7 @@ def plot_mixture(data, idx, what, mode, fun):
         if fun == 'cdf':
             comp = cdf_comp(data, idx)
         if fun == 'pdf':
-            comp = pdf_comp(data, idx)
+            comp = pdf_comp(data, idx, x_val)
         for weight, dd in comp.items():
             plt.plot(idx, dd, '--', dashes=(20, 20), lw=0.1, label=str(weight) if 'comp_labels' in mode else None)
 
@@ -136,10 +135,10 @@ def plot_mixture(data, idx, what, mode, fun):
         if fun == 'cdf':
             comp = cdf_comp(data, idx)
         if fun == 'pdf':
-            comp = pdf_comp(data, idx)
+            comp = pdf_comp(data, idx, x_val)
         plt.stackplot(idx, *comp.values(), lw=0.1, labels=comp.keys() if 'comp_labels' in mode else None, alpha=0.5)
 
-def plot_pdf(data, idx=None, what='flows', mode=frozenset(['points', 'mixture']), normalize=True, fft=False):
+def plot_pdf(data, idx=None, x_val='length', what='flows', mode=frozenset(['points', 'mixture']), normalize=True, fft=False):
     kwargs = {'cmap': STYLE[what][1]}
 
     if isinstance(data, pd.DataFrame):
@@ -198,13 +197,13 @@ def plot_pdf(data, idx=None, what='flows', mode=frozenset(['points', 'mixture'])
         set_log_limits(xmin, xmax, ymin, ymax)
 
     else:
-        plot_mixture(data, idx, what, mode, 'pdf')
+        plot_mixture(data, idx, x_val, what, mode, 'pdf')
 
     plt.xscale('log')
     plt.yscale('log')
     plt.legend(frameon=False)
 
-def plot_cdf(data, idx=None, what='flows', mode=frozenset(['mixture'])):
+def plot_cdf(data, idx=None, x_val='length', what='flows', mode=frozenset(['mixture'])):
     if isinstance(data, pd.DataFrame):
 
         if idx is None:
@@ -216,12 +215,12 @@ def plot_cdf(data, idx=None, what='flows', mode=frozenset(['mixture'])):
                  label=what + ' data')
 
     else:
-        plot_mixture(data, idx, what, mode, 'cdf')
+        plot_mixture(data, idx, x_val, what, mode, 'cdf')
 
     plt.xscale('log')
     plt.legend(frameon=False)
 
-def calc_avg(data, idx, what):
+def avg_data(data, idx, what):
     avg_points = data[what + '_sum'] / data['flows_sum']
     scale = data[what + '_sum'].sum() / data['flows_sum'].sum()
     xmin, xmax, _, _ = calc_minmax(avg_points)
@@ -238,19 +237,14 @@ def calc_avg(data, idx, what):
 
     return avg_points, avg_line
 
-def calc_avg_mix(data, idx, what):
-    # TODO: move to mix
-    avg_mix = (data[what]['sum'] / data['flows']['sum']) * pdf(data[what], idx) / pdf(data['flows'], idx)
-    return avg_mix
-
-def plot_avg(data, idx=None, what='packets', mode=frozenset(['mixture'])):
+def plot_avg(data, idx=None, x_val='length', what='packets', mode=frozenset(['mixture'])):
     if isinstance(data, pd.DataFrame):
 
         if idx is None:
             idx = np.unique(np.rint(np.geomspace(data.index.min(), data.index.max(), LINE_NBINS)).astype(int))
 
         if what in ['packets', 'octets']:
-            avg_points, avg_line = calc_avg(data, idx, what)
+            avg_points, avg_line = avg_data(data, idx, what)
             color = 'g' if what == 'packets' else 'b'
             plt.xscale('log')
             plt.yscale('log')
@@ -260,21 +254,21 @@ def plot_avg(data, idx=None, what='packets', mode=frozenset(['mixture'])):
             else:
                 num = 'duration'
                 plt.yscale('log')
-            num_avg_points, num_avg_line = calc_avg(data, idx, num)
-            packets_avg_points, packets_avg_line = calc_avg(data, idx, 'packets')
+            num_avg_points, num_avg_line = avg_data(data, idx, num)
+            packets_avg_points, packets_avg_line = avg_data(data, idx, 'packets')
             avg_points = num_avg_points / packets_avg_points
             avg_line = num_avg_line / packets_avg_line
             color = 'm'
-            mn, avg, mx = avg_points.min(), data[num + '_sum'].sum() / data['packets_sum'].sum(), avg_points.max()
+            mn, me, mx = avg_points.min(), data[num + '_sum'].sum() / data['packets_sum'].sum(), avg_points.max()
             lab_x = 10 ** (np.log10(idx.max() - idx.min()) * 0.25 + np.log10(idx.min()))
             if what == 'packet_size':
                 plt.axhline(y=mn, alpha=0.1)
                 plt.text(lab_x, mn, f'min = {mn:.2f}', va='center', ha='center', backgroundcolor='w')
                 plt.ylim(0, 2000)
-            plt.axhline(y=avg, alpha=0.1)
-            plt.text(lab_x, avg, f'avg = {avg:.2f}', va='center', ha='center', backgroundcolor='w')
             plt.axhline(y=mx, alpha=0.1)
             plt.text(lab_x, mx, f'max = {mx:.2f}', va='center', ha='center', backgroundcolor='w')
+            plt.axhline(y=me, alpha=0.1)
+            plt.text(lab_x, me, f'avg = {me:.2f}', va='center', ha='center', backgroundcolor='w')
             plt.xscale('log')
         else:
             raise ValueError
@@ -288,26 +282,14 @@ def plot_avg(data, idx=None, what='packets', mode=frozenset(['mixture'])):
 
     elif 'mixture' in mode:
 
-        # TODO: move to mix
+        try:
+            avg_mix = avg(data, idx, x_val, what)
+        except KeyError:
+            return
+
+        plt.xscale('log')
         if what in ['packets', 'octets']:
-            avg_mix = calc_avg_mix(data, idx, what)
-            plt.xscale('log')
             plt.yscale('log')
-        elif what in ['packet_size', 'packet_iat']:
-            if what == 'packet_size':
-                num = 'octets'
-            else:
-                num = 'duration'
-                plt.yscale('log')
-            try:
-                num_avg_mix = calc_avg_mix(data, idx, num)
-            except KeyError:
-                return
-            packets_avg_mix = calc_avg_mix(data, idx, 'packets')
-            avg_mix = num_avg_mix / packets_avg_mix
-            plt.xscale('log')
-        else:
-            raise ValueError
 
         plt.plot(idx, avg_mix, 'k-', lw=2, ms=1, alpha=0.5,
                  label='infered from mixtures')
