@@ -2,6 +2,7 @@ import json
 
 import numpy as np
 import scipy.stats
+import scipy._lib._util
 
 def mask_values(x, x_val):
     # Due to numerical constrains PDF for large x values needs to
@@ -23,7 +24,8 @@ def rvs(mix, x_val, size=1, random_state=None):
     data = np.zeros((size, len(mix)))
     for n, (weight, dist, args) in enumerate(mix):
         data[:, n] = getattr(scipy.stats, dist).rvs(*args, size=size, random_state=random_state)
-    random_n = np.random.choice(np.arange(len(mix)), size=[size], p=weights)
+    rng = scipy._lib._util.check_random_state(random_state)
+    random_n = rng.choice(np.arange(len(mix)), size=[size], p=weights)
     sample = data[np.arange(size), random_n]
     if x_val in ['length', 'size']:
         sample = sample.astype(int) + 1
