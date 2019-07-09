@@ -12,6 +12,7 @@ setup(
         entry_points={
             'console_scripts': ['flow-models-convert=flow_models.convert:main',
                                 'flow-models-fit=flow_models.fit:main',
+                                'flow-models-generate=flow_models.generate:main',
                                 'flow-models-hist=flow_models.hist:main',
                                 'flow-models-hist_np=flow_models.hist_np:main',
                                 'flow-models-merge=flow_models.merge:main',

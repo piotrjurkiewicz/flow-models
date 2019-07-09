@@ -16,6 +16,7 @@ The framework currently includes the following tools:
 - `fit` -- creates General Mixture Models (GMMs) fitted to flow records (requires `scipy`)
 - `plot` -- generates plots from flow records and fitted models (requires `pandas` and `scipy`)
 - `summary` -- produces LaTeX tables containing summary statistics of flow records data (requires `scipy`)
+- `generate` -- generates flow records in supported output formats from histograms data or distribution mixtures
 
 Each tool is a separate Python program. Features provided by the tools are orthogonal and are tailored to be used together in data-processing pipelines.
 
