@@ -28,7 +28,7 @@ def rvs(mix, x_val, size=1, random_state=None):
     random_n = rng.choice(np.arange(len(mix)), size=[size], p=weights)
     sample = data[np.arange(size), random_n]
     if x_val in ['length', 'size']:
-        sample = sample.astype(int) + 1
+        sample = sample.astype('u8') + 1
         if x_val == 'size':
             sample[sample < 64] = 64
     return sample

@@ -1,7 +1,9 @@
 #!/usr/bin/python3
+
 import argparse
 import json
 import pathlib
+import random
 import sys
 
 import numpy as np
@@ -34,56 +36,64 @@ def load_data(obj):
     return data
 
 def generate_arrays(obj, size=1, x_val='length', random_state=None):
-
     data = load_data(obj)
 
     if isinstance(data, pd.DataFrame):
-        sample = data.sample(size, replace=True, weights='flows_sum', random_state=random_state)
+        if size:
+            sample = data.sample(size, replace=True, weights='flows_sum', random_state=random_state)
+            number = np.ones(len(sample), np.uint8)
+        else:
+            sample = data.iloc[::-1]
+            number = sample['flows_sum'].values
         packet_size = sample['octets_sum'] / sample['packets_sum']
         sample = sample.index.values
     else:
+        assert size
         sample = rvs(data['flows'], x_val, size, random_state=random_state)
+        number = np.ones(len(sample), np.uint8)
         packet_size = avg(data, sample, x_val, 'packet_size')
+        packet_size[packet_size < 64] = 64
+        packet_size[packet_size > 1522] = 1522
     if x_val == 'length':
         packets = sample
-        octets = np.rint(packets * packet_size).astype(int)
+        octets = packets * packet_size
     elif x_val == 'size':
         octets = sample
-        packets = np.rint(octets / packet_size).astype(int)
+        packets = octets / packet_size
     else:
         raise NotImplementedError
 
-    return packets, octets
+    return packets, octets, number
 
-def generate_flows(obj, size=1, x_val='length', random_state=None, batch=None):
-
+def generate_flows(obj, size=1, x_val='length', random_state=None):
     data = load_data(obj)
 
-    assert isinstance(size, int) and size > 0
-    if batch is None:
-        batch = size
-    else:
-        assert isinstance(batch, int) and batch > 0
+    assert isinstance(size, int) and size >= 0
+    rng = random.Random(random_state)
 
     key = 7 * (0, 0)
-    produced = 0
 
-    while True:
-        packets, octets = generate_arrays(data, batch, x_val, random_state)
-        for packets, octets in zip(packets, octets):
-            yield (key, 0, 0, 0, 0, 0, packets, octets, 0)
-            produced += 1
-            if produced == size:
-                break
-        break
+    packets, octets, number = generate_arrays(data, size, x_val, random_state)
+    for packets, octets, number in zip(packets, octets, number):
+        for _ in range(number):
+            if x_val == 'length':
+                pks = int(packets)
+                ocs = int(octets)
+                ocs = ocs if rng.random() + ocs >= octets else ocs + 1
+            elif x_val == 'size':
+                pks = int(packets)
+                pks = pks if rng.random() + pks >= packets else pks + 1
+                ocs = int(octets)
+            else:
+                raise NotImplementedError
+            yield (key, 0, 0, 0, 0, pks, ocs, 0)
 
-def generate(obj, out_file, size=1, x_val='length', random_state=None, batch=None, out_format='csv_flow'):
-
+def generate(obj, out_file, size=1, x_val='length', random_state=None, out_format='csv_flow'):
     writer = OUT_FORMATS[out_format]
     writer = writer(out_file)
     next(writer)
 
-    for flow in generate_flows(obj, size, x_val, random_state, batch):
+    for flow in generate_flows(obj, size, x_val, random_state):
         writer.send(flow)
 
     writer.close()
@@ -91,13 +101,14 @@ def generate(obj, out_file, size=1, x_val='length', random_state=None, batch=Non
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('-s', type=int, default=1, help='number of generated flows')
+    parser.add_argument('--seed', type=int, default=None, help='seed')
     parser.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
     parser.add_argument('-o', default='csv_flow', choices=OUT_FORMATS, help='format of output')
     parser.add_argument('-O', default=sys.stdout, help='file or directory for output')
     parser.add_argument('file', help='csv_hist file or mixture directory')
     app_args = parser.parse_args()
 
-    generate(app_args.file, app_args.O, app_args.s, app_args.x, out_format=app_args.o)
+    generate(app_args.file, app_args.O, app_args.s, app_args.x, app_args.seed, out_format=app_args.o)
 
 
 if __name__ == '__main__':
