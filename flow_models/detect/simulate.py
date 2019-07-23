@@ -70,13 +70,15 @@ def simulate_chunk(data, random_state, method, p, r):
 def simulate(obj, size=1, x_val='length', random_state=None, methods=tuple(METHODS), rounds=5):
     data = load_data(obj)
 
-    x = [1.0, 0.5, 0.2, 0.1,
+    x = [1.0,
+         0.5, 0.2, 0.1,
          0.05, 0.02, 0.01,
          0.005, 0.002, 0.001,
          0.0005, 0.0002, 0.0001,
          0.00005, 0.00002, 0.00001,
          0.000005, 0.000002, 0.000001,
-         0.0000005, 0.0000002, 0.0000001]
+         0.0000005, 0.0000002, 0.0000001,
+         0.00000005, 0.00000002, 0.00000001]
 
     running = [0]
     done = collections.defaultdict(int)
