@@ -18,19 +18,18 @@ from flow_models.generate import generate_flows, X_VALUES, load_data
 from flow_models.lib.util import logmsg
 
 METHODS = ['first', 'treshold', 'sampling']
-CHUNK_SIZE = 100000
+CHUNK_SIZE = 262144
 
-def chunker(iterator):
+def chunker(iterable):
     chunk = []
-    try:
-        while True:
-            for _ in range(CHUNK_SIZE):
-                flow = next(iterator)
-                chunk.append((flow[5], flow[6]))
+    for flow in iterable:
+        chunk.append((flow[5], flow[6]))
+        if len(chunk) == CHUNK_SIZE:
             yield pickle.dumps(chunk, protocol=pickle.HIGHEST_PROTOCOL)
             chunk.clear()
-    except StopIteration:
+    if len(chunk) > 0:
         yield pickle.dumps(chunk, protocol=pickle.HIGHEST_PROTOCOL)
+        del chunk
 
 def simulate_chunk(data, random_state, method, p, r):
     data = pickle.loads(data)
