@@ -175,6 +175,7 @@ def main():
     parser.add_argument('--rounds', type=int, default=10, help='rounds')
     parser.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
     parser.add_argument('-m', default='all', choices=METHODS, help='method')
+    parser.add_argument('--save', action='store_true', help='save to files')
     parser.add_argument('file', help='csv_hist file or mixture directory')
     app_args = parser.parse_args()
 
@@ -188,8 +189,9 @@ def main():
         print(method)
         print(dataframe.info())
         print(dataframe.to_string())
-        dataframe.to_csv(method + '.csv')
-        dataframe.to_pickle(method + '.df')
+        if app_args.save:
+            dataframe.to_csv(method + '.csv')
+            dataframe.to_pickle(method + '.df')
 
     logmsg('Finished')
 
