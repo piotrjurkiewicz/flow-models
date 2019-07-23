@@ -102,22 +102,24 @@ def simulate(obj, size=1, x_val='length', random_state=None, methods=tuple(METHO
                 raise
 
     with concurrent.futures.ProcessPoolExecutor() as executor:
-
-        for r in range(rounds):
-            for chunk in chunker(generate_flows(data, size, x_val, random_state)):
-                for p in x:
-                    for method in methods:
-                        fut = executor.submit(simulate_chunk, chunk, r, method, p, r)
-                        fut.add_done_callback(cb)
-                        with lock:
-                            running[0] += 1
-                            queued = running[0]
-                        if queued >= 4096:
-                            logmsg('Queued chunks', queued,
-                                   'Done flows', {k: int(v / len(x)) for k, v in done.items()})
-                            time.sleep(1)
-            if isinstance(random_state, int):
-                random_state += 1
+        try:
+            for r in range(rounds):
+                for chunk in chunker(generate_flows(data, size, x_val, random_state)):
+                    for p in x:
+                        for method in methods:
+                            fut = executor.submit(simulate_chunk, chunk, r, method, p, r)
+                            fut.add_done_callback(cb)
+                            with lock:
+                                running[0] += 1
+                                queued = running[0]
+                            if queued >= 16384:
+                                logmsg('Queued chunks', queued,
+                                       'Done flows', {k: int(v / len(x)) for k, v in done.items()})
+                                time.sleep(1)
+                if isinstance(random_state, int):
+                    random_state += 1
+        except KeyboardInterrupt:
+            pass
 
         while running[0] > 0:
             logmsg('Remaining chunks', running[0],
