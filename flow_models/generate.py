@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import argparse
+import itertools
 import json
 import pathlib
 import random
@@ -41,7 +42,7 @@ def generate_arrays(obj, size=1, x_val='length', random_state=None):
     if isinstance(data, pd.DataFrame):
         if size:
             sample = data.sample(size, replace=True, weights='flows_sum', random_state=random_state)
-            number = np.ones(len(sample), np.uint8)
+            number = None
         else:
             sample = data.iloc[::-1]
             number = sample['flows_sum'].values
@@ -50,7 +51,7 @@ def generate_arrays(obj, size=1, x_val='length', random_state=None):
     else:
         assert size
         sample = rvs(data['flows'], x_val, size, random_state=random_state)
-        number = np.ones(len(sample), np.uint8)
+        number = None
         packet_size = avg(data, sample, x_val, 'packet_size')
         packet_size[packet_size < 64] = 64
         packet_size[packet_size > 1522] = 1522
@@ -65,6 +66,16 @@ def generate_arrays(obj, size=1, x_val='length', random_state=None):
 
     return packets, octets, number
 
+def iterate_arrays(packets, octets, number):
+    if number is None:
+        yield from zip(packets, octets)
+    else:
+        for packets, octets, number in zip(packets, octets, number):
+            if number == 1:
+                yield packets, octets
+            else:
+                yield from itertools.repeat((packets, octets), number)
+
 def generate_flows(obj, size=1, x_val='length', random_state=None):
     data = load_data(obj)
 
@@ -74,19 +85,18 @@ def generate_flows(obj, size=1, x_val='length', random_state=None):
     key = 7 * (0, 0)
 
     packets, octets, number = generate_arrays(data, size, x_val, random_state)
-    for packets, octets, number in zip(packets, octets, number):
-        for _ in range(number):
-            if x_val == 'length':
-                pks = int(packets)
-                ocs = int(octets)
-                ocs = ocs if rng.random() + ocs >= octets else ocs + 1
-            elif x_val == 'size':
-                pks = int(packets)
-                pks = pks if rng.random() + pks >= packets else pks + 1
-                ocs = int(octets)
-            else:
-                raise NotImplementedError
-            yield (key, 0, 0, 0, 0, pks, ocs, 0)
+    for packets, octets in iterate_arrays(packets, octets, number):
+        if x_val == 'length':
+            pks = int(packets)
+            ocs = int(octets)
+            ocs = ocs if rng.random() + ocs >= octets else ocs + 1
+        elif x_val == 'size':
+            pks = int(packets)
+            pks = pks if rng.random() + pks >= packets else pks + 1
+            ocs = int(octets)
+        else:
+            raise NotImplementedError
+        yield (key, 0, 0, 0, 0, pks, ocs, 0)
 
 def generate(obj, out_file, size=1, x_val='length', random_state=None, out_format='csv_flow'):
     writer = OUT_FORMATS[out_format]
