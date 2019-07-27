@@ -5,6 +5,7 @@
 import argparse
 import collections
 import concurrent.futures
+import math
 import pickle
 import random
 import signal
@@ -35,10 +36,15 @@ def chunker(iterable):
         yield pickle.dumps(chunk, protocol=pickle.HIGHEST_PROTOCOL)
         del chunk
 
-def simulate_chunk(data, random_state, method, p, r):
+def simulate_chunk(data, x_val, random_state, method, p, r):
     data = pickle.loads(data)
     rng = random.Random(random_state)
-    p = p if method == 'sampling' else int(round(1 / p))
+    if method == 'sampling':
+        p = p
+    else:
+        p = int(round(1 / p))
+        if x_val == 'size':
+            p *= 64
     flows_all = 0
     packets_all = 0
     octets_all = 0
@@ -46,19 +52,25 @@ def simulate_chunk(data, random_state, method, p, r):
     packets_covered = 0
     portion_covered = 0
     octets_covered = 0
+    packet_size = 1
+    min_packet_size = 1
     for packets, octets in data:
         flows_all += 1
         packets_all += packets
         octets_all += octets
         add_on_packet = packets
+        if x_val == 'size':
+            packet_size = octets / packets
+            min_packet_size = 64
         if method == 'first':
-            if packets > p:
+            if packets > (p if x_val == 'length' else p / packet_size):
                 add_on_packet = 0
         elif method == 'threshold':
-            add_on_packet = p
+            add_on_packet = p if x_val == 'length' else int(math.ceil(p / packet_size))
         else:
-            for pkt_n in range(0, packets):
-                if rng.random() < p:
+            p_scaled = p if x_val == 'length' else p * (packet_size / min_packet_size)
+            for pkt_n in range(packets):
+                if rng.random() < p_scaled:
                     add_on_packet = pkt_n
                     break
         if add_on_packet < packets:
@@ -111,7 +123,7 @@ def simulate(obj, size=1, x_val='length', random_state=None, methods=tuple(METHO
                 for chunk in chunker(generate_flows(data, size, x_val, random_state)):
                     for p in x:
                         for method in methods:
-                            fut = executor.submit(simulate_chunk, chunk, r, method, p, r)
+                            fut = executor.submit(simulate_chunk, chunk, x_val, r, method, p, r)
                             fut.add_done_callback(cb)
                             with lock:
                                 running[0] += 1
@@ -134,7 +146,13 @@ def simulate(obj, size=1, x_val='length', random_state=None, methods=tuple(METHO
 
     for method in methods:
 
-        ps = x if method == 'sampling' else [int(round(1 / p)) for p in x]
+        if method == 'sampling':
+            ps = x
+        else:
+            ps = [int(round(1 / p)) for p in x]
+            if x_val == 'size':
+                ps = [p * 64 for p in ps]
+
         fl = collections.defaultdict(list)
         pa = collections.defaultdict(list)
         po = collections.defaultdict(list)
