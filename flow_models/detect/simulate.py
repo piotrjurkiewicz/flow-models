@@ -128,7 +128,7 @@ def simulate(obj, size=1, x_val='length', random_state=None, methods=tuple(METHO
                             with lock:
                                 running[0] += 1
                                 queued = running[0]
-                            if queued >= 16384:
+                            if queued >= 32768:
                                 logmsg('Queued chunks', queued,
                                        'Done flows', {k: int(v / len(x)) for k, v in done.items()})
                                 time.sleep(1)
@@ -194,7 +194,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('-s', type=int, default=1000000, help='number of generated flows')
     parser.add_argument('--seed', type=int, default=None, help='seed')
-    parser.add_argument('--rounds', type=int, default=10, help='rounds')
+    parser.add_argument('-r', type=int, default=10, help='rounds')
     parser.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
     parser.add_argument('-m', default='all', choices=METHODS, help='method')
     parser.add_argument('--save', action='store_true', help='save to files')
@@ -206,7 +206,7 @@ def main():
     else:
         methods = [app_args.m]
 
-    resdic = simulate(app_args.file, app_args.s, app_args.x, app_args.seed, methods, app_args.rounds)
+    resdic = simulate(app_args.file, app_args.s, app_args.x, app_args.seed, methods, app_args.r)
     for method, dataframe in resdic.items():
         print(method)
         print(dataframe.info())
