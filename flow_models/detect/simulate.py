@@ -17,7 +17,7 @@ import scipy.stats
 from flow_models.generate import generate_flows, X_VALUES, load_data
 from flow_models.lib.util import logmsg
 
-METHODS = ['first', 'treshold', 'sampling']
+METHODS = ['first', 'threshold', 'sampling']
 CHUNK_SIZE = 262144
 
 def chunker(iterable):
@@ -50,7 +50,7 @@ def simulate_chunk(data, random_state, method, p, r):
         if method == 'first':
             if packets > p:
                 add_on_packet = 0
-        elif method == 'treshold':
+        elif method == 'threshold':
             add_on_packet = p
         else:
             for pkt_n in range(0, packets):

@@ -11,7 +11,7 @@ from flow_models.generate import X_VALUES, load_data
 from flow_models.lib import mix
 from flow_models.lib.util import logmsg
 
-METHODS = ['first', 'treshold', 'sampling']
+METHODS = ['first', 'threshold', 'sampling']
 INTEGRATE_STEPS = 4194304
 
 def calculate_data(data, x_probs, method):
@@ -28,7 +28,7 @@ def calculate_data(data, x_probs, method):
             cdf = scipy.interpolate.interp1d(cdf.index, cdf, 'previous', bounds_error=False)(x)
             ad[what + '_mean'] = 1 - cdf
 
-    elif method == 'treshold':
+    elif method == 'threshold':
 
         for what in ['flows', 'packets', 'portion', 'octets']:
             w = 'flows' if what == 'portion' else what
@@ -75,7 +75,7 @@ def calculate_mix(data, x_probs, method):
             cdf = mix.cdf(data[w], x)
             ad[what + '_mean'] = 1 - cdf
 
-    elif method == 'treshold':
+    elif method == 'threshold':
 
         for what in ['flows', 'packets', 'portion', 'octets']:
             w = 'flows' if what == 'portion' else what
