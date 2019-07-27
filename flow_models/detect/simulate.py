@@ -7,6 +7,7 @@ import collections
 import concurrent.futures
 import pickle
 import random
+import signal
 import threading
 import time
 
@@ -19,6 +20,9 @@ from flow_models.lib.util import logmsg
 
 METHODS = ['first', 'threshold', 'sampling']
 CHUNK_SIZE = 262144
+
+def init_worker():
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 def chunker(iterable):
     chunk = []
@@ -101,7 +105,7 @@ def simulate(obj, size=1, x_val='length', random_state=None, methods=tuple(METHO
                 logmsg('Exception', exc)
                 raise
 
-    with concurrent.futures.ProcessPoolExecutor() as executor:
+    with concurrent.futures.ProcessPoolExecutor(initializer=init_worker) as executor:
         try:
             for r in range(rounds):
                 for chunk in chunker(generate_flows(data, size, x_val, random_state)):
