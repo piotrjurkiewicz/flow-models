@@ -21,16 +21,17 @@ def rvs(mix, x_val, size=1, random_state=None):
         mix = mix['mix']
     weights = np.array([mx[0] for mx in mix])
     weights /= weights.sum()  # in case these did not add up to 1
-    data = np.zeros((size, len(mix)))
-    for n, (weight, dist, args) in enumerate(mix):
-        data[:, n] = getattr(scipy.stats, dist).rvs(*args, size=size, random_state=random_state)
+    sample = np.zeros(size)
     rng = scipy._lib._util.check_random_state(random_state)
-    random_n = rng.choice(np.arange(len(mix)), size=[size], p=weights)
-    sample = data[np.arange(size), random_n]
+    random_n = rng.choice(np.arange(len(mix)), size=size, p=weights)
+    for n, (weight, dist, args) in enumerate(mix):
+        mask = random_n == n
+        data = getattr(scipy.stats, dist).rvs(*args, size=np.count_nonzero(mask), random_state=random_state)
+        sample[mask] = data
     if x_val in ['length', 'size']:
         sample = sample.astype('u8') + 1
         if x_val == 'size':
-            sample[sample < 64] = 64
+            np.clip(sample, 64, None, out=sample)
     return sample
 
 def cdf(mix, x):
