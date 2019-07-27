@@ -95,7 +95,7 @@ Such a storage schema has several advantages:
 
 Example:
 
-    agh_201506/
+    agh_2015/
     └── day-01
         ├── _af.B            ─┐
         ├── _da0.I            │
@@ -142,7 +142,7 @@ The framework user can specify a parameter *b*, which is a power-of-two defining
 
 The `data` directory contains histogram CSV files, fitted mixture models and plots. It does not include full flow records.
 
-### agh_201506
+### agh_2015
 
 P. Jurkiewicz, G. Rzym and P. Boryło, "How Many Mice Make an Elephant? Modelling Flow Length and Size Distribution of Internet Traffic", arXiv:1809.03486, 2018. Available: http://arxiv.org/abs/1809.03486
 
@@ -153,7 +153,7 @@ In the case of rest of the university, downstream traffic made up 73% of the tot
 
 | Parameter | Value | Unit |
 | - | -: | -: |
-| Dataset name| agh_201506 | |
+| Dataset name| agh_2015 | |
 | Exporter | Cisco router | |
 | L2 technology | Ethernet | |
 | Sampling rate | none | |

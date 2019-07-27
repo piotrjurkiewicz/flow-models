@@ -1,4 +1,4 @@
-# agh_201506
+# agh_2015
 
 P. Jurkiewicz, G. Rzym and P. Boryło, "How Many Mice Make an Elephant? Modelling Flow Length and Size Distribution of Internet Traffic", arXiv:1809.03486, 2018. Available: http://arxiv.org/abs/1809.03486
 
@@ -11,7 +11,7 @@ In order to reproduce all steps towards fitting this model, please follow the [M
 
 | Parameter | Value | Unit |
 | - | -: | -: |
-| Dataset name| agh_201506 | |
+| Dataset name| agh_2015 | |
 | Exporter | Cisco router | |
 | L2 technology | Ethernet | |
 | Sampling rate | none | |
