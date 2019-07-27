@@ -11,10 +11,11 @@ def mask_values(x, x_val):
     if x_val == 'size':
         x_min = 64
     mask = x < 1024
-    masked_x = x[mask]
-    previous_x = masked_x - 1.0
-    previous_x[masked_x == x_min] = 0.0
-    return mask, masked_x, previous_x
+    mu, mui = np.unique(x[mask], return_inverse=True)
+    pu = mu - 1.0
+    pu[mu == x_min] = 0.0
+    nu, nui = np.unique(x[~mask], return_inverse=True)
+    return mask, mu, pu, mui, nu, nui
 
 def rvs(mix, x_val, size=1, random_state=None):
     if isinstance(mix, dict):
@@ -50,11 +51,11 @@ def pdf(mix, x, x_val):
     weights = np.array([mx[0] for mx in mix])
     weights /= weights.sum()  # in case these did not add up to 1
     data = np.zeros(len(x))
-    mask, masked_x, previous_x = mask_values(x, x_val)
+    mask, mu, pu, mui, nu, nui = mask_values(x, x_val)
     for n, (weight, name, args) in enumerate(mix):
         dist = getattr(scipy.stats, name)
-        data[mask] += weights[n] * (dist.cdf(masked_x, *args) - dist.cdf(previous_x, *args))
-        data[~mask] += weights[n] * dist.pdf(x[~mask], *args)
+        data[mask] += weights[n] * (dist.cdf(mu, *args) - dist.cdf(pu, *args))[mui]
+        data[~mask] += weights[n] * dist.pdf(nu, *args)[nui]
     return data
 
 def cdf_comp(mix, x):
@@ -73,12 +74,12 @@ def pdf_comp(mix, x, x_val):
     weights = np.array([mx[0] for mx in mix])
     weights /= weights.sum()  # in case these did not add up to 1
     components = {}
-    mask, masked_x, previous_x = mask_values(x, x_val)
+    mask, mu, pu, mui, nu, nui = mask_values(x, x_val)
     for n, (weight, name, args) in enumerate(mix):
         data = np.zeros(len(x))
         dist = getattr(scipy.stats, name)
-        data[mask] = dist.cdf(masked_x, *args) - dist.cdf(previous_x, *args)
-        data[~mask] = dist.pdf(x[~mask], *args)
+        data[mask] = dist.cdf(mu, *args) - dist.cdf(pu, *args)[mui]
+        data[~mask] = dist.pdf(nu, *args)[nui]
         data *= weights[n]
         components[f'{weight} {name} {args}'] = data
     return components
