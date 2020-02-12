@@ -48,19 +48,21 @@ def generate_arrays(obj, size=1, x_val='length', random_state=None):
             number = sample['flows_sum'].values
         packet_size = sample['octets_sum'] / sample['packets_sum']
         sample = sample.index.values
+        packet_size = packet_size.values
     else:
         assert size
         sample = rvs(data['flows'], x_val, size, random_state=random_state)
         number = None
         packet_size = avg(data, sample, x_val, 'packet_size')
-        packet_size[packet_size < 64] = 64
-        packet_size[packet_size > 1522] = 1522
     if x_val == 'length':
+        np.clip(packet_size, 64, 1522, out=packet_size)
         packets = sample
         octets = packets * packet_size
     elif x_val == 'size':
         octets = sample
         packets = octets / packet_size
+        np.trunc(packets, out=packets, where=octets / np.ceil(packets) < 64)
+        np.clip(packets, 1, None, out=packets)
     else:
         raise NotImplementedError
 
@@ -96,7 +98,7 @@ def generate_flows(obj, size=1, x_val='length', random_state=None):
             ocs = int(octets)
         else:
             raise NotImplementedError
-        yield (key, 0, 0, 0, 0, pks, ocs, 0)
+        yield key, 0, 0, 0, 0, pks, ocs, 0
 
 def generate(obj, out_file, size=1, x_val='length', random_state=None, out_format='csv_flow'):
     writer = OUT_FORMATS[out_format]
