@@ -12,11 +12,13 @@ from flow_models.lib import mix
 from flow_models.lib.util import logmsg
 
 METHODS = ['first', 'threshold', 'sampling']
-INTEGRATE_STEPS = 4194304
+INTEGRATE_STEPS = 262144
 
-def calculate_data(data, x_probs, method):
+def calculate_data(data, x_probs, x_val, method):
     ad = {}
-    x = np.unique(np.rint(1 / x_probs)).astype(int)
+    x = np.unique(np.rint(1 / x_probs)).astype('u8')
+    if x_val == 'size':
+        x *= 64
     idx = data.index.values
     idx_diff = np.concatenate([idx[:1], np.diff(idx)])
 
@@ -37,13 +39,17 @@ def calculate_data(data, x_probs, method):
                 cdf = 1 - toc.cumsum() / data[w + '_sum'].sum()
                 ad[what + '_mean'] = scipy.interpolate.interp1d(cdf.index, cdf, 'previous', bounds_error=False)(x)
             else:
+                # psz = data['octets_sum'] / data['packets_sum']
+                # toc = (data[w + '_sum'] / (idx - 63))[::-1].cumsum()[::-1] * np.concatenate([[1.0], np.diff(idx - 63)])
                 toc = (data[w + '_sum'] / idx)[::-1].cumsum()[::-1] * idx_diff
                 cdf = 1 - toc.cumsum() / data[w + '_sum'].sum()
                 ad[what + '_mean'] = scipy.interpolate.interp1d(cdf.index, cdf, 'linear', bounds_error=False)(x)
 
     else:
 
-        pp = (1 - x_probs) ** idx[:, np.newaxis]
+        ps = []
+        for p in x_probs:
+            ps.append((1 - p) ** idx)
 
         for what in ['flows', 'packets', 'portion', 'octets']:
             w = 'flows' if what == 'portion' else what
@@ -51,8 +57,11 @@ def calculate_data(data, x_probs, method):
                 toc = data[w + '_sum']
             else:
                 toc = (data[w + '_sum'] / idx)[::-1].cumsum()[::-1] * idx_diff
-            cdf = 1 - (pp * toc[:, np.newaxis]).sum(axis=0) / data[w + '_sum'].sum()
-            ad[what + '_mean'] = np.array(cdf)
+            a = []
+            for p in ps:
+                cdf = 1 - (p * toc).sum() / data[w + '_sum'].sum()
+                a.append(cdf)
+            ad[what + '_mean'] = np.array(a)
 
     ad['add_mean'] = 1 / ad['flows_mean']
     ad['avs_mean'] = 1 / ad['portion_mean']
@@ -61,11 +70,13 @@ def calculate_data(data, x_probs, method):
 
     return pd.DataFrame(ad, x_probs if method == 'sampling' else x)
 
-def calculate_mix(data, x_probs, method):
+def calculate_mix(data, x_probs, x_val, method):
     ad = {}
-    x = np.unique(np.rint(1 / x_probs)).astype(int)
+    x = np.unique(np.rint(1 / x_probs)).astype('u8')
+    if x_val == 'size':
+        x *= 64
     idx = np.geomspace(x.min(), x.max(), INTEGRATE_STEPS)
-    idx = np.unique(np.rint(idx)).astype(int)
+    idx = np.unique(np.rint(idx)).astype('u8')
     idx_diff = np.concatenate([idx[:1], np.diff(idx)])
 
     if method == 'first':
@@ -91,7 +102,16 @@ def calculate_mix(data, x_probs, method):
 
     else:
 
-        pp = (1 - x_probs) ** idx[:, np.newaxis]
+        ps = []
+        if x_val == 'length':
+            for p in x_probs:
+                ps.append((1 - p) ** idx)
+        else:
+            packet_size = (mix.cdf(data['octets'], idx) / mix.cdf(data['packets'], idx)) * 871
+            pks = np.clip(idx / packet_size, 1, np.trunc(idx / 64))
+            packet_size[:64] = idx[:64]
+            for p in x_probs:
+                ps.append((1 - np.clip(p * packet_size / 64, 0, 1)) ** (pks if x_val == 'size' else idx))
 
         for what in ['flows', 'packets', 'portion', 'octets']:
             w = 'flows' if what == 'portion' else what
@@ -101,8 +121,14 @@ def calculate_mix(data, x_probs, method):
                 toc = pdf
             else:
                 toc = (pdf / idx)[::-1].cumsum()[::-1] * idx_diff
-            cdf = 1 - (pp * toc[:, np.newaxis]).sum(axis=0)
-            ad[what + '_mean'] = np.array(cdf)
+                if x_val != 'length':
+                    toc[64] += np.sum(toc[:64])
+                    toc[:64] = 0
+            a = []
+            for p in ps:
+                cdf = 1 - (p * toc).sum()
+                a.append(cdf)
+            ad[what + '_mean'] = np.array(a)
 
     ad['add_mean'] = 1 / ad['flows_mean']
     ad['avs_mean'] = 1 / ad['portion_mean']
@@ -132,9 +158,9 @@ def calculate(obj, index=None, x_val='length', methods=tuple(METHODS)):
     dataframes = {}
     for method in methods:
         if isinstance(data, pd.DataFrame):
-            df = calculate_data(data, np.array(index), method)
+            df = calculate_data(data, np.array(index), x_val, method)
         else:
-            df = calculate_mix(data, np.array(index), method)
+            df = calculate_mix(data, np.array(index), x_val, method)
         dataframes[method] = df
 
     return dataframes
@@ -156,11 +182,13 @@ def main():
     resdic = calculate(app_args.file, app_args.s, app_args.x, methods)
     for method, dataframe in resdic.items():
         print(method)
-        print(dataframe.info())
-        print(dataframe.to_string())
+        # print(dataframe.info())
+        # print(dataframe.to_string())
+        print(dataframe.to_latex(float_format=lambda x: '%.2f' % x))
         if app_args.save:
             dataframe.to_csv(method + '.csv')
             dataframe.to_pickle(method + '.df')
+
 
     logmsg('Finished')
 

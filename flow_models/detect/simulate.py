@@ -66,7 +66,7 @@ def simulate_chunk(data, x_val, random_state, method, p, r):
             if packets > (p if x_val == 'length' else p / packet_size):
                 add_on_packet = 0
         elif method == 'threshold':
-            add_on_packet = p if x_val == 'length' else int(math.ceil(p / packet_size))
+            add_on_packet = p if x_val == 'length' else p / packet_size
         else:
             p_scaled = p if x_val == 'length' else p * (packet_size / min_packet_size)
             for pkt_n in range(packets):
@@ -196,7 +196,7 @@ def main():
     parser.add_argument('--seed', type=int, default=None, help='seed')
     parser.add_argument('-r', type=int, default=10, help='rounds')
     parser.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
-    parser.add_argument('-m', default='all', choices=METHODS, help='method')
+    parser.add_argument('-m', default='sampling', choices=METHODS, help='method')
     parser.add_argument('--save', action='store_true', help='save to files')
     parser.add_argument('file', help='csv_hist file or mixture directory')
     app_args = parser.parse_args()
