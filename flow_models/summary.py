@@ -29,7 +29,7 @@ def summary(obj, x_val=None):
 
 def stats_summary(data):
     if isinstance(data, pd.DataFrame):
-        s = ['\\begin{tabular}{lrr}',
+        s = ['\\begin{tabular}{@{}lrr@{}}',
              '\\toprule',
              '\\textbf{Dataset name} & XXX & \\\\',
              '\\textbf{Exporter} & XXX & \\\\',
@@ -61,21 +61,24 @@ def cdf_summary(data, x_val):
     if isinstance(data, pd.DataFrame):
         if not x_val:
             x_val = detect_x_value(data.index)
+        points = np.power(2, range(25))
         if x_val == 'length':
-            points = [1, 2, 4, 8, 10, 100, 1000, 10000, 100000, 1000000]
+            pass
+        elif x_val == 'size':
+            points *= 64
         else:
-            points = [64, 128, 256, 512, 1024, 1500, 4096, 10000, 100000, 1000000,
-                      10000000, 100000000, 1000000000]
+            raise NotImplementedError
+
         vals = {}
         for what in Y_VALUES:
             cdf = data[what + '_sum'].cumsum() / data[what + '_sum'].sum()
             cdfi = scipy.interpolate.interp1d(cdf.index, cdf, 'linear', bounds_error=False)(np.array(points))
             vals[what] = cdfi * 100
-        s = ['\\begin{tabular}{lrrr}',
+        s = ['\\begin{tabular}{@{}lrrr@{}}',
              '\\toprule',
              '\\textbf{Flows of %s up to} & ' % x_val + '\\multicolumn{3}{c}{\\textbf{Make up \\%}} \\\\',
              '\\cmidrule(lr){2-4}',
-             '\\multicolumn{1}{c}{(%s)} & ' % UNITS[x_val] + ' & '.join(Y_VALUES) + ' \\\\',
+             '\\multicolumn{1}{c}{(%s)} & of ' % UNITS[x_val] + ' & of '.join(Y_VALUES) + ' \\\\',
              '\\midrule']
         for n in range(len(points)):
             s.append(f'{points[n]} & ' + ' & '.join(f'{vals[what][n]:.4f}' for what in Y_VALUES) + ' \\\\')
