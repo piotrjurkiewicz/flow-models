@@ -25,7 +25,7 @@ class FlowBin:
     def to_line(self, fields):
         return ','.join(str(int(getattr(self, c))) for c in fields)
 
-def histogram(in_files, out_file, in_format='nfcapd', out_format='csv_hist', bin_exp=0, x_value='length', additional_columns=()):
+def histogram(in_files, out_file, in_format='nfcapd', out_format='csv_hist', bin_exp=0, x_value='length', additional_columns=(), prot=None):
 
     if bin_exp == 0:
         bin_calc_fn = bin_calc_one
@@ -51,9 +51,15 @@ def histogram(in_files, out_file, in_format='nfcapd', out_format='csv_hist', bin
     if 'aggs' in additional_columns:
         val_fields += ['aggs']
 
+    key_fields = []
+    if prot:
+        key_fields.append('prot')
+
     try:
         for file in in_files:
-            for key, first, first_ms, last, last_ms, packets, octets, aggs in reader(file, key_fields=[], val_fields=val_fields):
+            for key, first, first_ms, last, last_ms, packets, octets, aggs in reader(file, key_fields=key_fields, val_fields=val_fields):
+                if prot and key[1] != prot:
+                    continue
                 duration = 0 if packets == 1 else (last - first) * 1000 + last_ms - first_ms
                 rate = 0 if duration == 0 else (8000 * octets) / duration
                 bin_lo, bin_hi = bin_calc(packets, octets, duration, rate)
@@ -94,6 +100,7 @@ def main():
     parser.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
     parser.add_argument('-b', default=0, type=int, help='bin width exponent of 2')
     parser.add_argument('-c', action='append', default=[], help='additional column to sum')
+    parser.add_argument('--prot')
     app_args = parser.parse_args()
 
     if app_args.i == 'binary':
@@ -101,7 +108,12 @@ def main():
     else:
         input_files = prepare_file_list(app_args.files)
 
-    histogram(input_files, app_args.O, app_args.i, app_args.o, app_args.b, app_args.x, app_args.c)
+    if app_args.prot:
+        prot = {'all': None, 'tcp': 6, 'udp': 17}[app_args.prot]
+    else:
+        prot = None
+
+    histogram(input_files, app_args.O, app_args.i, app_args.o, app_args.b, app_args.x, app_args.c, prot)
 
 
 if __name__ == '__main__':
