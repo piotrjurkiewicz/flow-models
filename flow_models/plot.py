@@ -1,14 +1,15 @@
 #!/usr/bin/python3
 import argparse
-import json
-import pathlib
 
 import matplotlib
+
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 
-from .lib.data import plot_pdf, plot_cdf, UNITS, LINE_NBINS, plot_avg
+from .lib.data import UNITS, LINE_NBINS, load_data
+from .lib.plot import plot_pdf, plot_cdf, plot_avg
 from .lib.util import logmsg
 
 X_VALUES = ['length', 'size', 'duration', 'rate']
@@ -38,6 +39,8 @@ matplotlib.rcParams['pdf.use14corefonts'] = True
 matplotlib.rcParams['font.family'] = 'sans'
 
 # matplotlib.rcParams['text.usetex'] = True
+# matplotlib.rcParams['font.family'] = 'sans-serif'
+
 # matplotlib.rcParams['mathtext.fontset'] = 'stix'
 # matplotlib.rcParams['font.family'] = 'STIXGeneral'
 #
@@ -48,29 +51,11 @@ matplotlib.rcParams['font.family'] = 'sans'
 def save_figure(figure, fname, ext='png', **kwargs):
     figure.savefig(fname + f'.{ext}', bbox_inches='tight', metadata=PDF_NONE_METADATA, **kwargs)
 
-def plot(objects, x_val='length', ext='png', one=False, normalize=True, fft=False, cdf_modes=(), pdf_modes=(), avg_modes=()):
-    data = {}
-    for obj in objects:
-        if isinstance(obj, (str, pathlib.Path)):
-            file = pathlib.Path(obj)
-            logmsg(f'Loading file {file}')
-            if file.suffix == '.json':
-                data[file] = json.load(open(file))
-            elif file.is_dir():
-                mixtures = {}
-                for ff in file.glob('*.json'):
-                    mixtures[ff.stem] = json.load(open(str(ff)))
-                data[file] = mixtures
-            else:
-                data[file] = pd.read_csv(file, index_col=0, sep=',', low_memory=False,
-                                         usecols=lambda col: not col.endswith('_ssq'))
-            logmsg(f'Loaded file {file}')
-        else:
-            data[id(obj)] = obj
-
+def plot(objects, x_val='length', ext='png', single=False, normalize=True, fft=False, cdf_modes=(), pdf_modes=(), avg_modes=()):
+    data = load_data(objects)
     idx = None
 
-    if one:
+    if single:
         fig = plt.figure(figsize=[FIGSIZE[0] * 2.132, FIGSIZE[1] * 2])
         ax = plt.subplot(2, 2, 1)
     else:
@@ -86,16 +71,16 @@ def plot(objects, x_val='length', ext='png', one=False, normalize=True, fft=Fals
             logmsg('Drawing CDF', obj, what)
             plot_cdf(df, idx, x_val, what, mode={'mixture', *cdf_modes})
     ax.set_xlabel(f'Flow {x_val} ({UNITS[x_val]})')
-    ax.set_ylabel('CDFs')
-    if not one:
-        out = f'cdf-{x_val}'
+    ax.set_ylabel('CDF')
+    if not single:
+        out = 'cdf'
         logmsg('Saving', out)
         save_figure(fig, out, ext=ext)
         plt.close(fig)
         logmsg('Done', out)
 
     for n, what in enumerate(['flows', 'packets', 'octets']):
-        if one:
+        if single:
             ax = plt.subplot(2, 2, n + 2, sharex=ax)
         else:
             fig, ax = plt.subplots(figsize=FIGSIZE)
@@ -105,15 +90,15 @@ def plot(objects, x_val='length', ext='png', one=False, normalize=True, fft=Fals
             plot_pdf(df, idx, x_val, what, mode={'line', 'mixture', *pdf_modes}, normalize=normalize, fft=fft)
         ax.set_xlabel(f'Flow {x_val} ({UNITS[x_val]})')
         ax.set_ylabel(f'PDF of {what}')
-        if not one:
-            out = f'pdf-{x_val}-{what}'
+        if not single:
+            out = f'pdf-{what}'
             logmsg('Saving', out)
             save_figure(fig, out, ext=ext)
             plt.close(fig)
             logmsg('Done', out)
 
-    if one:
-        out = f'one-{x_val}'
+    if single:
+        out = 'single'
         logmsg('Saving', out)
         save_figure(fig, out, ext=ext)
         plt.close(fig)
@@ -126,7 +111,7 @@ def plot(objects, x_val='length', ext='png', one=False, normalize=True, fft=Fals
             plot_avg(df, idx, x_val, what, mode={'line', 'mixture', *avg_modes})
         ax.set_xlabel(f'Flow {x_val} ({UNITS[x_val]})')
         ax.set_ylabel(f'Average {what} (bytes)')
-        out = f'avg-{x_val}-{what}'
+        out = f'avg-{what}'
         logmsg('Saving', out)
         save_figure(fig, out, ext=ext)
         plt.close(fig)
@@ -135,7 +120,7 @@ def plot(objects, x_val='length', ext='png', one=False, normalize=True, fft=Fals
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--format', default='png', help='plot file format')
-    parser.add_argument('--one', action='store_true', help='plot PDF and CDF in one file')
+    parser.add_argument('--single', action='store_true', help='plot PDF and CDF in single file')
     parser.add_argument('--no-normalize', action='store_false', help='do not normalize PDF datapoints')
     parser.add_argument('--fft', action='store_true', help='use FFT for calculating KDE')
     parser.add_argument('-C', nargs='*', default=(), help='additional CDF plot modes')
@@ -144,7 +129,7 @@ def main():
     parser.add_argument('files', nargs='+', help='csv_hist files to plot')
     app_args = parser.parse_args()
 
-    plot(app_args.files, app_args.x, app_args.format, app_args.one, app_args.no_normalize, app_args.fft,
+    plot(app_args.files, app_args.x, app_args.format, app_args.single, app_args.no_normalize, app_args.fft,
          app_args.C, app_args.P)
 
 
