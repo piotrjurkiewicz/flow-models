@@ -1,11 +1,10 @@
 #!/usr/bin/python3
-
 import argparse
 
 import numpy as np
 import pandas as pd
-import scipy.stats
 import scipy.interpolate
+import scipy.stats
 
 from flow_models.generate import X_VALUES, load_data
 from flow_models.lib import mix
@@ -63,8 +62,8 @@ def calculate_data(data, x_probs, x_val, method):
                 a.append(cdf)
             ad[what + '_mean'] = np.array(a)
 
-    ad['add_mean'] = 1 / ad['flows_mean']
-    ad['avs_mean'] = 1 / ad['portion_mean']
+    ad['operations_mean'] = 1 / ad['flows_mean']
+    ad['occupancy_mean'] = 1 / ad['portion_mean']
     for what in ['flows', 'packets', 'portion', 'octets']:
         ad[what + '_mean'] *= 100
 
@@ -130,8 +129,8 @@ def calculate_mix(data, x_probs, x_val, method):
                 a.append(cdf)
             ad[what + '_mean'] = np.array(a)
 
-    ad['add_mean'] = 1 / ad['flows_mean']
-    ad['avs_mean'] = 1 / ad['portion_mean']
+    ad['operations_mean'] = 1 / ad['flows_mean']
+    ad['occupancy_mean'] = 1 / ad['portion_mean']
     for what in ['flows', 'packets', 'portion', 'octets']:
         ad[what + '_mean'] *= 100
 

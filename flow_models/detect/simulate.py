@@ -173,8 +173,8 @@ def simulate(obj, size=1, x_val='length', random_state=None, methods=tuple(METHO
                 'packets': 100 * np.array(pa[p]),
                 'portion': 100 * np.array(po[p]),
                 'octets': 100 * np.array(oc[p]),
-                'add': np.reciprocal(fl[p]),
-                'avs': np.reciprocal(po[p])
+                'operations': np.reciprocal(fl[p]),
+                'occupancy': np.reciprocal(po[p])
             }
 
             for k in ad:
@@ -183,8 +183,6 @@ def simulate(obj, size=1, x_val='length', random_state=None, methods=tuple(METHO
                 conf = scipy.stats.t.interval(0.95, np.count_nonzero(~np.isnan(ad[k])) - 1, loc=mean, scale=scipy.stats.sem(ad[k], nan_policy='omit'))
                 d[k + '_mean'].append(mean)
                 d[k + '_conf'].append(mean - conf[0])
-
-            # print(f"{p:<5.2g} & {add[0]:.2f} & {add[1]:.2f} & {avs[0]:.2f} & {avs[1]:.2f} & {octets[0]:.3f} & {octets[1]:.3f} \\\\")
 
         dataframes[method] = pd.DataFrame(d, ps)
 
