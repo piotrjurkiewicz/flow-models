@@ -140,17 +140,9 @@ def calculate(obj, index=None, x_val='length', methods=tuple(METHODS)):
     data = load_data(obj)
 
     if index is None:
-        index = [1.0,
-                 0.5, 0.2, 0.1,
-                 0.05, 0.02, 0.01,
-                 0.005, 0.002, 0.001,
-                 0.0005, 0.0002, 0.0001,
-                 0.00005, 0.00002, 0.00001,
-                 0.000005, 0.000002, 0.000001,
-                 0.0000005, 0.0000002, 0.0000001,
-                 0.00000005, 0.00000002, 0.00000001]
+        index = 1 / np.power(2, range(25))
     elif isinstance(index, int):
-        index = np.geomspace(1.0, 1.0e-08, index)
+        index = 1 / np.logspace(0, 24, index, base=2)
     else:
         index = index
 
@@ -187,7 +179,6 @@ def main():
         if app_args.save:
             dataframe.to_csv(method + '.csv')
             dataframe.to_pickle(method + '.df')
-
 
     logmsg('Finished')
 
