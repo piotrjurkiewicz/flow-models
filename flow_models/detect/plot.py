@@ -21,7 +21,7 @@ SIZE = 0.6
 FIGSIZE = [SIZE * 11.2, SIZE * 6.8]
 
 def plot_traffic(calculated):
-    relative = {}
+    interpolated = {}
     for n, x_val in enumerate(['length', 'size']):
         nidx = 1 / pd.Float64Index(np.geomspace(1, 10000, 5000, endpoint=False))
         for method in METHODS:
@@ -29,95 +29,128 @@ def plot_traffic(calculated):
             ddd = calculated[method][x_val].copy().set_index(idx)
             ddd = ddd[~ddd.index.duplicated()]
             ddd = ddd.reindex(ddd.index.union(nidx)).interpolate('slinear').reindex(nidx)
-            relative.setdefault(method, {})[x_val] = ddd
+            interpolated.setdefault(method, {})[x_val] = ddd
     for to in ['absolute'] + list(METHODS):
         to_label = r'\%'
-        fig, axes = plt.subplots(1, 2, sharey='all', figsize=[FIGSIZE[0] * 2.132, FIGSIZE[1]])
-        fig.subplots_adjust(0, 0, 1, 1)
+        fig, axes = plt.subplots(1, 2, sharex='all', sharey='all', figsize=[FIGSIZE[0] * 2.132, FIGSIZE[1]])
         for n, x_val in enumerate(['length', 'size']):
             ax = axes[n]
             for method in METHODS:
-                d = relative[method][x_val]['octets_mean']
+                d = interpolated[method][x_val]['octets_mean']
                 if to == 'absolute':
                     r = 1
                 else:
-                    r = relative[to][x_val]['octets_mean']
+                    r = interpolated[to][x_val]['octets_mean']
                     to_label = f'relative to {to}'
                 ax.plot(d.index, d / r, 'k' + METHODS[method], lw=2,
                         label=method)
-                # plt.plot(d.index, 1 / d['operations_mean'] / r['operations_mean'], 'r' + ls[method], lw=2,
-                #          label=method)
-                # ax.set_xlim(ax.get_xlim()[::-1])
             ax.set_ylabel(f'Traffic coverage [{to_label}]')
-            ax.set_xlabel(f'Flow table occupancy [absolute] (decision by {x_val})')
+            ax.set_xlabel(f'Flow table occupancy (decision by {x_val})')
             ax.tick_params('y', labelleft=True)
             ax.set_xscale('log')
             ax.legend()
+        fig.gca().invert_xaxis()
         out = f'traffic_{to}'
         save_figure(fig, out)
         save_figure(fig, out)
         plt.close(fig)
 
 def plot_occupancy(calculated):
-    relative = {}
+    interpolated = {}
     for n, x_val in enumerate(['length', 'size']):
-        nidx = pd.Float64Index(np.linspace(50, 100, 5000, endpoint=False))
+        nidx = pd.Float64Index(np.linspace(50, 100, 5001, endpoint=True))
         for method in METHODS:
             idx = calculated[method][x_val]['octets_mean']
             ddd = calculated[method][x_val].copy().set_index(idx)
             ddd = ddd[~ddd.index.duplicated()]
             ddd = ddd.reindex(ddd.index.union(nidx)).interpolate('slinear').reindex(nidx)
-            relative.setdefault(method, {})[x_val] = ddd
+            interpolated.setdefault(x_val, {})[method] = ddd
+
+    points = [99, 95, 90, 80, 75, 50]
+    z = pd.concat({k: pd.concat(v) for k, v in interpolated.items()})
+    z = z.unstack([0, 1]).swaplevel(1, 2, axis=1).sort_index(axis=1)[['occupancy_mean', 'operations_mean']]
+    z = z.reindex(METHODS, axis=1, level=1)
+    z.loc[points][['occupancy_mean', 'operations_mean']].to_latex(f'selected.tex',
+                                                                  float_format='%.2f',
+                                                                  multicolumn_format='c')
+
     for to in ['absolute'] + list(METHODS):
-        to_label = to
-        fig, axes = plt.subplots(1, 2, sharey='all', figsize=[FIGSIZE[0] * 2.132, FIGSIZE[1]])
-        fig.subplots_adjust(0, 0, 1, 1)
+        to_label = ''
+        fig, axes = plt.subplots(1, 2, sharex='all', sharey='all', figsize=[FIGSIZE[0] * 2.132, FIGSIZE[1]])
         for n, x_val in enumerate(['length', 'size']):
             ax = axes[n]
             for method in METHODS:
-                d = relative[method][x_val]['occupancy_mean']
+                d = interpolated[x_val][method]
                 if to == 'absolute':
-                    r = 1
+                    r = d.copy()
+                    for col in r.columns:
+                        r[col].values[:] = 1
                 else:
-                    r = relative[to][x_val]['occupancy_mean']
-                    to_label = f'relative to {to}'
-                ax.plot(d.index, 1 / (d / r), 'k' + METHODS[method], lw=2,
-                        label=method)
-                # plt.plot(d.index, 1 / d['operations_mean'] / r['operations_mean'], 'r' + ls[method], lw=2,
-                #          label=method)
-                ax.set_xlim(ax.get_xlim()[::-1])
+                    r = interpolated[x_val][to]
+                    to_label = f' [relative to {to}]'
+                ax.plot(d.index, r['occupancy_mean'] / d['occupancy_mean'], 'k' + METHODS[method], lw=2,
+                        label=f'{method} occupancy')
+                ax.plot(d.index, r['operations_mean'] / d['operations_mean'], 'r' + METHODS[method], lw=2/3,
+                        label=f'{method} operations')
             ax.set_xlabel(f'Traffic coverage [\%] (decision by {x_val})')
-            ax.set_ylabel(f'Flow table occupancy [{to_label}]')
+            ax.set_ylabel(f'Flow table occupancy/operations{to_label}')
             ax.tick_params('y', labelleft=True)
             if to == 'absolute':
                 ax.set_yscale('log')
             ax.legend()
+        fig.gca().invert_xaxis()
         out = f'occupancy_{to}'
         save_figure(fig, out)
         plt.close(fig)
+
+def plot_calc_sim(ax, calculated, simulated, method, x_val, w):
+    sim_style = {
+        'octets': 'o',
+        'flows': 'o',
+        'portion': 'o'
+    }
+    calc_style = {
+        'octets': '-',
+        'flows': '--',
+        'portion': ':'
+    }
+    if w == 'portion':
+        name = 'Occupancy'
+    elif w == 'octets':
+        name = 'Traffic coverage'
+    elif w == 'flows':
+        name = 'Operations'
+    else:
+        name = w[:-1] + ' coverage'
+
+    axis = 'left' if w == 'octets' else 'right'
+    d = simulated[method][x_val][w + '_mean'].iloc[:-3]
+    e = simulated[method][x_val][w + '_conf'].iloc[:-3]
+    ax.errorbar(d.index, d, e, None, 'k' + sim_style[w], lw=1, capthick=1, ms=2,
+                label=f'{name} (sim.) ({axis})')
+    n = calculated[method][x_val][w + '_mean']
+    d = n.loc[:d.index.max() if method != 'sampling' else d.index.min()]
+    ax.plot(d.index, d, 'k' + calc_style[w], lw=2,
+            label=f'{name} (calc.) ({axis})')
 
 def plot_all(calculated, simulated, one):
     for method in calculated:
 
         if one:
-            fig = plt.figure(figsize=[FIGSIZE[0] * 2.132, FIGSIZE[1] * 2])
+            fig = plt.figure(figsize=[FIGSIZE[0] * 2.132, FIGSIZE[1]])
             ax = plt.subplot(1, 2, 1)
         else:
             fig = plt.figure(figsize=FIGSIZE)
             ax = plt.subplot(1, 1, 1)
 
-        plt.subplots_adjust(0, 0, 1, 1)
-
         ax2 = None
-
         for n, x_val in enumerate(simulated[method]):
             if one:
-                ax = plt.subplot(2, 2, n + 1, sharey=ax)
+                ax = plt.subplot(1, 2, n + 1, sharey=ax)
             else:
                 fig, ax = plt.subplots(figsize=FIGSIZE)
-            plt.subplots_adjust(0, 0, 1, 1)
 
-            pppp(ax, calculated, simulated, method, x_val, 'octets')
+            plot_calc_sim(ax, calculated, simulated, method, x_val, 'octets')
 
             if ax2 is None:
                 ax2 = ax.twinx()
@@ -126,39 +159,31 @@ def plot_all(calculated, simulated, one):
                 ax2.get_shared_y_axes().join(ax2, nax)
                 ax2 = nax
 
-            pppp(ax2, calculated, simulated, method, x_val, 'flows')
-            pppp(ax2, calculated, simulated, method, x_val, 'portion')
+            plot_calc_sim(ax2, calculated, simulated, method, x_val, 'flows')
+            plot_calc_sim(ax2, calculated, simulated, method, x_val, 'portion')
 
-            ax.set_xscale("log")
-            if x_val == 'length':
-                ax.set_ylabel('Octet coverage (\%)')
-            else:
-                pass
-                # ax2.set_ylabel('Flow coverage/occupancy (\%)')
-            ax2.set_yscale("log")
+            ax.set_xscale('log')
+            ax2.set_yscale('log')
             ax.legend(loc=3)
             ax2.legend()
-
-            # ax.tick_params(axis='y', labelcolor='g')
 
             if method == 'sampling':
                 ax.invert_xaxis()
                 ax.set_xlabel(f'Sampling probability (sampling by {x_val})')
             else:
-                ax.set_xlabel(f'Flow {x_val} threshold ({UNITS[x_val]})')
+                ax.set_xlabel(f'Flow {x_val} threshold [{UNITS[x_val]}]')
             if not one:
-                out = f'detect-{method}-{x_val}'
+                out = f'results_{method}_{x_val}'
                 save_figure(fig, out)
                 plt.close(fig)
 
         if one:
-            out = f'detect-{method}'
+            out = f'results_{method}'
             save_figure(fig, out)
             plt.close(fig)
 
-def plot_prob():
+def plot_probability():
     fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
-    fig.subplots_adjust(0, 0, 1, 1)
     idx = np.geomspace(1, 1000, 512)
     ax.plot(idx, 1 - (1 - 0.1) ** idx, 'k-', lw=2,
             label='p  0.1$')
@@ -172,34 +197,10 @@ def plot_prob():
     save_figure(fig, 'probability')
     plt.close(fig)
 
-def pppp(ax, calculated, simulated, method, x_val, w):
-    sim_style = {
-        'octets': 'go',
-        'flows': 'ro',
-        'portion': 'bo'
-    }
-    calc_style = {
-        'octets': 'g-',
-        'flows': 'r--',
-        'portion': 'b:'
-    }
-    name = 'occupancy' if w == 'portion' else w[:-1] + ' coverage'
-    d = simulated[method][x_val][w + '_mean'].iloc[:-3]
-    e = simulated[method][x_val][w + '_conf'].iloc[:-3]
-    ax.errorbar(d.index, d, e, None, sim_style[w], lw=1, capthick=1, ms=2, alpha=0.5,
-                label=f'{name} (sim.)')
-    n = calculated[method][x_val][w + '_mean']
-    d = n.loc[:d.index.max() if method != 'sampling' else d.index.min()]
-    ax.plot(d.index, d, calc_style[w], lw=2, alpha=0.5,
-            label=f'{name} (calc.)')
-
 def plot(dirs, one=False):
     simulated = collections.defaultdict(dict)
     calculated = collections.defaultdict(dict)
     methods = set()
-
-    plot_prob()
-
     for d in dirs:
         d = pathlib.Path(d)
         x_val = d.stem.split('_')[0]
@@ -209,7 +210,7 @@ def plot(dirs, one=False):
             assert method in METHODS
             methods.add(method)
             simulated[method][x_val] = pd.read_pickle(str(f))
-        for method, df in calculate('mixtures/all/' + x_val, 512, x_val=x_val, methods=methods).items():
+        for method, df in calculate('../mixtures/all/' + x_val, 1024, x_val=x_val, methods=methods).items():
             calculated[method][x_val] = df
 
     plot_all(calculated, simulated, one)
@@ -223,6 +224,7 @@ def main():
     app_args = parser.parse_args()
 
     with matplotlib_config(latex=True):
+        plot_probability()
         plot(app_args.files, app_args.one)
 
 
