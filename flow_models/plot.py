@@ -9,47 +9,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from .lib.data import UNITS, LINE_NBINS, load_data
-from .lib.plot import plot_pdf, plot_cdf, plot_avg
+from .lib.plot import plot_pdf, plot_cdf, plot_avg, save_figure, matplotlib_config
 from .lib.util import logmsg
 
 X_VALUES = ['length', 'size', 'duration', 'rate']
 
 SIZE = 0.6
 FIGSIZE = [SIZE * 11.2, SIZE * 6.8]
-PDF_NONE_METADATA = {'Creator': None, 'Producer': None, 'CreationDate': None}
-matplotlib.rcParams['figure.dpi'] *= 2
-matplotlib.rcParams['figure.subplot.hspace'] = 0
-matplotlib.rcParams['figure.subplot.wspace'] /= 1.5
-matplotlib.rcParams['figure.subplot.left'] = 0.10
-matplotlib.rcParams['figure.subplot.bottom'] = 0.10
-matplotlib.rcParams['figure.subplot.right'] = 0.90
-matplotlib.rcParams['figure.subplot.top'] = 1.00
-matplotlib.rcParams['xtick.major.width'] = 0.25
-matplotlib.rcParams['xtick.minor.width'] = 0.25
-matplotlib.rcParams['xtick.top'] = True
-matplotlib.rcParams['xtick.direction'] = 'in'
-matplotlib.rcParams['ytick.major.width'] = 0.25
-matplotlib.rcParams['ytick.minor.width'] = 0.25
-matplotlib.rcParams['ytick.right'] = True
-matplotlib.rcParams['ytick.direction'] = 'in'
-matplotlib.rcParams['axes.xmargin'] = 0.05
-matplotlib.rcParams['axes.ymargin'] = 0.05
-matplotlib.rcParams['axes.linewidth'] = 0.25
-matplotlib.rcParams['pdf.use14corefonts'] = True
-matplotlib.rcParams['font.family'] = 'sans'
-
-# matplotlib.rcParams['text.usetex'] = True
-# matplotlib.rcParams['font.family'] = 'sans-serif'
-
-# matplotlib.rcParams['mathtext.fontset'] = 'stix'
-# matplotlib.rcParams['font.family'] = 'STIXGeneral'
-#
-# matplotlib.rcParams['text.latex.preamble'] = r'''
-# \usepackage[notextcomp]{stix}
-# '''
-
-def save_figure(figure, fname, ext='png', **kwargs):
-    figure.savefig(fname + f'.{ext}', bbox_inches='tight', metadata=PDF_NONE_METADATA, **kwargs)
 
 def plot(objects, x_val='length', ext='png', single=False, normalize=True, fft=False, cdf_modes=(), pdf_modes=(), avg_modes=()):
     data = load_data(objects)
@@ -70,8 +36,8 @@ def plot(objects, x_val='length', ext='png', single=False, normalize=True, fft=F
         for what in ['flows', 'packets', 'octets']:
             logmsg('Drawing CDF', obj, what)
             plot_cdf(df, idx, x_val, what, mode={'mixture', *cdf_modes})
-    ax.set_xlabel(f'Flow {x_val} ({UNITS[x_val]})')
-    ax.set_ylabel('CDF')
+    ax.set_xlabel(f'Flow {x_val} [{UNITS[x_val]}]')
+    ax.set_ylabel('CDF (Fraction of)')
     if not single:
         out = 'cdf'
         logmsg('Saving', out)
@@ -88,7 +54,7 @@ def plot(objects, x_val='length', ext='png', single=False, normalize=True, fft=F
         for obj, df in data.items():
             logmsg('Drawing PDF', obj, what)
             plot_pdf(df, idx, x_val, what, mode={'line', 'mixture', *pdf_modes}, normalize=normalize, fft=fft)
-        ax.set_xlabel(f'Flow {x_val} ({UNITS[x_val]})')
+        ax.set_xlabel(f'Flow {x_val} [{UNITS[x_val]}]')
         ax.set_ylabel(f'PDF of {what}')
         if not single:
             out = f'pdf-{what}'
@@ -109,8 +75,8 @@ def plot(objects, x_val='length', ext='png', single=False, normalize=True, fft=F
         for obj, df in data.items():
             logmsg('Drawing AVG', obj, what)
             plot_avg(df, idx, x_val, what, mode={'line', 'mixture', *avg_modes})
-        ax.set_xlabel(f'Flow {x_val} ({UNITS[x_val]})')
-        ax.set_ylabel(f'Average {what} (bytes)')
+        ax.set_xlabel(f'Flow {x_val} [{UNITS[x_val]}]')
+        ax.set_ylabel(f"Average {what.replace('_', ' ')} [bytes]")
         out = f'avg-{what}'
         logmsg('Saving', out)
         save_figure(fig, out, ext=ext)
@@ -129,8 +95,9 @@ def main():
     parser.add_argument('files', nargs='+', help='csv_hist files to plot')
     app_args = parser.parse_args()
 
-    plot(app_args.files, app_args.x, app_args.format, app_args.single, app_args.no_normalize, app_args.fft,
-         app_args.C, app_args.P)
+    with matplotlib_config(latex=False):
+        plot(app_args.files, app_args.x, app_args.format, app_args.single, app_args.no_normalize, app_args.fft,
+             app_args.C, app_args.P)
 
 
 if __name__ == '__main__':

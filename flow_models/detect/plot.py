@@ -1,16 +1,15 @@
 #!/usr/bin/python3
-
 import argparse
 import collections
 import pathlib
 
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 from flow_models.detect.calculate import calculate
 from flow_models.lib.data import UNITS
+from flow_models.lib.plot import save_figure, matplotlib_config
 
 X_VALUES = ['length', 'size']
 
@@ -20,40 +19,6 @@ METHODS = {'first': '-',
 
 SIZE = 0.6
 FIGSIZE = [SIZE * 11.2, SIZE * 6.8]
-PDF_NONE = {'Creator': None, 'Producer': None, 'CreationDate': None}
-matplotlib.rcParams['figure.dpi'] *= 2
-matplotlib.rcParams['figure.subplot.hspace'] = 0
-matplotlib.rcParams['figure.subplot.wspace'] /= 1.5
-matplotlib.rcParams['figure.subplot.left'] = 0.10
-matplotlib.rcParams['figure.subplot.bottom'] = 0.10
-matplotlib.rcParams['figure.subplot.right'] = 0.90
-matplotlib.rcParams['figure.subplot.top'] = 1.00
-matplotlib.rcParams['xtick.major.width'] = 0.25
-matplotlib.rcParams['xtick.minor.width'] = 0.25
-matplotlib.rcParams['xtick.top'] = True
-matplotlib.rcParams['xtick.direction'] = 'in'
-matplotlib.rcParams['ytick.major.width'] = 0.25
-matplotlib.rcParams['ytick.minor.width'] = 0.25
-matplotlib.rcParams['ytick.right'] = True
-matplotlib.rcParams['ytick.direction'] = 'in'
-matplotlib.rcParams["legend.frameon"] = False
-matplotlib.rcParams["errorbar.capsize"] = 2
-matplotlib.rcParams['axes.xmargin'] = 0.05
-matplotlib.rcParams['axes.ymargin'] = 0.05
-matplotlib.rcParams['axes.linewidth'] = 0.25
-matplotlib.rcParams['pdf.use14corefonts'] = True
-matplotlib.rcParams['font.family'] = 'sans'
-
-matplotlib.rcParams['text.usetex'] = True
-matplotlib.rcParams['font.family'] = 'sans-serif'
-# matplotlib.rcParams['mathtext.fontset'] = 'stix'
-
-# matplotlib.rcParams['text.latex.preamble'] = r'''
-# \usepackage[notextcomp]{stix}
-# '''
-
-def save_figure(figure, fname, **kwargs):
-    figure.savefig(fname + '.pdf', bbox_inches='tight', metadata=PDF_NONE, **kwargs)
 
 def plot_traffic(calculated):
     relative = {}
@@ -256,7 +221,9 @@ def main():
     parser.add_argument('--one', action='store_true', help='plot in one file')
     parser.add_argument('files', nargs='+', help='csv_hist files to plot')
     app_args = parser.parse_args()
-    plot(app_args.files, app_args.one)
+
+    with matplotlib_config(latex=True):
+        plot(app_args.files, app_args.one)
 
 
 if __name__ == '__main__':

@@ -1,3 +1,6 @@
+import contextlib
+
+import matplotlib
 import numpy as np
 import pandas as pd
 import scipy
@@ -8,6 +11,49 @@ from flow_models.lib.data import STYLE, LINE_NBINS, calc_minmax, normalize_data,
     KDE_NBINS, avg_data, pdf_from_cdf
 from flow_models.lib.mix import cdf, pdf, cdf_comp, pdf_comp, avg
 from flow_models.lib.util import logmsg
+
+PDF_NONE = {'Creator': None, 'Producer': None, 'CreationDate': None}
+
+def save_figure(figure, fname, ext='pdf', **kwargs):
+    figure.savefig(f'{fname}.{ext}', bbox_inches='tight', metadata=PDF_NONE, **kwargs)
+
+@contextlib.contextmanager
+def matplotlib_config(latex=False):
+    try:
+        matplotlib.rcParams['figure.dpi'] *= 2
+        matplotlib.rcParams['figure.subplot.hspace'] = 0
+        matplotlib.rcParams['figure.subplot.wspace'] /= 1.5
+        matplotlib.rcParams['figure.subplot.left'] = 0.00
+        matplotlib.rcParams['figure.subplot.bottom'] = 0.00
+        matplotlib.rcParams['figure.subplot.right'] = 1.00
+        matplotlib.rcParams['figure.subplot.top'] = 1.00
+        matplotlib.rcParams['xtick.major.width'] = 0.25
+        matplotlib.rcParams['xtick.minor.width'] = 0.25
+        matplotlib.rcParams['xtick.top'] = True
+        matplotlib.rcParams['xtick.direction'] = 'in'
+        matplotlib.rcParams['ytick.major.width'] = 0.25
+        matplotlib.rcParams['ytick.minor.width'] = 0.25
+        matplotlib.rcParams['ytick.right'] = True
+        matplotlib.rcParams['ytick.direction'] = 'in'
+        matplotlib.rcParams['legend.frameon'] = False
+        matplotlib.rcParams['errorbar.capsize'] = 2
+        matplotlib.rcParams['axes.xmargin'] = 0.05
+        matplotlib.rcParams['axes.ymargin'] = 0.05
+        matplotlib.rcParams['axes.linewidth'] = 0.25
+        matplotlib.rcParams['pdf.use14corefonts'] = True
+        matplotlib.rcParams['font.family'] = 'sans'
+
+        if latex:
+            matplotlib.rcParams['text.usetex'] = True
+            matplotlib.rcParams['font.family'] = 'sans-serif'
+            # matplotlib.rcParams['mathtext.fontset'] = 'stix'
+
+            # matplotlib.rcParams['text.latex.preamble'] = r'''
+            # \usepackage[notextcomp]{stix}
+            # '''
+        yield
+    finally:
+        matplotlib.rcdefaults()
 
 def set_log_limits(xmin, xmax, ymin, ymax):
     xmar, ymar = plt.margins()
