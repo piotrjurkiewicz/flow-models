@@ -1,14 +1,13 @@
 #!/usr/bin/python3
-
-# for N in {0..39}; do taskset -cp $N $((N+16492)); done
-
 import argparse
 import collections
 import concurrent.futures
-import math
+import os
 import pickle
 import random
 import signal
+import subprocess
+import sys
 import threading
 import time
 
@@ -25,6 +24,14 @@ CHUNK_SIZE = 262144
 def init_worker():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
+def set_affinity(executor):
+    n = 0
+    subprocess.check_call(['renice', '19'] + [str(p) for p in executor._processes], stdout=sys.stderr)
+    for pid in executor._processes:
+        logmsg(f'Setting affinity {pid} to CPU{n}')
+        os.sched_setaffinity(pid, [n])
+        n += 1
+
 def chunker(iterable):
     chunk = []
     for flow in iterable:
@@ -36,9 +43,9 @@ def chunker(iterable):
         yield pickle.dumps(chunk, protocol=pickle.HIGHEST_PROTOCOL)
         del chunk
 
-def simulate_chunk(data, x_val, random_state, method, p, r):
+def simulate_chunk(data, x_val, seed, method, p, r):
     data = pickle.loads(data)
-    rng = random.Random(random_state)
+    rng = random.Random(seed)
     if method == 'sampling':
         p = p
     else:
@@ -79,11 +86,11 @@ def simulate_chunk(data, x_val, random_state, method, p, r):
             portion_of_flow_covered = (packets - add_on_packet) / packets
             portion_covered += portion_of_flow_covered
             octets_covered += octets * portion_of_flow_covered
-    a = np.array([flows_all, packets_all, octets_all, flows_added, packets_covered], dtype='u8')
-    b = np.array([portion_covered, octets_covered], dtype='f8')
-    return method, p, r, a, b
+    result_u = np.array([flows_all, packets_all, octets_all, flows_added, packets_covered], dtype='u8')
+    result_f = np.array([portion_covered, octets_covered], dtype='f8')
+    return method, p, r, result_u, result_f
 
-def simulate(obj, size=1, x_val='length', random_state=None, methods=tuple(METHODS), rounds=5):
+def simulate(obj, size=1, x_val='length', seed=None, methods=tuple(METHODS), rounds=5, affinity=False):
     data = load_data(obj)
 
     x = [1.0,
@@ -106,13 +113,13 @@ def simulate(obj, size=1, x_val='length', random_state=None, methods=tuple(METHO
             running[0] -= 1
             try:
                 result = future.result()
-                m, p, r, a, b = result
-                done[m] += int(a[0])
+                m, p, r, result_u, result_f = result
+                done[m] += int(result_u[0])
                 if (m, p, r) in results:
-                    results[m, p, r][0] += a
-                    results[m, p, r][1] += b
+                    results[m, p, r][0] += result_u
+                    results[m, p, r][1] += result_f
                 else:
-                    results[m, p, r] = [a, b]
+                    results[m, p, r] = [result_u, result_f]
             except Exception as exc:
                 logmsg('Exception', exc)
                 raise
@@ -120,20 +127,20 @@ def simulate(obj, size=1, x_val='length', random_state=None, methods=tuple(METHO
     with concurrent.futures.ProcessPoolExecutor(initializer=init_worker) as executor:
         try:
             for r in range(rounds):
-                for chunk in chunker(generate_flows(data, size, x_val, random_state)):
+                for chunk in chunker(generate_flows(data, size, x_val, seed + r if isinstance(seed, int) else seed)):
                     for p in x:
                         for method in methods:
-                            fut = executor.submit(simulate_chunk, chunk, x_val, r, method, p, r)
+                            fut = executor.submit(simulate_chunk, chunk, x_val, seed, method, p, r)
                             fut.add_done_callback(cb)
                             with lock:
                                 running[0] += 1
                                 queued = running[0]
-                            if queued >= 32768:
+                                if affinity and queued == 1 and not done:
+                                    set_affinity(executor)
+                            if queued >= 16384:
                                 logmsg('Queued chunks', queued,
                                        'Done flows', {k: int(v / len(x)) for k, v in done.items()})
                                 time.sleep(1)
-                if isinstance(random_state, int):
-                    random_state += 1
         except KeyboardInterrupt:
             pass
 
@@ -190,12 +197,13 @@ def simulate(obj, size=1, x_val='length', random_state=None, methods=tuple(METHO
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-s', type=int, default=1000000, help='number of generated flows')
+    parser.add_argument('-n', type=int, default=1000000, help='number of generated flows')
     parser.add_argument('--seed', type=int, default=None, help='seed')
     parser.add_argument('-r', type=int, default=10, help='rounds')
     parser.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
-    parser.add_argument('-m', default='sampling', choices=METHODS, help='method')
+    parser.add_argument('-m', default='all', choices=METHODS, help='method')
     parser.add_argument('--save', action='store_true', help='save to files')
+    parser.add_argument('--affinity', action='store_true', help='set affinity')
     parser.add_argument('file', help='csv_hist file or mixture directory')
     app_args = parser.parse_args()
 
@@ -204,7 +212,7 @@ def main():
     else:
         methods = [app_args.m]
 
-    resdic = simulate(app_args.file, app_args.s, app_args.x, app_args.seed, methods, app_args.r)
+    resdic = simulate(app_args.file, app_args.n, app_args.x, app_args.seed, methods, app_args.r, app_args.affinity)
     for method, dataframe in resdic.items():
         print(method)
         print(dataframe.info())
