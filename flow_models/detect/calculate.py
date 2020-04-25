@@ -45,8 +45,14 @@ def calculate_data(data, x_probs, x_val, method):
     else:
 
         ps = []
-        for p in x_probs:
-            ps.append((1 - p) ** idx)
+        if x_val == 'length':
+            for p in x_probs:
+                ps.append((1 - p) ** idx)
+        else:
+            packet_size = data['octets_sum'].cumsum() / data['packets_sum'].cumsum()
+            pks = np.clip(idx / packet_size, 1, np.trunc(idx / 64))
+            for p in x_probs:
+                ps.append((1 - np.clip(p * packet_size / 64, 0, 1)) ** (pks if x_val == 'size' else idx))
 
         for what in ['flows', 'packets', 'fraction', 'octets']:
             w = 'flows' if what == 'fraction' else what
