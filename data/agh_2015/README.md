@@ -1,6 +1,6 @@
 # agh_2015
 
-P. Jurkiewicz, G. Rzym and P. Boryło, "How Many Mice Make an Elephant? Modelling Flow Length and Size Distribution of Internet Traffic", arXiv:1809.03486, 2018. Available: http://arxiv.org/abs/1809.03486
+P. Jurkiewicz, G. Rzym and P. Boryło, "Flow length and size distributions in campus Internet traffic", arXiv:1809.03486, 2018. Available: http://arxiv.org/abs/1809.03486
 
 Based on NetFlow records collected on the Internet-facing interface of the AGH University of Science and Technology network during the consecutive period of 30 days.
 
@@ -11,8 +11,9 @@ In order to reproduce all steps towards fitting this model, please follow the [M
 
 | Parameter | Value | Unit |
 | - | -: | -: |
-| Dataset name| agh_2015 | |
-| Exporter | Cisco router | |
+| Dataset name | agh_2015 | |
+| Flow definition | 5-tuple | |
+| Exporter | Cisco router | (NetFlow) |
 | L2 technology | Ethernet | |
 | Sampling rate | none | |
 | Active timeout | 300 | seconds |
@@ -24,6 +25,12 @@ In order to reproduce all steps towards fitting this model, please follow the [M
 | Average flow length | 78.578370 | packets |
 | Average flow size | 68410.894128 | octets |
 | Average packet size | 870.607188 | bytes |
+
+|    | TCP | UDP | Other |
+| :- | -:  | -:  | -:    |
+| Flows | 53.85% | 43.09% | 3.06% |
+| Packets | 83.51% | 16.01% | 0.48% |
+| Octets | 88.57% | 11.27% | 0.1% |
 
 | Flows of length up to | | Make up % | |
 | -: | -: | -: | -: |
