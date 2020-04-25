@@ -107,13 +107,13 @@ def simulate(obj, size=1, x_val='length', seed=None, methods=tuple(METHODS), rou
             running[0] -= 1
             try:
                 result = future.result()
-                m, p, r, result_u, result_f = result
-                done[m] += int(result_u[0])
-                if (m, p, r) in results:
-                    results[m, p, r][0] += result_u
-                    results[m, p, r][1] += result_f
+                mm, pp, rr, result_u, result_f = result
+                done[mm] += int(result_u[0])
+                if (mm, pp, rr) in results:
+                    results[mm, pp, rr][0] += result_u
+                    results[mm, pp, rr][1] += result_f
                 else:
-                    results[m, p, r] = [result_u, result_f]
+                    results[mm, pp, rr] = [result_u, result_f]
             except Exception as exc:
                 logmsg('Exception', exc)
                 raise
