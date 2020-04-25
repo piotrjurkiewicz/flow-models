@@ -45,6 +45,12 @@ def chunker(iterable):
         yield pickle.dumps(chunk, protocol=pickle.HIGHEST_PROTOCOL)
         del chunk
 
+def conf(d):
+    mean = np.nanmean(d)
+    c = scipy.stats.t.interval(0.95, np.count_nonzero(~np.isnan(d)) - 1, loc=mean,
+                               scale=scipy.stats.sem(d, nan_policy='omit'))
+    return mean - c[0]
+
 def simulate_chunk(data, x_val, seed, method, p, r):
     data = pickle.loads(data)
     rng = random.Random(seed)
@@ -146,51 +152,32 @@ def simulate(obj, size=1, x_val='length', seed=None, methods=tuple(METHODS), rou
         except KeyboardInterrupt:
             os.kill(0, signal.SIGTERM)
 
-    dataframes = {}
+    z = pd.DataFrame({k: (*v[0], *v[1]) for k, v in results.items()})
+    z = z.transpose()
+    cols = ['flows_all', 'packets_all', 'octets_all', 'flows_added',
+            'packets_covered', 'fraction_covered', 'octets_covered']
+    z.columns = cols.copy()
+    z['flows'] = 100 * z['flows_added'] / z['flows_all']
+    z['packets'] = 100 * z['packets_covered'] / z['packets_all']
+    z['fraction'] = 100 * z['fraction_covered'] / z['flows_all']
+    z['octets'] = 100 * z['octets_covered'] / z['octets_all']
+    z['operations'] = 100 / z['flows']
+    z['occupancy'] = 100 / z['fraction']
+    z = z.replace(np.inf, np.nan)
+    z = z.drop(columns=cols)
 
-    for method in methods:
-
-        if method == 'sampling':
-            ps = x
+    df = z.groupby(level=[0, 1], axis=0).agg([np.nanmean, conf]).rename(columns={'nanmean': 'mean'})
+    df.columns = ['_'.join(col).strip() for col in df.columns]
+    dd = dict(iter(df.groupby(level=0)))
+    for k, df in dd.items():
+        df = df.droplevel(0, 0)
+        if k == 'sampling':
+            df.sort_index(ascending=False, inplace=True)
         else:
-            ps = [int(round(1 / p)) for p in x]
-            if x_val == 'size':
-                ps = [p * 64 for p in ps]
+            df.index = df.index.astype('uint64')
+        dd[k] = df
 
-        fl = collections.defaultdict(list)
-        pa = collections.defaultdict(list)
-        po = collections.defaultdict(list)
-        oc = collections.defaultdict(list)
-
-        for (m, p, r), result in results.items():
-            if m == method:
-                (flows_all, packets_all, octets_all, flows_added, packets_covered), (portion_covered, octets_covered) = result
-                fl[p].append(flows_added / flows_all)
-                pa[p].append(packets_covered / packets_all)
-                po[p].append(portion_covered / flows_all)
-                oc[p].append(octets_covered / octets_all)
-
-        d = collections.defaultdict(list)
-        for p in ps:
-            ad = {
-                'flows': 100 * np.array(fl[p]),
-                'packets': 100 * np.array(pa[p]),
-                'portion': 100 * np.array(po[p]),
-                'octets': 100 * np.array(oc[p]),
-                'operations': np.reciprocal(fl[p]),
-                'occupancy': np.reciprocal(po[p])
-            }
-
-            for k in ad:
-                ad[k][ad[k] == np.inf] = np.nan
-                mean = np.nanmean(ad[k])
-                conf = scipy.stats.t.interval(0.95, np.count_nonzero(~np.isnan(ad[k])) - 1, loc=mean, scale=scipy.stats.sem(ad[k], nan_policy='omit'))
-                d[k + '_mean'].append(mean)
-                d[k + '_conf'].append(mean - conf[0])
-
-        dataframes[method] = pd.DataFrame(d, ps)
-
-    return dataframes
+    return dd
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
