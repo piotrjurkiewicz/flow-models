@@ -86,11 +86,11 @@ mixtures/%: mixtures/$$*/length mixtures/$$*/size
 
 plots/%: histograms/$$*/length.csv histograms/$$*/size.csv mixtures/$$*/length mixtures/$$*/size
 	mkdir -p $@/length
-	cd $@/length; python3 -m flow_models.plot -P hist comp --format pdf -x length ../../../histograms/$*/length.csv ../../../mixtures/$*/length
-	cd $@/length; python3 -m flow_models.plot -P hist comp --format pdf --single -x length ../../../histograms/$*/length.csv ../../../mixtures/$*/length
+	cd $@/length; python3 -m flow_models.plot -P points comp --format pdf -x length ../../../histograms/$*/length.csv ../../../mixtures/$*/length
+	cd $@/length; python3 -m flow_models.plot -P points comp --format pdf --single -x length ../../../histograms/$*/length.csv ../../../mixtures/$*/length
 	mkdir -p $@/size
-	cd $@/size; python3 -m flow_models.plot -P hist comp --format pdf -x size ../../../histograms/$*/size.csv ../../../mixtures/$*/size
-	cd $@/size; python3 -m flow_models.plot -P hist comp --format pdf --single -x size ../../../histograms/$*/size.csv ../../../mixtures/$*/size
+	cd $@/size; python3 -m flow_models.plot -P points comp --format pdf -x size ../../../histograms/$*/size.csv ../../../mixtures/$*/size
+	cd $@/size; python3 -m flow_models.plot -P points comp --format pdf --single -x size ../../../histograms/$*/size.csv ../../../mixtures/$*/size
 
 summary/%: histograms/$$*/length_b0.csv histograms/$$*/size_b0.csv
 	python3 -m flow_models.summary histograms/$*/length_b0.csv
