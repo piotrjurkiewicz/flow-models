@@ -138,10 +138,13 @@ def simulate(obj, size=1, x_val='length', seed=None, methods=tuple(METHODS), rou
         except KeyboardInterrupt:
             pass
 
-        while running[0] > 0:
-            logmsg('Remaining chunks', running[0],
-                   'Done flows', {k: int(v / len(x)) for k, v in done.items()})
-            time.sleep(1)
+        try:
+            while running[0] > 0:
+                logmsg('Remaining chunks', running[0],
+                       'Done flows', {k: int(v / len(x)) for k, v in done.items()})
+                time.sleep(1)
+        except KeyboardInterrupt:
+            os.kill(0, signal.SIGTERM)
 
     dataframes = {}
 
