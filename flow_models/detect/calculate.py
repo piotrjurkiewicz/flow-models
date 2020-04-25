@@ -23,23 +23,21 @@ def calculate_data(data, x_probs, x_val, method):
 
     if method == 'first':
 
-        for what in ['flows', 'packets', 'portion', 'octets']:
-            w = 'flows' if what == 'portion' else what
+        for what in ['flows', 'packets', 'fraction', 'octets']:
+            w = 'flows' if what == 'fraction' else what
             cdf = data[w + '_sum'].cumsum() / data[w + '_sum'].sum()
             cdf = scipy.interpolate.interp1d(cdf.index, cdf, 'previous', bounds_error=False)(x)
             ad[what + '_mean'] = 1 - cdf
 
     elif method == 'threshold':
 
-        for what in ['flows', 'packets', 'portion', 'octets']:
-            w = 'flows' if what == 'portion' else what
+        for what in ['flows', 'packets', 'fraction', 'octets']:
+            w = 'flows' if what == 'fraction' else what
             if what == 'flows':
                 toc = data[w + '_sum']
                 cdf = 1 - toc.cumsum() / data[w + '_sum'].sum()
                 ad[what + '_mean'] = scipy.interpolate.interp1d(cdf.index, cdf, 'previous', bounds_error=False)(x)
             else:
-                # psz = data['octets_sum'] / data['packets_sum']
-                # toc = (data[w + '_sum'] / (idx - 63))[::-1].cumsum()[::-1] * np.concatenate([[1.0], np.diff(idx - 63)])
                 toc = (data[w + '_sum'] / idx)[::-1].cumsum()[::-1] * idx_diff
                 cdf = 1 - toc.cumsum() / data[w + '_sum'].sum()
                 ad[what + '_mean'] = scipy.interpolate.interp1d(cdf.index, cdf, 'linear', bounds_error=False)(x)
@@ -50,8 +48,8 @@ def calculate_data(data, x_probs, x_val, method):
         for p in x_probs:
             ps.append((1 - p) ** idx)
 
-        for what in ['flows', 'packets', 'portion', 'octets']:
-            w = 'flows' if what == 'portion' else what
+        for what in ['flows', 'packets', 'fraction', 'octets']:
+            w = 'flows' if what == 'fraction' else what
             if what == 'flows':
                 toc = data[w + '_sum']
             else:
@@ -63,8 +61,8 @@ def calculate_data(data, x_probs, x_val, method):
             ad[what + '_mean'] = np.array(a)
 
     ad['operations_mean'] = 1 / ad['flows_mean']
-    ad['occupancy_mean'] = 1 / ad['portion_mean']
-    for what in ['flows', 'packets', 'portion', 'octets']:
+    ad['occupancy_mean'] = 1 / ad['fraction_mean']
+    for what in ['flows', 'packets', 'fraction', 'octets']:
         ad[what + '_mean'] *= 100
 
     return pd.DataFrame(ad, x_probs if method == 'sampling' else x)
@@ -80,15 +78,15 @@ def calculate_mix(data, x_probs, x_val, method):
 
     if method == 'first':
 
-        for what in ['flows', 'packets', 'portion', 'octets']:
-            w = 'flows' if what == 'portion' else what
+        for what in ['flows', 'packets', 'fraction', 'octets']:
+            w = 'flows' if what == 'fraction' else what
             cdf = mix.cdf(data[w], x)
             ad[what + '_mean'] = 1 - cdf
 
     elif method == 'threshold':
 
-        for what in ['flows', 'packets', 'portion', 'octets']:
-            w = 'flows' if what == 'portion' else what
+        for what in ['flows', 'packets', 'fraction', 'octets']:
+            w = 'flows' if what == 'fraction' else what
             if what == 'flows':
                 cdf = mix.cdf(data[w], x)
                 ad[what + '_mean'] = 1 - cdf
@@ -112,8 +110,8 @@ def calculate_mix(data, x_probs, x_val, method):
             for p in x_probs:
                 ps.append((1 - np.clip(p * packet_size / 64, 0, 1)) ** (pks if x_val == 'size' else idx))
 
-        for what in ['flows', 'packets', 'portion', 'octets']:
-            w = 'flows' if what == 'portion' else what
+        for what in ['flows', 'packets', 'fraction', 'octets']:
+            w = 'flows' if what == 'fraction' else what
             cdf = mix.cdf(data[w], idx)
             pdf = np.concatenate([cdf[:1], np.diff(cdf)])
             if what == 'flows':
@@ -130,8 +128,8 @@ def calculate_mix(data, x_probs, x_val, method):
             ad[what + '_mean'] = np.array(a)
 
     ad['operations_mean'] = 1 / ad['flows_mean']
-    ad['occupancy_mean'] = 1 / ad['portion_mean']
-    for what in ['flows', 'packets', 'portion', 'octets']:
+    ad['occupancy_mean'] = 1 / ad['fraction_mean']
+    for what in ['flows', 'packets', 'fraction', 'octets']:
         ad[what + '_mean'] *= 100
 
     return pd.DataFrame(ad, x_probs if method == 'sampling' else x)

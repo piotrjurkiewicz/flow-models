@@ -107,14 +107,14 @@ def plot_calc_sim(ax, calculated, simulated, method, x_val, w):
     sim_style = {
         'octets': 'o',
         'flows': 'o',
-        'portion': 'o'
+        'fraction': 'o'
     }
     calc_style = {
         'octets': '-',
         'flows': '--',
-        'portion': ':'
+        'fraction': ':'
     }
-    if w == 'portion':
+    if w == 'fraction':
         name = 'Occupancy'
     elif w == 'octets':
         name = 'Traffic coverage'
@@ -160,7 +160,7 @@ def plot_all(calculated, simulated, one):
                 ax2 = nax
 
             plot_calc_sim(ax2, calculated, simulated, method, x_val, 'flows')
-            plot_calc_sim(ax2, calculated, simulated, method, x_val, 'portion')
+            plot_calc_sim(ax2, calculated, simulated, method, x_val, 'fraction')
 
             ax.set_xscale('log')
             ax2.set_yscale('log')

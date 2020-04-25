@@ -57,7 +57,7 @@ def simulate_chunk(data, x_val, seed, method, p, r):
     octets_all = 0
     flows_added = 0
     packets_covered = 0
-    portion_covered = 0
+    fraction_covered = 0
     octets_covered = 0
     packet_size = 1
     min_packet_size = 1
@@ -83,11 +83,11 @@ def simulate_chunk(data, x_val, seed, method, p, r):
         if add_on_packet < packets:
             flows_added += 1
             packets_covered += packets - add_on_packet
-            portion_of_flow_covered = (packets - add_on_packet) / packets
-            portion_covered += portion_of_flow_covered
-            octets_covered += octets * portion_of_flow_covered
+            fraction_of_flow_covered = (packets - add_on_packet) / packets
+            fraction_covered += fraction_of_flow_covered
+            octets_covered += octets * fraction_of_flow_covered
     result_u = np.array([flows_all, packets_all, octets_all, flows_added, packets_covered], dtype='u8')
-    result_f = np.array([portion_covered, octets_covered], dtype='f8')
+    result_f = np.array([fraction_covered, octets_covered], dtype='f8')
     return method, p, r, result_u, result_f
 
 def simulate(obj, size=1, x_val='length', seed=None, methods=tuple(METHODS), rounds=5, affinity=False):
