@@ -162,7 +162,7 @@ def calculate(obj, index=None, x_val='length', methods=tuple(METHODS)):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-s', type=int, default=None, help='number of index points')
+    parser.add_argument('-n', type=int, default=None, help='number of index points')
     parser.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
     parser.add_argument('-m', default='all', choices=METHODS, help='method')
     parser.add_argument('--save', action='store_true', help='save to files')
@@ -174,15 +174,17 @@ def main():
     else:
         methods = [app_args.m]
 
-    resdic = calculate(app_args.file, app_args.s, app_args.x, methods)
+    resdic = calculate(app_args.file, app_args.n, app_args.x, methods)
     for method, dataframe in resdic.items():
         print(method)
-        # print(dataframe.info())
-        # print(dataframe.to_string())
-        print(dataframe.to_latex(float_format=lambda x: '%.2f' % x))
+        print(dataframe.info())
+        print(dataframe.to_string())
         if app_args.save:
+            dataframe.to_string(open(method + '.txt', 'w'))
             dataframe.to_csv(method + '.csv')
             dataframe.to_pickle(method + '.df')
+            dataframe.to_html(method + '.html')
+            dataframe.to_latex(method + '.tex', float_format='%.2f')
 
     logmsg('Finished')
 

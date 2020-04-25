@@ -2,7 +2,9 @@
 import argparse
 import collections
 import concurrent.futures
+import json
 import os
+import pathlib
 import pickle
 import random
 import signal
@@ -190,8 +192,8 @@ def simulate(obj, size=1, x_val='length', seed=None, methods=tuple(METHODS), rou
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('-n', type=int, default=1000000, help='number of generated flows')
-    parser.add_argument('--seed', type=int, default=None, help='seed')
     parser.add_argument('-r', type=int, default=10, help='rounds')
+    parser.add_argument('--seed', type=int, default=None, help='seed')
     parser.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
     parser.add_argument('-m', default='all', choices=METHODS, help='method')
     parser.add_argument('--save', action='store_true', help='save to files')
@@ -204,14 +206,20 @@ def main():
     else:
         methods = [app_args.m]
 
+    if app_args.save:
+        pathlib.Path(f'{app_args.m}.mode').write_text(json.dumps({k: v for k, v in vars(app_args).items() if k != 'file'}) + '\n')
+
     resdic = simulate(app_args.file, app_args.n, app_args.x, app_args.seed, methods, app_args.r, app_args.affinity)
     for method, dataframe in resdic.items():
         print(method)
         print(dataframe.info())
         print(dataframe.to_string())
         if app_args.save:
+            dataframe.to_string(open(method + '.txt', 'w'))
             dataframe.to_csv(method + '.csv')
             dataframe.to_pickle(method + '.df')
+            dataframe.to_html(method + '.html')
+            dataframe.to_latex(method + '.tex', float_format='%.2f')
 
     logmsg('Finished')
 
