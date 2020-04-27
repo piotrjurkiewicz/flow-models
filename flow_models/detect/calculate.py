@@ -110,8 +110,9 @@ def calculate_mix(data, x_probs, x_val, method):
             for p in x_probs:
                 ps.append((1 - p) ** idx)
         else:
-            packet_size = (mix.cdf(data['octets'], idx) / mix.cdf(data['packets'], idx)) * 871
+            packet_size = (mix.cdf(data['octets'], idx) / mix.cdf(data['packets'], idx)) * (data['octets']['sum'] / data['packets']['sum'])
             pks = np.clip(idx / packet_size, 1, np.trunc(idx / 64))
+            # Flows smaller than 128 bytes must be 1-packet long
             packet_size[:64] = idx[:64]
             for p in x_probs:
                 ps.append((1 - np.clip(p * packet_size / 64, 0, 1)) ** (pks if x_val == 'size' else idx))
@@ -146,7 +147,7 @@ def calculate(obj, index=None, x_val='length', methods=tuple(METHODS)):
     if index is None:
         index = 1 / np.power(2, range(25))
     elif isinstance(index, int):
-        index = 1 / np.logspace(0, 24, index, base=2)
+        index = 1 / np.logspace(0, 32, index, base=2)
     else:
         index = index
 
