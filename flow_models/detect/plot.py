@@ -42,7 +42,7 @@ def plot_traffic(calculated):
                 else:
                     r = interpolated[to][x_val]['octets_mean']
                     to_label = f'relative to {to}'
-                ax.plot(d.index, d / r, 'k' + METHODS[method], lw=2,
+                ax.plot(d.index, d / r, 'b' + METHODS[method], lw=2,
                         label=method)
             ax.set_ylabel(f'Traffic coverage [{to_label}]')
             ax.set_xlabel(f'Flow table occupancy (decision by {x_val})')
@@ -105,14 +105,14 @@ def plot_occupancy(calculated):
 
 def plot_calc_sim(ax, calculated, simulated, method, x_val, w):
     sim_style = {
-        'octets': 'o',
-        'flows': 'o',
-        'fraction': 'o'
+        'octets': 'bo',
+        'flows': 'ro',
+        'fraction': 'ko'
     }
     calc_style = {
-        'octets': '-',
-        'flows': '--',
-        'fraction': ':'
+        'octets': 'b-',
+        'flows': 'r-',
+        'fraction': 'k-'
     }
     if w == 'fraction':
         name = 'Occupancy'
@@ -124,48 +124,42 @@ def plot_calc_sim(ax, calculated, simulated, method, x_val, w):
         name = w[:-1] + ' coverage'
 
     axis = 'left' if w == 'octets' else 'right'
-    d = simulated[method][x_val][w + '_mean'].iloc[:-3]
-    e = simulated[method][x_val][w + '_conf'].iloc[:-3]
-    ax.errorbar(d.index, d, e, None, 'k' + sim_style[w], lw=1, capthick=1, ms=2,
+    d = simulated[method][x_val][w + '_mean']
+    try:
+        e = simulated[method][x_val][w + '_conf']
+    except KeyError:
+        e = None
+    ax.errorbar(d.index, d, e, None, sim_style[w], lw=1, capthick=1, ms=2,
                 label=f'{name} (sim.) ({axis})')
     n = calculated[method][x_val][w + '_mean']
     d = n.loc[:d.index.max() if method != 'sampling' else d.index.min()]
-    ax.plot(d.index, d, 'k' + calc_style[w], lw=2,
+    ax.plot(d.index, d, calc_style[w], lw=2,
             label=f'{name} (calc.) ({axis})')
 
 def plot_all(calculated, simulated, one):
     for method in calculated:
 
         if one:
-            fig = plt.figure(figsize=[FIGSIZE[0] * 2.132, FIGSIZE[1]])
-            ax = plt.subplot(1, 2, 1)
+            fig, axes = plt.subplots(1, 2, figsize=[FIGSIZE[0] * 2.132, FIGSIZE[1]], sharey='row')
+            txes = [ax.twinx() for ax in axes]
+            txes[0].get_shared_y_axes().join(*txes)
         else:
-            fig = plt.figure(figsize=FIGSIZE)
-            ax = plt.subplot(1, 1, 1)
+            fig, ax = plt.subplots(figsize=FIGSIZE)
+            tx = ax.twinx()
 
-        ax2 = None
         for n, x_val in enumerate(simulated[method]):
             if one:
-                ax = plt.subplot(1, 2, n + 1, sharey=ax)
-            else:
-                fig, ax = plt.subplots(figsize=FIGSIZE)
+                ax = axes[n]
+                tx = txes[n]
 
             plot_calc_sim(ax, calculated, simulated, method, x_val, 'octets')
-
-            if ax2 is None:
-                ax2 = ax.twinx()
-            else:
-                nax = ax.twinx()
-                ax2.get_shared_y_axes().join(ax2, nax)
-                ax2 = nax
-
-            plot_calc_sim(ax2, calculated, simulated, method, x_val, 'flows')
-            plot_calc_sim(ax2, calculated, simulated, method, x_val, 'fraction')
+            plot_calc_sim(tx, calculated, simulated, method, x_val, 'flows')
+            plot_calc_sim(tx, calculated, simulated, method, x_val, 'fraction')
 
             ax.set_xscale('log')
-            ax2.set_yscale('log')
+            tx.set_yscale('log')
             ax.legend(loc=3)
-            ax2.legend()
+            tx.legend()
 
             if method == 'sampling':
                 ax.invert_xaxis()
@@ -203,15 +197,15 @@ def plot(dirs, one=False):
     methods = set()
     for d in dirs:
         d = pathlib.Path(d)
-        x_val = d.stem.split('_')[0]
+        x_val = d.parts[-1]
         assert x_val in X_VALUES
-        for f in d.glob('*.df'):
+        for f in d.glob('*.csv'):
             method = f.stem
             assert method in METHODS
             methods.add(method)
-            simulated[method][x_val] = pd.read_pickle(str(f))
+            simulated[method][x_val] = pd.read_csv(str(f), index_col=0).dropna()
         for method, df in calculate('../mixtures/all/' + x_val, 1024, x_val=x_val, methods=methods).items():
-            calculated[method][x_val] = df
+            calculated[method][x_val] = df.dropna()
 
     plot_all(calculated, simulated, one)
     plot_occupancy(calculated)
@@ -223,7 +217,7 @@ def main():
     parser.add_argument('files', nargs='+', help='csv_hist files to plot')
     app_args = parser.parse_args()
 
-    with matplotlib_config(latex=True):
+    with matplotlib_config(latex=False):
         plot_probability()
         plot(app_args.files, app_args.one)
 
