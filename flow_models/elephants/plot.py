@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from flow_models.detect.calculate import calculate
+from flow_models.elephants.calculate import calculate
 from flow_models.lib.data import UNITS
 from flow_models.lib.plot import save_figure, matplotlib_config
 
