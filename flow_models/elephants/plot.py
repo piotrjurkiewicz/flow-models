@@ -31,7 +31,7 @@ def plot_traffic(calculated):
             ddd = ddd.reindex(ddd.index.union(nidx)).interpolate('slinear').reindex(nidx)
             interpolated.setdefault(method, {})[x_val] = ddd
     for to in ['absolute'] + list(METHODS):
-        to_label = r'\%'
+        to_label = '%'
         fig, axes = plt.subplots(1, 2, sharex='all', sharey='all', figsize=[FIGSIZE[0] * 2.132, FIGSIZE[1]])
         for n, x_val in enumerate(['length', 'size']):
             ax = axes[n]
@@ -92,7 +92,7 @@ def plot_occupancy(calculated):
                         label=f'{method} occupancy')
                 ax.plot(d.index, r['operations_mean'] / d['operations_mean'], 'r' + METHODS[method], lw=2/3,
                         label=f'{method} operations')
-            ax.set_xlabel(f'Traffic coverage [\%] (decision by {x_val})')
+            ax.set_xlabel(f'Traffic coverage [%] (decision by {x_val})')
             ax.set_ylabel(f'Flow table occupancy/operations{to_label}')
             ax.tick_params('y', labelleft=True)
             if to == 'absolute':
