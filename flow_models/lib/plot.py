@@ -42,6 +42,7 @@ def matplotlib_config(latex=False):
         matplotlib.rcParams['axes.linewidth'] = 0.25
         matplotlib.rcParams['pdf.use14corefonts'] = True
         matplotlib.rcParams['font.family'] = 'sans'
+        matplotlib.rcParams['font.size'] *= 1.15
 
         if latex:
             matplotlib.rcParams['text.usetex'] = True
@@ -70,10 +71,10 @@ def plot_mixture(data, idx, x_val, what, mode, fun):
             return plots
     if 'mixture' in mode:
         fit = []
-        label = 'mixture'
+        label = 'model'
         if fun == 'cdf':
             fit = cdf(data, idx)
-            label = what + ' mixture'
+            label = what + ' (model)'
         if fun == 'pdf':
             fit = pdf(data, idx, x_val)
 
@@ -111,8 +112,8 @@ def plot_pdf(data, idx=None, x_val='length', what='flows', mode=frozenset(['poin
         xmin, xmax, ymin, ymax = calc_minmax(idx, pdfi)
 
         if 'line' in mode:
-            plots += plt.plot(idx, pdfi, STYLE[what][0] + '-', lw=2, ms=1, alpha=0.5,
-                              label='data (line calculated from the CDF)')
+            plots += plt.plot(idx, pdfi, STYLE[what][0] + '-', lw=2, ms=1, alpha=0.5, zorder=3,
+                              label='infered from data points')
 
         values_sum = data[what + '_sum'].sum()
         weights = data['flows_sum'].values
@@ -128,12 +129,12 @@ def plot_pdf(data, idx=None, x_val='length', what='flows', mode=frozenset(['poin
             logmsg('Plotting points')
             if normalize:
                 plots += plt.plot(pdfd.index, pdfd,
-                                  STYLE[what][0] + ',', lw=1, ms=1, alpha=1,
-                                  label='normalized datapoints', rasterized=True)
+                                  STYLE[what][0] + ',', lw=1, ms=1, alpha=1, zorder=1,
+                                  label='data points (normalized)', rasterized=True)
             else:
                 plots += plt.plot(pdfd.index, pdfd,
-                                  'c' + ',', lw=1, ms=1, alpha=1,
-                                  label='log-binned datapoints', rasterized=True)
+                                  'c' + ',', lw=1, ms=1, alpha=1, zorder=2,
+                                  label='data points (log-binned)', rasterized=True)
 
         if 'hist' in mode:
             logmsg('Plotting hist')
@@ -169,7 +170,7 @@ def plot_cdf(data, idx=None, x_val='length', what='flows', mode=frozenset(['mixt
         cdfd = data[what + '_sum'].cumsum() / data[what + '_sum'].sum()
         cdfi = scipy.interpolate.interp1d(cdfd.index, cdfd, 'linear', bounds_error=False)(idx)
         plots += plt.plot(idx, cdfi, STYLE[what][0] + '-', lw=2, ms=1, alpha=0.5,
-                          label=what + ' data')
+                          label=what + ' (infered from data points)')
     else:
         plots += plot_mixture(data, idx, x_val, what, mode, 'cdf')
 
@@ -215,10 +216,10 @@ def plot_avg(data, idx=None, x_val='length', what='packets', mode=frozenset(['mi
 
         plots += plt.plot(avg_points.index.values, avg_points.values,
                           color + ',', lw=1, ms=1, alpha=1,
-                          label='datapoints', rasterized=True)
+                          label='data points', rasterized=True)
 
         plots += plt.plot(idx, avg_line, color + '-', lw=2, ms=1, alpha=0.5,
-                          label='data')
+                          label='infered from data points')
     elif 'mixture' in mode:
         try:
             avg_mix = avg(data, idx, x_val, what)
@@ -230,7 +231,7 @@ def plot_avg(data, idx=None, x_val='length', what='packets', mode=frozenset(['mi
             plt.yscale('log')
 
         plots += plt.plot(idx, avg_mix, 'k-', lw=2, ms=1, alpha=0.5,
-                          label='infered from mixtures')
+                          label='infered from model')
 
     plt.legend(frameon=False)
     return plots
