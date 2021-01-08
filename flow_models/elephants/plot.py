@@ -4,6 +4,7 @@ import collections
 import pathlib
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker
 import numpy as np
 import pandas as pd
 
@@ -18,7 +19,7 @@ METHODS = {'first': '-',
            'sampling': ':'}
 
 SIZE = 0.6
-FIGSIZE = [SIZE * 11.2, SIZE * 6.8]
+FIGSIZE = [SIZE * 11.2, SIZE * 5.66]
 
 def plot_traffic(calculated):
     interpolated = {}
@@ -55,7 +56,7 @@ def plot_traffic(calculated):
         save_figure(fig, out)
         plt.close(fig)
 
-def plot_occupancy(calculated):
+def plot_usage(calculated, what):
     interpolated = {}
     for n, x_val in enumerate(['length', 'size']):
         nidx = pd.Float64Index(np.linspace(50, 100, 5001, endpoint=True))
@@ -75,7 +76,7 @@ def plot_occupancy(calculated):
                                                                   multicolumn_format='c')
 
     for to in ['absolute'] + list(METHODS):
-        to_label = ''
+        to_label = ' reduction [x]'
         fig, axes = plt.subplots(1, 2, sharex='all', sharey='all', figsize=[FIGSIZE[0] * 2.132, FIGSIZE[1]])
         for n, x_val in enumerate(['length', 'size']):
             ax = axes[n]
@@ -85,21 +86,22 @@ def plot_occupancy(calculated):
                     r = d.copy()
                     for col in r.columns:
                         r[col].values[:] = 1
+                    ax.plot(d.index, d[f'{what}_mean'] / r[f'{what}_mean'], 'k' + METHODS[method], lw=2,
+                            label=method)
                 else:
                     r = interpolated[x_val][to]
                     to_label = f' [relative to {to}]'
-                ax.plot(d.index, r['occupancy_mean'] / d['occupancy_mean'], 'k' + METHODS[method], lw=2,
-                        label=f'{method} occupancy')
-                ax.plot(d.index, r['operations_mean'] / d['operations_mean'], 'r' + METHODS[method], lw=2/3,
-                        label=f'{method} operations')
+                    ax.plot(d.index, r[f'{what}_mean'] / d[f'{what}_mean'], 'k' + METHODS[method], lw=2,
+                            label=method)
             ax.set_xlabel(f'Traffic coverage [%] (decision by {x_val})')
-            ax.set_ylabel(f'Flow table occupancy/operations{to_label}')
+            ax.set_ylabel(f'Flow table {what}{to_label}')
             ax.tick_params('y', labelleft=True)
             if to == 'absolute':
                 ax.set_yscale('log')
             ax.legend()
         fig.gca().invert_xaxis()
-        out = f'occupancy_{to}'
+        fig.gca().get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        out = f'{what}_{to}'
         save_figure(fig, out)
         plt.close(fig)
 
@@ -208,7 +210,8 @@ def plot(dirs, one=False):
             calculated[method][x_val] = df.dropna()
 
     plot_all(calculated, simulated, one)
-    plot_occupancy(calculated)
+    plot_usage(calculated, 'occupancy')
+    plot_usage(calculated, 'operations')
     plot_traffic(calculated)
 
 def main():
