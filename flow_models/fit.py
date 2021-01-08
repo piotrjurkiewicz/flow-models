@@ -196,7 +196,7 @@ def gui(**kwargs):
     rv = [{}]
 
     root = tkinter.Tk()
-    root.wm_title("Embedding in Tk")
+    root.wm_title("flow-models-fit")
 
     style = tkinter.ttk.Style()
     style.theme_use('default')
@@ -229,17 +229,21 @@ def gui(**kwargs):
             x_val = detect_x_value(df.index)
             ax[0].clear()
             fig.sca(ax[0])
-            plot_pdf(df, idx, x_val, kwargs['y_value'], mode={'line', 'mixture', 'comp'})
+            plot_pdf(df, idx, x_val, kwargs['y_value'], mode={'line', 'mixture', 'comp', 'points'})
+            ax[0].set_title('Probability Density Function (PDF)')
             ax[1].clear()
             fig.sca(ax[1])
             for what in Y_VALUES:
                 plot_cdf(df, idx, x_val, what, mode={'line'})
+            ax[1].set_title('Cumulative Distribution Function (CDF)')
             ax[2].clear()
             fig.sca(ax[2])
             plot_avg(df, idx, x_val, 'packets', mode={'line', 'mixture'})
+            ax[2].set_title('Average flow length')
             ax[3].clear()
             fig.sca(ax[3])
             plot_avg(df, idx, x_val, 'octets', mode={'line', 'mixture'})
+            ax[3].set_title('Average flow size')
             canvas.draw()
 
     y_var.trace('w', plot_data)
