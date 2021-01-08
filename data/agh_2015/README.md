@@ -1,6 +1,11 @@
 # agh_2015
 
-P. Jurkiewicz, G. Rzym and P. Boryło, "Flow length and size distributions in campus Internet traffic", arXiv:1809.03486, 2018. Available: http://arxiv.org/abs/1809.03486
+    Piotr Jurkiewicz, Grzegorz Rzym and Piotr Boryło
+    Flow length and size distributions in campus Internet traffic
+    Computer Communications 167, 15-30
+    DOI: 10.1016/j.comcom.2020.12.016
+
+Available: http://arxiv.org/abs/1809.03486
 
 Based on NetFlow records collected on the Internet-facing interface of the AGH University of Science and Technology network during the consecutive period of 30 days.
 
