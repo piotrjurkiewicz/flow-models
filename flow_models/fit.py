@@ -317,7 +317,6 @@ def gui(**kwargs):
 
     tkinter.Label(master=root, text="Y value:").grid(column=1, row=5, sticky=W)
     combo = tkinter.ttk.Combobox(master=root, textvar=y_var, values=Y_VALUES)
-    combo.current(0)
     combo.grid(column=2, row=5, sticky=E)
 
     check_animate = tkinter.Checkbutton(master=root, text="Animate", variable=animate)
@@ -368,7 +367,7 @@ def main():
     parser.add_argument('-P', type=int, help='number of Pareto distributions')
     parser.add_argument('-L', type=int, help='number of lognorm distributions')
     parser.add_argument('--mpw', type=float, help='maximum pareto weight')
-    parser.add_argument('--initial', help='initial mixture')
+    parser.add_argument('--initial', help='initial mixture', default={})
     parser.add_argument('--interactive', action='store_true', help='interactive')
     parser.add_argument('--test', action='store_true', help='test fitting')
     parser.add_argument('--measure-memory', action='store_true', help='collect and print memory statistics')
