@@ -27,7 +27,7 @@ setup(
             'flow-models-fit=flow_models.fit:main',
             'flow-models-plot=flow_models.plot:main',
             'flow-models-generate=flow_models.generate:main',
-            'flow-models-summary=flow_models.summmary:main',
+            'flow-models-summary=flow_models.summary:main',
             'flow-models-convert=flow_models.convert:main'
         ]
     },

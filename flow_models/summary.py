@@ -88,8 +88,6 @@ def cdf_summary(data, x_val):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--format', default='png', help='plot file format')
-    parser.add_argument('--one', action='store_true', help='plot PDF and CDF in one file')
     parser.add_argument('-x', choices=X_VALUES, help='x axis value')
     parser.add_argument('file', help='csv_hist file to summarize')
     app_args = parser.parse_args()
