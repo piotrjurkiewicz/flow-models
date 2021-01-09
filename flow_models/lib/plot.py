@@ -13,6 +13,9 @@ from flow_models.lib.mix import cdf, pdf, cdf_comp, pdf_comp, avg
 from flow_models.lib.util import logmsg
 
 PDF_NONE = {'Creator': None, 'Producer': None, 'CreationDate': None}
+MODES_MIXTURE = ['comp', 'comp_stack', 'comp_labels']
+MODES_PDF = ['points', 'hist', 'kde'] + MODES_MIXTURE
+MODES_CDF = MODES_MIXTURE
 
 def save_figure(figure, fname, ext='pdf', **kwargs):
     figure.savefig(f'{fname}.{ext}', bbox_inches='tight', metadata=PDF_NONE, **kwargs)
@@ -95,7 +98,7 @@ def plot_mixture(data, idx, x_val, what, mode, fun):
             comp = cdf_comp(data, idx)
         if fun == 'pdf':
             comp = pdf_comp(data, idx, x_val)
-        plots += plt.stackplot(idx, *comp.values(), lw=0.1, labels=comp.keys() if 'comp_labels' in mode else None, alpha=0.5)
+        plots += plt.stackplot(idx, *comp.values(), lw=0.1, labels=comp.keys() if 'comp_labels' in mode else [], alpha=0.5)
     return plots
 
 def plot_pdf(data, idx=None, x_val='length', what='flows', mode=frozenset(['points', 'mixture']), normalize=True, fft=False):
@@ -138,10 +141,10 @@ def plot_pdf(data, idx=None, x_val='length', what='flows', mode=frozenset(['poin
 
         if 'hist' in mode:
             logmsg('Plotting hist')
-            plots += plt.hist2d(pdfd.index, pdfd, weights=weights,
-                                bins=[np.geomspace(xmin, xmax, HIST_NBINS), np.geomspace(ymin, ymax, HIST_NBINS)],
-                                cmin=1, norm=colors.LogNorm(),
-                                alpha=1.0, label=what + ' data', rasterized=False, **kwargs)
+            plt.hist2d(pdfd.index, pdfd, weights=weights,
+                       bins=[np.geomspace(xmin, xmax, HIST_NBINS), np.geomspace(ymin, ymax, HIST_NBINS)],
+                       cmin=1, norm=colors.LogNorm(),
+                       alpha=1.0, label=what + ' data', rasterized=False, **kwargs)
 
         if 'kde' in mode:
             logmsg('Calculating KDE')
@@ -149,7 +152,7 @@ def plot_pdf(data, idx=None, x_val='length', what='flows', mode=frozenset(['poin
             zn = colors.PowerNorm(0.1)(zi)
             logmsg('Plotting KDE')
             # plt.pcolormesh(xi, yi, zn, shading='gouraud', rasterized=True)
-            plots += plt.contourf(xi, yi, zn, levels=16, antialiased=1, alpha=0.5, **kwargs).collections[0].set_alpha(0)
+            plt.contourf(xi, yi, zn, levels=16, antialiased=1, alpha=0.5, **kwargs).collections[0].set_alpha(0)
             # plt.contour(xi, yi, zn, antialiased=1, linewidths=0.25, colors='black').collections[0].set_alpha(0)
 
         set_log_limits(xmin, xmax, ymin, ymax)
@@ -166,11 +169,11 @@ def plot_cdf(data, idx=None, x_val='length', what='flows', mode=frozenset(['mixt
     if isinstance(data, pd.DataFrame):
         if idx is None:
             idx = np.unique(np.rint(np.geomspace(data.index.min(), data.index.max(), LINE_NBINS)).astype(int))
-
-        cdfd = data[what + '_sum'].cumsum() / data[what + '_sum'].sum()
-        cdfi = scipy.interpolate.interp1d(cdfd.index, cdfd, 'linear', bounds_error=False)(idx)
-        plots += plt.plot(idx, cdfi, STYLE[what][0] + '-', lw=2, ms=1, alpha=0.5,
-                          label=what + ' (infered from data points)')
+        if 'line' in mode:
+            cdfd = data[what + '_sum'].cumsum() / data[what + '_sum'].sum()
+            cdfi = scipy.interpolate.interp1d(cdfd.index, cdfd, 'linear', bounds_error=False)(idx)
+            plots += plt.plot(idx, cdfi, STYLE[what][0] + '-', lw=2, ms=1, alpha=0.5,
+                              label=what + ' (infered from data points)')
     else:
         plots += plot_mixture(data, idx, x_val, what, mode, 'cdf')
 

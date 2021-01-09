@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from .lib.data import UNITS, LINE_NBINS, load_data
-from .lib.plot import plot_pdf, plot_cdf, plot_avg, save_figure, matplotlib_config
+from .lib.plot import plot_pdf, plot_cdf, plot_avg, save_figure, matplotlib_config, MODES_PDF, MODES_CDF
 from .lib.util import logmsg
 
 X_VALUES = ['length', 'size', 'duration', 'rate']
@@ -35,7 +35,7 @@ def plot(objects, x_val='length', ext='png', single=False, normalize=True, fft=F
             idx = np.unique(np.rint(np.geomspace(df.index.min(), df.index.max(), LINE_NBINS)).astype(int))
         for what in ['flows', 'packets', 'octets']:
             logmsg('Drawing CDF', obj, what)
-            plot_cdf(df, idx, x_val, what, mode={'mixture', *cdf_modes})
+            plot_cdf(df, idx, x_val, what, mode={'line', 'mixture', *cdf_modes})
     ax.set_xlabel(f'Flow {x_val} [{UNITS[x_val]}]')
     ax.set_ylabel('CDF (Fraction of)')
     if not single:
@@ -85,18 +85,22 @@ def plot(objects, x_val='length', ext='png', single=False, normalize=True, fft=F
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--format', default='png', help='plot file format')
+    parser.add_argument('--format', default='png', choices=['png', 'pdf'], help='plot file format')
     parser.add_argument('--single', action='store_true', help='plot PDF and CDF in single file')
     parser.add_argument('--no-normalize', action='store_false', help='do not normalize PDF datapoints')
     parser.add_argument('--fft', action='store_true', help='use FFT for calculating KDE')
-    parser.add_argument('-C', nargs='*', default=(), help='additional CDF plot modes')
-    parser.add_argument('-P', nargs='*', default=(), help='additional PDF plot modes')
+    parser.add_argument('-P', action='append', default=[], choices=MODES_PDF, help='additional PDF plot modes (can be specified multiple times)')
+    parser.add_argument('-C', action='append', default=[], choices=MODES_CDF, help='additional CDF plot modes (can be specified multiple times)')
     parser.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
-    parser.add_argument('files', nargs='+', help='csv_hist files to plot')
+    parser.add_argument('histogram', help='csv_hist file to plot')
+    parser.add_argument('mixture', nargs='?', help='mixture directory to plot')
     app_args = parser.parse_args()
 
+    files = [app_args.histogram]
+    if app_args.mixture:
+        files.append(app_args.mixture)
     with matplotlib_config(latex=False):
-        plot(app_args.files, app_args.x, app_args.format, app_args.single, app_args.no_normalize, app_args.fft,
+        plot(files, app_args.x, app_args.format, app_args.single, app_args.no_normalize, app_args.fft,
              app_args.C, app_args.P)
 
 
