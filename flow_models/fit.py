@@ -1,4 +1,7 @@
 #!/usr/bin/python3
+"""
+Creates General Mixture Models (GMM) fitted to flow records (requires `scipy`).
+"""
 
 import argparse
 import collections
@@ -358,20 +361,23 @@ def save(path, mix, args):
     pathlib.Path(str(path) + '.json').write_text(to_json(**mix) + '\n')
     pathlib.Path(str(path) + '.mode').write_text(json.dumps({k: v for k, v in args.items() if k != 'path'}) + '\n')
 
+def parser():
+    p = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, description=__doc__)
+    p.add_argument('file', help='input histogram file')
+    p.add_argument('-y', default='flows', choices=Y_VALUES, help='y axis value')
+    p.add_argument('-i', default=100, type=int, help='number of iterations')
+    p.add_argument('-U', type=int, help='number of uniform distributions')
+    p.add_argument('-P', type=int, help='number of Pareto distributions')
+    p.add_argument('-L', type=int, help='number of lognorm distributions')
+    p.add_argument('--mpw', type=float, help='maximum pareto weight')
+    p.add_argument('--initial', help='initial mixture', default={})
+    p.add_argument('--interactive', action='store_true', help='interactive')
+    p.add_argument('--test', action='store_true', help='test fitting')
+    p.add_argument('--measure-memory', action='store_true', help='collect and print memory statistics')
+    return p
+
 def main():
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, description=__doc__)
-    parser.add_argument('file', help='input histogram file')
-    parser.add_argument('-y', default='flows', choices=Y_VALUES, help='y axis value')
-    parser.add_argument('-i', default=100, type=int, help='number of iterations')
-    parser.add_argument('-U', type=int, help='number of uniform distributions')
-    parser.add_argument('-P', type=int, help='number of Pareto distributions')
-    parser.add_argument('-L', type=int, help='number of lognorm distributions')
-    parser.add_argument('--mpw', type=float, help='maximum pareto weight')
-    parser.add_argument('--initial', help='initial mixture', default={})
-    parser.add_argument('--interactive', action='store_true', help='interactive')
-    parser.add_argument('--test', action='store_true', help='test fitting')
-    parser.add_argument('--measure-memory', action='store_true', help='collect and print memory statistics')
-    app_args = parser.parse_args()
+    app_args = parser().parse_args()
 
     mode = {}
     for key, val in vars(app_args).items():

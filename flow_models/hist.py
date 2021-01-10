@@ -1,4 +1,7 @@
 #!/usr/bin/python3
+"""
+Calculates histograms of flows length, size, duration or rate.
+"""
 
 import argparse
 
@@ -91,17 +94,18 @@ def histogram(in_files, out_file, in_format='nfcapd', out_format='csv_hist', bin
 
     logmsg(f'Finished all files. Flows: {flows} Written: {written}')
 
+def parser():
+    p = argparse.ArgumentParser(description=__doc__, parents=[io_parser])
+    p._option_string_actions['-o'].choices = OUT_FORMATS
+    p._option_string_actions['-o'].default = 'csv_hist'
+    p.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
+    p.add_argument('-b', default=0, type=int, help='bin width exponent of 2')
+    p.add_argument('-c', action='append', default=[], help='additional column to sum')
+    p.add_argument('--prot')
+    return p
 
 def main():
-
-    parser = argparse.ArgumentParser(description=__doc__, parents=[io_parser])
-    parser._option_string_actions['-o'].choices = OUT_FORMATS
-    parser._option_string_actions['-o'].default = 'csv_hist'
-    parser.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
-    parser.add_argument('-b', default=0, type=int, help='bin width exponent of 2')
-    parser.add_argument('-c', action='append', default=[], help='additional column to sum')
-    parser.add_argument('--prot')
-    app_args = parser.parse_args()
+    app_args = parser().parse_args()
 
     if app_args.i == 'binary':
         input_files = app_args.files

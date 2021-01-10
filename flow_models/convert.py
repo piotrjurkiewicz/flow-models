@@ -1,4 +1,7 @@
 #!/usr/bin/python3
+"""
+Converts flow records between supported formats.
+"""
 
 import argparse
 
@@ -32,10 +35,12 @@ def convert(in_files, out_file, in_format='nfcapd', out_format='csv_flow'):
 
     logmsg(f'Finished all files. Written: {written}')
 
-def main():
+def parser():
+    p = argparse.ArgumentParser(description=__doc__, parents=[io_parser])
+    return p
 
-    parser = argparse.ArgumentParser(description=__doc__, parents=[io_parser])
-    app_args = parser.parse_args()
+def main():
+    app_args = parser().parse_args()
 
     if app_args.i == 'binary':
         input_files = app_args.files

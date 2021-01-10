@@ -336,7 +336,7 @@ IN_FORMATS = {'csv_flow': read_flow_csv, 'pipe': read_pipe, 'nfcapd': read_nfcap
 OUT_FORMATS = {'csv_flow': write_flow_csv, 'binary': write_flow_binary, 'none': write_none}
 
 io_parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, add_help=False)
-io_parser.add_argument('files', nargs='+', help='input files or dirs')
+io_parser.add_argument('files', nargs='+', help='input files or directories')
 io_parser.add_argument('-i', default='nfcapd', choices=IN_FORMATS, help='format of input files')
 io_parser.add_argument('-o', default='csv_flow', choices=OUT_FORMATS, help='format of output')
 io_parser.add_argument('-O', default=sys.stdout, help='file or directory for output')

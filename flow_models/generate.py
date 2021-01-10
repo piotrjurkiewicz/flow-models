@@ -1,4 +1,7 @@
 #!/usr/bin/python3
+"""
+Generates flow records from histograms or mixture models.
+"""
 
 import argparse
 import itertools
@@ -110,15 +113,18 @@ def generate(obj, out_file, size=1, x_val='length', random_state=None, out_forma
 
     writer.close()
 
+def parser():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('-s', type=int, default=1, help='number of generated flows')
+    p.add_argument('--seed', type=int, default=None, help='seed')
+    p.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
+    p.add_argument('-o', default='csv_flow', choices=OUT_FORMATS, help='format of output')
+    p.add_argument('-O', default=sys.stdout, help='file or directory for output')
+    p.add_argument('file', help='csv_hist file or mixture directory')
+    return p
+
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-s', type=int, default=1, help='number of generated flows')
-    parser.add_argument('--seed', type=int, default=None, help='seed')
-    parser.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
-    parser.add_argument('-o', default='csv_flow', choices=OUT_FORMATS, help='format of output')
-    parser.add_argument('-O', default=sys.stdout, help='file or directory for output')
-    parser.add_argument('file', help='csv_hist file or mixture directory')
-    app_args = parser.parse_args()
+    app_args = parser().parse_args()
 
     generate(app_args.file, app_args.O, app_args.s, app_args.x, app_args.seed, out_format=app_args.o)
 

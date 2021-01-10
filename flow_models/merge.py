@@ -1,4 +1,7 @@
 #!/usr/bin/python3
+"""
+Merges flows which were split across multiple records due to *active timeout*.
+"""
 
 import argparse
 import warnings
@@ -27,7 +30,7 @@ class Flow:
 
 def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', inactive_timeout=15.0, active_timeout=300.0):
     """
-    Merge flows splitted due to timeout.
+    Merge flows split due to timeout.
 
     :param list[os.PathLike] in_files: input files paths
     :param os.PathLike | _io.TextIOWrapper out_file: output file or directory path or stream
@@ -130,13 +133,14 @@ def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', inactiv
 
     logmsg(f'Finished all files. Wrong: {wrong} Merged: {merged} Written: {written}')
 
+def parser():
+    p = argparse.ArgumentParser(description=__doc__, parents=[io_parser])
+    p.add_argument('-I', type=float, default=15.0, help='inactive timeout in seconds')
+    p.add_argument('-A', type=float, default=300.0, help='active timeout in seconds')
+    return p
 
 def main():
-
-    parser = argparse.ArgumentParser(description=__doc__, parents=[io_parser])
-    parser.add_argument('-I', type=float, default=15.0, help='inactive timeout in seconds')
-    parser.add_argument('-A', type=float, default=300.0, help='active timeout in seconds')
-    app_args = parser.parse_args()
+    app_args = parser().parse_args()
 
     if app_args.i == 'binary':
         input_files = app_args.files

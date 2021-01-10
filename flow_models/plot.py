@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+"""
+Generates plots from flow records and fitted models (requires `pandas` and `scipy`).
+"""
+
 import argparse
 
 import matplotlib
@@ -83,18 +87,21 @@ def plot(objects, x_val='length', ext='png', single=False, normalize=True, fft=F
         plt.close(fig)
         logmsg('Done', out)
 
+def parser():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--format', default='png', choices=['png', 'pdf'], help='plot file format')
+    p.add_argument('--single', action='store_true', help='plot PDF and CDF in single file')
+    p.add_argument('--no-normalize', action='store_false', help='do not normalize PDF datapoints')
+    p.add_argument('--fft', action='store_true', help='use FFT for calculating KDE')
+    p.add_argument('-P', action='append', default=[], choices=MODES_PDF, help='additional PDF plot modes (can be specified multiple times)')
+    p.add_argument('-C', action='append', default=[], choices=MODES_CDF, help='additional CDF plot modes (can be specified multiple times)')
+    p.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
+    p.add_argument('histogram', help='csv_hist file to plot')
+    p.add_argument('mixture', nargs='?', help='mixture directory to plot')
+    return p
+
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--format', default='png', choices=['png', 'pdf'], help='plot file format')
-    parser.add_argument('--single', action='store_true', help='plot PDF and CDF in single file')
-    parser.add_argument('--no-normalize', action='store_false', help='do not normalize PDF datapoints')
-    parser.add_argument('--fft', action='store_true', help='use FFT for calculating KDE')
-    parser.add_argument('-P', action='append', default=[], choices=MODES_PDF, help='additional PDF plot modes (can be specified multiple times)')
-    parser.add_argument('-C', action='append', default=[], choices=MODES_CDF, help='additional CDF plot modes (can be specified multiple times)')
-    parser.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
-    parser.add_argument('histogram', help='csv_hist file to plot')
-    parser.add_argument('mixture', nargs='?', help='mixture directory to plot')
-    app_args = parser.parse_args()
+    app_args = parser().parse_args()
 
     files = [app_args.histogram]
     if app_args.mixture:

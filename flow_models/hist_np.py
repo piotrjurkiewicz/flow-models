@@ -1,4 +1,7 @@
 #!/usr/bin/python3
+"""
+Calculates histograms using multiple threads (requires `numpy`, much faster, but uses more memory).
+"""
 
 import argparse
 import concurrent.futures
@@ -204,17 +207,20 @@ def histogram(in_files, out_file, in_format='binary', out_format='csv_hist', bin
 
     logmsg(f'Finished all directories. Flows: NA Written: {written}')
 
+def parser():
+    p = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, description=__doc__)
+    p.add_argument('files', nargs='+', help='input dirs')
+    p.add_argument('-i', default='binary', choices=['binary'], help='format of input files')
+    p.add_argument('-o', default='csv_hist', choices=['csv_hist'], help='format of output')
+    p.add_argument('-O', default=sys.stdout, help='file for output')
+    p.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
+    p.add_argument('-b', default=0, type=int, help='bin width exponent of 2')
+    p.add_argument('-c', action='append', default=[], help='additional column to sum')
+    p.add_argument('--measure-memory', action='store_true', help='collect and print memory statistics')
+    return p
+
 def main():
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, description=__doc__)
-    parser.add_argument('files', nargs='+', help='input dirs')
-    parser.add_argument('-i', default='binary', choices=['binary'], help='format of input files')
-    parser.add_argument('-o', default='csv_hist', choices=['csv_hist'], help='format of output')
-    parser.add_argument('-O', default=sys.stdout, help='file for output')
-    parser.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
-    parser.add_argument('-b', default=0, type=int, help='bin width exponent of 2')
-    parser.add_argument('-c', action='append', default=[], help='additional column to sum')
-    parser.add_argument('--measure-memory', action='store_true', help='collect and print memory statistics')
-    app_args = parser.parse_args()
+    app_args = parser().parse_args()
 
     with measure_memory(app_args.measure_memory):
         histogram(app_args.files, app_args.O, app_args.i, app_args.o, app_args.b, app_args.x, app_args.c)

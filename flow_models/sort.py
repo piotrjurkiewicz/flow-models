@@ -1,4 +1,7 @@
 #!/usr/bin/python3
+"""
+Sorts flow records according to specified fields (requires `numpy`).
+"""
 
 import argparse
 import pathlib
@@ -105,16 +108,17 @@ def sort_array(input_file, output_dir, index_array):
 
     del out_mm
 
+def parser():
+    p = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, description=__doc__)
+    p.add_argument('-I', default='__index', help='index file suffix')
+    p.add_argument('-k', nargs='*', help='ordered key array files')
+    p.add_argument('-O', help='directory for output')
+    p.add_argument('--measure-memory', action='store_true', help='collect and print memory statistics')
+    p.add_argument('files', nargs='+', help='array files to sort')
+    return p
 
 def main():
-
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, description=__doc__)
-    parser.add_argument('-I', default='__index', help='index file suffix')
-    parser.add_argument('-k', nargs='*', help='ordered key array files')
-    parser.add_argument('-O', help='directory for output')
-    parser.add_argument('--measure-memory', action='store_true', help='collect and print memory statistics')
-    parser.add_argument('files', nargs='+', help='array files to sort')
-    app_args = parser.parse_args()
+    app_args = parser().parse_args()
 
     if not app_args.O:
         logmsg('Output directory not specified. To sort in-place specify file containing directory as the output directory.')

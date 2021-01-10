@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+"""
+Produces TeX tables containing summary statistics of flow dataset (requires `scipy`).
+"""
+
 import argparse
 import pathlib
 
@@ -86,11 +90,14 @@ def cdf_summary(data, x_val):
               '\\end{tabular}']
         return '\n'.join(s)
 
+def parser():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('-x', choices=X_VALUES, help='x axis value')
+    p.add_argument('file', help='csv_hist file to summarize')
+    return p
+
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-x', choices=X_VALUES, help='x axis value')
-    parser.add_argument('file', help='csv_hist file to summarize')
-    app_args = parser.parse_args()
+    app_args = parser().parse_args()
 
     summary(app_args.file, app_args.x)
 
