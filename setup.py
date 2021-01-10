@@ -1,4 +1,5 @@
 from setuptools import setup
+import flow_models
 
 URL = 'https://github.com/piotrjurkiewicz/flow-models'
 
@@ -9,7 +10,7 @@ with open('README.md') as f:
 
 setup(
     name='flow_models',
-    version='1.0',
+    version=flow_models.__version__,
     packages=['flow_models', 'flow_models.lib'],
     url=URL,
     license='MIT',
