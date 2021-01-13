@@ -12,10 +12,16 @@ def convert(in_files, out_file, in_format='nfcapd', out_format='csv_flow'):
     """
     Convert one flow format to another.
 
-    :param list[os.PathLike] in_files: input files paths
-    :param os.PathLike | _io.TextIOWrapper out_file: output file or directory path or stream
-    :param in_format: format of input files
-    :param out_format: format of output
+    Parameters
+    ----------
+    in_files : list[os.PathLike]
+        input files paths
+    out_file : Union[os.PathLike, io.TextIOWrapper]
+        output file or directory path or stream
+    in_format : str, optional
+        input format (Default is 'nfcapd')
+    out_format : str, optional
+        output format (Default is 'csv_flow')
     """
 
     reader, writer = IN_FORMATS[in_format], OUT_FORMATS[out_format]

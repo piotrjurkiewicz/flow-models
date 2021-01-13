@@ -6,17 +6,17 @@ File formats
 
 The framework currently supports the following flow records formats:
 
-- `pipe` -- `nfdump` pipe format
-- `nfcapd` -- `nfdump` binary format
-- `csv_flow` -- comma-separated values text format (see below)
-- `binary` -- separate binary array file for each field (see below)
+- ``pipe`` -- `nfdump`_ pipe format
+- ``nfcapd`` -- `nfdump`_ binary format
+- ``csv_flow`` -- comma-separated values text format (see below)
+- ``binary`` -- separate binary array file for each field (see below)
 
 Additionally, the framework currently supports the following flow histograms formats:
 
-- `csv_hist` -- comma-separated values text format (see below)
+- ``csv_hist`` -- comma-separated values text format (see below)
 
-`csv_flow`
-==========
+``csv_flow``
+============
 
 File contains the following fields: ::
 
@@ -26,8 +26,8 @@ File contains the following fields: ::
 - `prot` -- IP protocol number
 - `inif` -- input interface number
 - `outif` -- output interface number
-- `sa0:sa3` -- consecutive 32-bit words forming source IP address
-- `da0:da3` -- consecutive 32-bit words forming destination IP address
+- `sa0` - `sa3` -- consecutive 32-bit words forming source IP address
+- `da0` - `da3` -- consecutive 32-bit words forming destination IP address
 - `sp` -- source transport layer port
 - `dp` -- destination transport layer port
 - `first` -- timestamp of first packet (seconds component)
@@ -38,10 +38,10 @@ File contains the following fields: ::
 - `octets` -- number of octets (bytes) (flow size)
 - `aggs` -- number of aggregated flow records forming this record
 
-`binary`
-========
+``binary``
+==========
 
-The `binary` file format is used as an effective internal on-disk format to exchange data between tools included in the framework.
+The ``binary`` file format is used as an effective internal on-disk format to exchange data between tools included in the framework.
 Each flows trace is a directory, which contains several binary files. Each binary file stores one
 field as an array of binary values with a specified type.
 
@@ -50,32 +50,32 @@ File naming schema is the following: ::
     _{field_name}.{dtype}  -- key fields
     {field_name}.{dtype}   -- value fields
 
-Suffix `dtype` specifies the type of binary object stored in file:
+Suffix ``dtype`` specifies the type of binary object stored in the file (using `array` type codes):
 
-.. csv-table:: Frozen Delights!
+.. csv-table::
    :header: Type code,C Type
    :widths: 15, 10
 
-    `b`,signed char
-    `B`,unsigned char
-    `h`,signed short
-    `H`,unsigned short
-    `i`,signed int
-    `I`,unsigned int
-    `l`,signed long
-    `L`,unsigned long
-    `q`,signed long long
-    `Q`,unsigned long long
-    `f`,float
-    `d`,double
+    ``b``,signed char
+    ``B``,unsigned char
+    ``h``,signed short
+    ``H``,unsigned short
+    ``i``,signed int
+    ``I``,unsigned int
+    ``l``,signed long
+    ``L``,unsigned long
+    ``q``,signed long long
+    ``Q``,unsigned long long
+    ``f``,float
+    ``d``,double
 
 Such a storage schema has several advantages:
 
-- fields can be distributed independently (for example one can share flow records without `sa*` and `da*` address fields for privacy reasons)
+- fields can be distributed independently (for example one can share flow records without ``sa*`` and ``da*`` address fields for privacy reasons)
 - fields can be compressed/uncompressed selectively (important when processing data which barely fits on disks)
 - additional or custom fields can be trivially added or removed
 - supports storage of any field using any object type (signedness, precision)
-- files can be memory-mapped as numerical arrays (unlike `IPFIX`, `nfcapd` or any other structured/TLV format)
+- files can be memory-mapped as numerical arrays (unlike IPFIX, nfcapd or any other structured/TLV format)
 - the format is so simple that files can be memory-mapped into any big data processing software and is future-proof
 - memory-mapping is IO and cache efficient (columnar memory layout allows applications to avoid unnecessary IO and accelerate analytical processing performance on modern CPUs and GPUs)
 
@@ -104,8 +104,8 @@ Example: ::
         ├── octets.Q          │
         └── packets.Q        ─┘
 
-`csv_hist`
-==========
+``csv_hist``
+============
 
 File contains the following fields: ::
 

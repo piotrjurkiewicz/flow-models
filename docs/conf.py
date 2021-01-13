@@ -33,7 +33,7 @@ release = flow_models.__version__
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinxarg.ext']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinxarg.ext', 'sphinx.ext.intersphinx']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -41,8 +41,19 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'epilog.rst']
 
+default_role = 'any'
+manpages_url = 'https://manpages.debian.org/{path}'
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
+    'matplotlib': ('https://matplotlib.org', None),
+    'pandas': ('https://pandas.pydata.org/docs/', None)
+}
+
+rst_epilog = open('epilog.rst').read()
 
 # -- Options for HTML output -------------------------------------------------
 

@@ -25,10 +25,3 @@ flow\_models.elephants.simulate module
    :undoc-members:
    :show-inheritance:
 
-flow\_models.elephants.tables module
-------------------------------------
-
-.. automodule:: flow_models.elephants.tables
-   :members:
-   :undoc-members:
-   :show-inheritance:

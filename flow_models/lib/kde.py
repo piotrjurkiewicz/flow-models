@@ -52,26 +52,6 @@ class gaussian_kde(object):
         self.set_bandwidth(bw_method=bw_method)
 
     def evaluate(self, points):
-        """Evaluate the estimated pdf on a set of points.
-
-        Parameters
-        ----------
-        points : (# of dimensions, # of points)-array
-            Alternatively, a (# of dimensions,) vector can be passed in and
-            treated as a single point.
-
-        Returns
-        -------
-        values : (# of points,)-array
-            The values at each point.
-
-        Raises
-        ------
-        ValueError : if the dimensionality of the input points is different than
-                     the dimensionality of the KDE.
-
-        """
-
         if self.fft:
             return self.evaluate_fft(points)
         else:
@@ -199,55 +179,8 @@ class gaussian_kde(object):
 
     #  Default method to calculate bandwidth, can be overwritten by subclass
     covariance_factor = scotts_factor
-    covariance_factor.__doc__ = """Computes the coefficient (`kde.factor`) that
-        multiplies the data covariance matrix to obtain the kernel covariance
-        matrix. The default is `scotts_factor`.  A subclass can overwrite this
-        method to provide a different method, or set it through a call to
-        `kde.set_bandwidth`."""
 
     def set_bandwidth(self, bw_method=None):
-        """Compute the estimator bandwidth with given method.
-
-        The new bandwidth calculated after a call to `set_bandwidth` is used
-        for subsequent evaluations of the estimated density.
-
-        Parameters
-        ----------
-        bw_method : str, scalar or callable, optional
-            The method used to calculate the estimator bandwidth.  This can be
-            'scott', 'silverman', a scalar constant or a callable.  If a
-            scalar, this will be used directly as `kde.factor`.  If a callable,
-            it should take a `gaussian_kde` instance as only parameter and
-            return a scalar.  If None (default), nothing happens; the current
-            `kde.covariance_factor` method is kept.
-
-        Notes
-        -----
-        .. versionadded:: 0.11
-
-        Examples
-        --------
-        >>> import scipy.stats as stats
-        >>> x1 = np.array([-7, -5, 1, 4, 5.])
-        >>> kde = stats.gaussian_kde(x1)
-        >>> xs = np.linspace(-10, 10, num=50)
-        >>> y1 = kde(xs)
-        >>> kde.set_bandwidth(bw_method='silverman')
-        >>> y2 = kde(xs)
-        >>> kde.set_bandwidth(bw_method=kde.factor / 3.)
-        >>> y3 = kde(xs)
-
-        >>> import matplotlib.pyplot as plt
-        >>> fig, ax = plt.subplots()
-        >>> ax.plot(x1, np.ones(x1.shape) / (4. * x1.size), 'bo',
-        ...         label='Data points (rescaled)')
-        >>> ax.plot(xs, y1, label='Scott (default)')
-        >>> ax.plot(xs, y2, label='Silverman')
-        >>> ax.plot(xs, y3, label='Const (1/3 * Silverman)')
-        >>> ax.legend()
-        >>> plt.show()
-
-        """
         if bw_method is None:
             pass
         elif bw_method == 'scott':
@@ -268,9 +201,6 @@ class gaussian_kde(object):
         self._compute_covariance()
 
     def _compute_covariance(self):
-        """Computes the covariance matrix for each Gaussian kernel using
-        covariance_factor().
-        """
         self.factor = self.covariance_factor()
         # Cache covariance and inverse covariance of the data
         if not hasattr(self, '_data_inv_cov'):
@@ -292,10 +222,6 @@ class gaussian_kde(object):
         self.det_cov = np.linalg.det(self.covariance)
 
     def _bin_dataset(self, points):
-        """
-        Histogram dataset so that it is uniformly spaced. Once it is uniformly
-        spaced, one can apply a discrete fast-Fourier transform.
-        """
 
         if self.d == 1:
 
@@ -329,15 +255,6 @@ class gaussian_kde(object):
         return binned_pdf, bin_centers
 
     def pdf(self, x):
-        """
-        Evaluate the estimated pdf on a provided set of points.
-
-        Notes
-        -----
-        This is an alias for `gaussian_kde.evaluate`.  See the ``evaluate``
-        docstring for more details.
-
-        """
         return self.evaluate(x)
 
     def logpdf(self, x):
