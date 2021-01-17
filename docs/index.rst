@@ -40,9 +40,9 @@ Contents
 .. toctree::
    :maxdepth: 2
 
+   tutorial
    workflow
    formats
-   tutorial
    tools
    flow_models
 

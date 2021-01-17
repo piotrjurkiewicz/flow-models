@@ -37,10 +37,10 @@ def stats_summary(data):
              '\\toprule',
              '\\textbf{Dataset name} & XXX & \\\\',
              '\\textbf{Exporter} & XXX & \\\\',
-             '\\textbf{L2 technology} & Ethernet & \\\\',
+             '\\textbf{L2 technology} & XXX & \\\\',
              '\\textbf{Sampling rate} & none & \\\\',
-             '\\textbf{Active timeout} & 300 & seconds \\\\',
-             '\\textbf{Inactive timeout} & 15 & seconds \\\\',
+             '\\textbf{Active timeout} & XXX & seconds \\\\',
+             '\\textbf{Inactive timeout} & XXX & seconds \\\\',
              '\\midrule']
         for what in Y_VALUES:
             col = what + '_sum'

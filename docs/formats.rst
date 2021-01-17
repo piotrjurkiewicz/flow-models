@@ -15,6 +15,8 @@ Additionally, the framework currently supports the following flow histograms for
 
 - ``csv_hist`` -- comma-separated values text format (see below)
 
+.. _csv_flow:
+
 ``csv_flow``
 ============
 
@@ -79,7 +81,9 @@ Such a storage schema has several advantages:
 - the format is so simple that files can be memory-mapped into any big data processing software and is future-proof
 - memory-mapping is IO and cache efficient (columnar memory layout allows applications to avoid unnecessary IO and accelerate analytical processing performance on modern CPUs and GPUs)
 
-Example: ::
+Example:
+
+.. code-block:: none
 
     agh_2015/
     └── day-01

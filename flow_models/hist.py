@@ -10,6 +10,7 @@ from .lib.util import logmsg, bin_calc_one, bin_calc_log, prepare_file_list
 
 X_VALUES = ['length', 'size', 'duration', 'rate']
 OUT_FORMATS = {'csv_hist': write_line, 'none': write_none}
+PROTS = {'all': None, 'tcp': 6, 'udp': 17}
 
 class FlowBin:
 
@@ -101,7 +102,7 @@ def parser():
     p.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
     p.add_argument('-b', default=0, type=int, help='bin width exponent of 2')
     p.add_argument('-c', action='append', default=[], help='additional column to sum')
-    p.add_argument('--prot')
+    p.add_argument('--prot', choices=PROTS, help='limit only to selected protocol flows')
     return p
 
 def main():
@@ -113,7 +114,7 @@ def main():
         input_files = prepare_file_list(app_args.files)
 
     if app_args.prot:
-        prot = {'all': None, 'tcp': 6, 'udp': 17}[app_args.prot]
+        prot = PROTS[app_args.prot]
     else:
         prot = None
 

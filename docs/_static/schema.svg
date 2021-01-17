@@ -142,9 +142,9 @@
     <rect
        style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect8348"
-       width="15.434815"
+       width="14.434815"
        height="4.1092691"
-       x="4.4485979"
+       x="4.2485979"
        y="-12.891929" />
     <text
        xml:space="preserve"
@@ -164,9 +164,9 @@
        style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker2020)" />
     <rect
        y="-12.891929"
-       x="25.284536"
+       x="27.284536"
        height="4.1092691"
-       width="15.434815"
+       width="10.234815"
        id="rect8350"
        style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
     <text
@@ -213,7 +213,7 @@
        id="rect11397"
        width="10.444642"
        height="4.1092701"
-       x="49.285309"
+       x="49.585309"
        y="0.78178906" />
     <text
        xml:space="preserve"
