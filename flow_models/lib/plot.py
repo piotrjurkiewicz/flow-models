@@ -107,7 +107,7 @@ def plot_pdf(data, idx=None, x_val='length', what='flows', mode=frozenset(['poin
 
     if isinstance(data, pd.DataFrame):
         if idx is None:
-            idx = np.unique(np.rint(np.geomspace(data.index.min(), data.index.max(), LINE_NBINS)).astype(int))
+            idx = np.unique(np.rint(np.geomspace(data.index.min(), data.index.max(), LINE_NBINS)).astype(np.int64))
 
         data = data.loc[:, 'bin_hi':what + '_sum']
 
@@ -168,7 +168,7 @@ def plot_cdf(data, idx=None, x_val='length', what='flows', mode=frozenset(['mixt
     plots = []
     if isinstance(data, pd.DataFrame):
         if idx is None:
-            idx = np.unique(np.rint(np.geomspace(data.index.min(), data.index.max(), LINE_NBINS)).astype(int))
+            idx = np.unique(np.rint(np.geomspace(data.index.min(), data.index.max(), LINE_NBINS)).astype(np.int64))
         if 'line' in mode:
             cdfd = data[what + '_sum'].cumsum() / data[what + '_sum'].sum()
             cdfi = scipy.interpolate.interp1d(cdfd.index, cdfd, 'linear', bounds_error=False)(idx)
@@ -185,7 +185,7 @@ def plot_avg(data, idx=None, x_val='length', what='packets', mode=frozenset(['mi
     plots = []
     if isinstance(data, pd.DataFrame):
         if idx is None:
-            idx = np.unique(np.rint(np.geomspace(data.index.min(), data.index.max(), LINE_NBINS)).astype(int))
+            idx = np.unique(np.rint(np.geomspace(data.index.min(), data.index.max(), LINE_NBINS)).astype(np.int64))
 
         if what in ['packets', 'octets']:
             avg_points, avg_line = avg_data(data, idx, what)

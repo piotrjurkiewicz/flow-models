@@ -219,7 +219,7 @@ def gui(**kwargs):
 
     dd = load_data([kwargs['path']])
     df = list(dd.values())[0]
-    idx = np.unique(np.rint(np.geomspace(df.index.min(), df.index.max(), LINE_NBINS)).astype(int))
+    idx = np.unique(np.rint(np.geomspace(df.index.min(), df.index.max(), LINE_NBINS)).astype(np.int64))
 
     first_plot = False
 

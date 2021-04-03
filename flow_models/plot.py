@@ -36,7 +36,7 @@ def plot(objects, x_val='length', ext='png', single=False, normalize=True, fft=F
 
     for obj, df in data.items():
         if idx is None:
-            idx = np.unique(np.rint(np.geomspace(df.index.min(), df.index.max(), LINE_NBINS)).astype(int))
+            idx = np.unique(np.rint(np.geomspace(df.index.min(), df.index.max(), LINE_NBINS)).astype(np.int64))
         for what in ['flows', 'packets', 'octets']:
             logmsg('Drawing CDF', obj, what)
             plot_cdf(df, idx, x_val, what, mode={'line', 'mixture', *cdf_modes})
