@@ -11,7 +11,7 @@ import numpy as np
 from .lib.io import load_array_np
 from .lib.util import logmsg, measure_memory, prepare_file_list
 
-def create_index(key_files, index_file):
+def create_index(key_files, index_file, reverse=False):
     keys = []
     size = None
 
@@ -49,6 +49,10 @@ def create_index(key_files, index_file):
 
     del keys
 
+    if reverse:
+        logmsg('Create index: reversing order')
+        result = np.flip(result)
+        logmsg('Create index: reversing order completed')
     logmsg('Create index: copying index to file')
 
     index_array[:] = result[:]
@@ -113,6 +117,7 @@ def parser():
     p.add_argument('-I', default='__index', help='index file suffix')
     p.add_argument('-k', nargs='*', help='ordered key array files')
     p.add_argument('-O', help='directory for output')
+    p.add_argument('--reverse', action='store_true', help='reverse order')
     p.add_argument('--measure-memory', action='store_true', help='collect and print memory statistics')
     p.add_argument('files', nargs='+', help='array files to sort')
     return p
