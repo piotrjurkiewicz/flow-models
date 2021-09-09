@@ -30,17 +30,6 @@ def create_index(key_files, index_file, reverse=False):
         keys.append(mm)
         del mm
 
-    if size <= 2 ** 8:
-        result_dtype = 'B'
-    elif size <= 2 ** 16:
-        result_dtype = 'H'
-    elif size <= 2 ** 32:
-        result_dtype = 'I'
-    else:
-        result_dtype = 'Q'
-
-    index_array = np.memmap(f'{index_file}.{result_dtype}', dtype=result_dtype, mode='w+', shape=(size,))
-
     logmsg('Create index: sorting keys')
 
     result = np.lexsort(list(reversed(keys)))
@@ -53,18 +42,37 @@ def create_index(key_files, index_file, reverse=False):
         logmsg('Create index: reversing order')
         result = np.flip(result)
         logmsg('Create index: reversing order completed')
-    logmsg('Create index: copying index to file')
 
-    index_array[:] = result[:]
-    del result
+    if index_file:
 
-    logmsg('Create index: flushing index file')
+        if size <= 2 ** 8:
+            result_dtype = 'B'
+        elif size <= 2 ** 16:
+            result_dtype = 'H'
+        elif size <= 2 ** 32:
+            result_dtype = 'I'
+        else:
+            result_dtype = 'Q'
 
-    index_array.flush()
+        index_array = np.memmap(f'{index_file}.{result_dtype}', dtype=result_dtype, mode='w+', shape=(size,))
 
-    logmsg('Create index: finished')
+        logmsg('Create index: copying index to file')
 
-    del index_array
+        index_array[:] = result[:]
+        del result
+
+        logmsg('Create index: flushing index file')
+
+        index_array.flush()
+
+        logmsg('Create index: finished')
+
+        del index_array
+
+        return None
+
+    else:
+        return result
 
 def sort_array(input_file, output_dir, index_array):
     logmsg('Sort array: loading:', input_file)
@@ -117,6 +125,7 @@ def parser():
     p.add_argument('-I', default='__index', help='index file suffix')
     p.add_argument('-k', nargs='*', help='ordered key array files')
     p.add_argument('-O', help='directory for output')
+    p.add_argument('--no-index', action='store_true', help='do not save index into file')
     p.add_argument('--reverse', action='store_true', help='reverse order')
     p.add_argument('--measure-memory', action='store_true', help='collect and print memory statistics')
     p.add_argument('files', nargs='+', help='array files to sort')
@@ -130,13 +139,16 @@ def main():
         raise ValueError
 
     with measure_memory(app_args.measure_memory):
-        try:
-            _, _, index = load_array_np(app_args.I)
-            logmsg('Using existing index file...')
-        except FileNotFoundError:
-            logmsg('Index file not exists, will be created...')
-            create_index(app_args.k, app_args.I)
-            _, _, index = load_array_np(app_args.I)
+        if app_args.no_index:
+            index = create_index(app_args.k, None, app_args.reverse)
+        else:
+            try:
+                _, _, index = load_array_np(app_args.I)
+                logmsg('Using existing index file...')
+            except FileNotFoundError:
+                logmsg('Index file not exists, will be created...')
+                create_index(app_args.k, app_args.I, app_args.reverse)
+                _, _, index = load_array_np(app_args.I)
 
         for f in prepare_file_list(app_args.files):
             sort_array(f, app_args.O, index)
