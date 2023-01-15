@@ -1,5 +1,4 @@
 import contextlib
-import pathlib
 import sys
 import threading
 import time
@@ -38,23 +37,3 @@ def measure_memory(on=False):
             running = False
             thread.join()
             print('Memory min/avg/max:', min(memstats), sum(memstats) / len(memstats), max(memstats))
-
-def prepare_file_list(file_paths):
-    files = []
-    for file_path in file_paths:
-        if file_path == '-':
-            files.append(sys.stdin)
-        else:
-            path = pathlib.Path(file_path)
-            if not path.exists():
-                raise ValueError(f'File {path} does not exist')
-            if path.is_dir():
-                for path in sorted(path.glob('**/*')):
-                    if path.is_file():
-                        files.append(path)
-            else:
-                if path.is_file():
-                    files.append(path)
-                else:
-                    raise ValueError(f'File {path} is not file')
-    return files

@@ -3,11 +3,10 @@
 Merges flows which were split across multiple records due to *active timeout*.
 """
 
-import argparse
 import warnings
 
-from .lib.io import FlowValFields, io_parser, IN_FORMATS, OUT_FORMATS
-from .lib.util import logmsg, prepare_file_list
+from .lib.io import FlowValFields, IOArgumentParser, IN_FORMATS, OUT_FORMATS
+from .lib.util import logmsg
 
 class Flow:
 
@@ -28,7 +27,7 @@ class Flow:
         return self.key, self.val.first, self.val.first_ms, self.val.last, self.val.last_ms, \
                self.val.packets, self.val.octets, self.val.aggs
 
-def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', inactive_timeout=15.0, active_timeout=300.0):
+def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', count=None, skip_input=0, skip_output=0, filter_expr=None, inactive_timeout=15.0, active_timeout=300.0):
     """
     Merge flows split due to timeout.
 
@@ -36,6 +35,10 @@ def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', inactiv
     :param os.PathLike | _io.TextIOWrapper out_file: output file or directory path or stream
     :param in_format: format of input files
     :param out_format: format of output
+    :param count: number of flows to output
+    :param skip_input: number of flows to skip at the beginning of input
+    :param skip_output: number of flows to skip after filtering
+    :param filter_expr: filter expression
     :param inactive_timeout: inactive timeout in seconds
     :param active_timeout: active timeout in seconds
     """
@@ -51,12 +54,13 @@ def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', inactiv
     writer = writer(out_file)
     next(writer)
 
+    counters = {'count': count, 'skip_input': skip_input, 'skip_output': skip_output}
     written = 0
     merged = 0
     wrong = 0
 
     for file in in_files:
-        for key, first, first_ms, last, last_ms, packets, octets, aggs in reader(file):
+        for key, first, first_ms, last, last_ms, packets, octets, aggs in reader(file, counters=counters, filter_expr=filter_expr):
             new_flow = Flow(key, first, first_ms, last, last_ms, packets, octets, aggs)
             if key in cache:
                 old_flow = cache[key]
@@ -134,20 +138,14 @@ def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', inactiv
     logmsg(f'Finished all files. Wrong: {wrong} Merged: {merged} Written: {written}')
 
 def parser():
-    p = argparse.ArgumentParser(description=__doc__, parents=[io_parser])
-    p.add_argument('-I', type=float, default=15.0, help='inactive timeout in seconds')
-    p.add_argument('-A', type=float, default=300.0, help='active timeout in seconds')
+    p = IOArgumentParser(description=__doc__)
+    p.add_argument('-I', '--inactive-timeout', type=float, default=15.0, help='inactive timeout in seconds')
+    p.add_argument('-A', '--active-timeout', type=float, default=300.0, help='active timeout in seconds')
     return p
 
 def main():
     app_args = parser().parse_args()
-
-    if app_args.i == 'binary':
-        input_files = app_args.files
-    else:
-        input_files = prepare_file_list(app_args.files)
-
-    merge(input_files, app_args.O, app_args.i, app_args.o, app_args.I, app_args.A)
+    merge(**vars(app_args))
 
 
 if __name__ == '__main__':

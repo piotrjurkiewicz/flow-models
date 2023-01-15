@@ -3,10 +3,8 @@
 Calculates histograms of flows length, size, duration or rate.
 """
 
-import argparse
-
-from .lib.io import io_parser, write_none, write_line, IN_FORMATS
-from .lib.util import logmsg, bin_calc_one, bin_calc_log, prepare_file_list
+from .lib.io import IOArgumentParser, IN_FORMATS, write_none, write_line
+from .lib.util import logmsg, bin_calc_one, bin_calc_log
 
 X_VALUES = ['length', 'size', 'duration', 'rate']
 OUT_FORMATS = {'csv_hist': write_line, 'none': write_none}
@@ -29,7 +27,7 @@ class FlowBin:
     def to_line(self, fields):
         return ','.join(str(int(getattr(self, c))) for c in fields)
 
-def histogram(in_files, out_file, in_format='nfcapd', out_format='csv_hist', bin_exp=0, x_value='length', additional_columns=(), prot=None):
+def histogram(in_files, out_file, in_format='nfcapd', out_format='csv_hist', count=None, skip_input=0, skip_output=0, filter_expr=None, bin_exp=0, x_value='length', additional_columns=()):
 
     if bin_exp == 0:
         bin_calc_fn = bin_calc_one
@@ -55,15 +53,17 @@ def histogram(in_files, out_file, in_format='nfcapd', out_format='csv_hist', bin
     if 'aggs' in additional_columns:
         val_fields += ['aggs']
 
-    key_fields = []
-    if prot:
-        key_fields.append('prot')
+    # TODO
+    if filter_expr is None:
+        key_fields = []
+    else:
+        key_fields = None
+
+    counters = {'count': count, 'skip_input': skip_input, 'skip_output': skip_output}
 
     try:
         for file in in_files:
-            for key, first, first_ms, last, last_ms, packets, octets, aggs in reader(file, key_fields=key_fields, val_fields=val_fields):
-                if prot and key[1] != prot:
-                    continue
+            for key, first, first_ms, last, last_ms, packets, octets, aggs in reader(file, counters=counters, filter_expr=filter_expr, key_fields=key_fields, val_fields=val_fields):
                 duration = 0 if packets == 1 else (last - first) * 1000 + last_ms - first_ms
                 rate = 0 if duration == 0 else (8000 * octets) / duration
                 bin_lo, bin_hi = bin_calc(packets, octets, duration, rate)
@@ -96,29 +96,22 @@ def histogram(in_files, out_file, in_format='nfcapd', out_format='csv_hist', bin
     logmsg(f'Finished all files. Flows: {flows} Written: {written}')
 
 def parser():
-    p = argparse.ArgumentParser(description=__doc__, parents=[io_parser])
+    p = IOArgumentParser(description=__doc__)
     p._option_string_actions['-o'].choices = OUT_FORMATS
     p._option_string_actions['-o'].default = 'csv_hist'
-    p.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
-    p.add_argument('-b', default=0, type=int, help='bin width exponent of 2')
-    p.add_argument('-c', action='append', default=[], help='additional column to sum')
+    p.add_argument('-b', '--bin-exp', default=0, type=int, help='bin width exponent of 2')
+    p.add_argument('-x', '--x-value', default='length', choices=X_VALUES, help='x axis value')
+    p.add_argument('-c', '--additional-columns', action='append', default=[], help='additional column to sum')
     p.add_argument('--prot', choices=PROTS, help='limit only to selected protocol flows')
     return p
 
 def main():
     app_args = parser().parse_args()
 
-    if app_args.i == 'binary':
-        input_files = app_args.files
-    else:
-        input_files = prepare_file_list(app_args.files)
+    if app_args.prot and app_args.prot != 'all' and app_args.filter_expr is None:
+        app_args.filter_expr = compile(f"prot=={PROTS[app_args.prot]}", '<filter_expr>', 'eval')
 
-    if app_args.prot:
-        prot = PROTS[app_args.prot]
-    else:
-        prot = None
-
-    histogram(input_files, app_args.O, app_args.i, app_args.o, app_args.b, app_args.x, app_args.c, prot)
+    histogram(**vars(app_args))
 
 
 if __name__ == '__main__':
