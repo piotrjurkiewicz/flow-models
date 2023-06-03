@@ -7,7 +7,7 @@ import collections
 from .lib.io import IOArgumentParser, IN_FORMATS
 from .lib.util import logmsg
 
-def series(in_files, in_format='nfcapd', count=None, skip_input=0, skip_output=0, filter_expr=None):
+def series(in_files, out_file, in_format='nfcapd', out_format='csv_series', count=None, skip_input=0, skip_output=0, filter_expr=None):
     """
     Generate packets and octets time series from flow records.
 
@@ -15,8 +15,12 @@ def series(in_files, in_format='nfcapd', count=None, skip_input=0, skip_output=0
     ----------
     in_files : list[os.PathLike]
         input files paths
+    out_file : Union[os.PathLike, io.TextIOWrapper]
+        directory path
     in_format : str, optional
         input format (Default is 'nfcapd')
+    out_format : str, optional
+        output format (Default is 'csv_series')
     count : int, optional
         number of flows to output (Default is 0 (all flows))
     skip_input : int, optional
@@ -28,6 +32,7 @@ def series(in_files, in_format='nfcapd', count=None, skip_input=0, skip_output=0
     """
 
     reader = IN_FORMATS[in_format]
+    assert out_format == 'csv_series'
 
     # TODO
     if filter_expr is None:
@@ -72,7 +77,7 @@ def series(in_files, in_format='nfcapd', count=None, skip_input=0, skip_output=0
         logmsg(f'Finished: {file}. Written: {written}')
 
     for day in dd:
-        with open(f"{day}.packets", 'w') as p, open(f"{day}.octets", 'w') as o:
+        with open(out_file / f"{day}.packets", 'w') as p, open(out_file / f"{day}.octets", 'w') as o:
             for second_in_day in range(86400):
                 p.write("%d\n" % dd[day][second_in_day][0])
                 o.write("%d\n" % dd[day][second_in_day][1])
@@ -81,6 +86,9 @@ def series(in_files, in_format='nfcapd', count=None, skip_input=0, skip_output=0
 
 def parser():
     p = IOArgumentParser(description=__doc__)
+    p._option_string_actions['-o'].choices = ['csv_series']
+    p._option_string_actions['-o'].default = 'csv_series'
+    p._option_string_actions['-O'].default = '.'
     return p
 
 def main():

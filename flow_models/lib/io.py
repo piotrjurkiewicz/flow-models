@@ -446,6 +446,8 @@ class IOArgumentParser(argparse.ArgumentParser):
         namespace = super().parse_args(*args)
         if namespace.in_format != 'binary':
             namespace.in_files = prepare_file_list(namespace.in_files)
+        if not isinstance(namespace.out_file, io.IOBase):
+            namespace.out_file = pathlib.Path(namespace.out_file)
         if namespace.filter_expr:
             namespace.filter_expr = compile(namespace.filter_expr, '<filter_expr>', 'eval')
         return namespace
