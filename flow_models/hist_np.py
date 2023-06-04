@@ -3,16 +3,14 @@
 Calculates histograms using multiple threads (requires `numpy`, much faster, but uses more memory).
 """
 
-import argparse
 import concurrent.futures
 import functools
 import os
 import pathlib
-import sys
 
 import numpy as np
 
-from .lib.io import load_array_np, write_line, write_none
+from .lib.io import load_array_np, write_line, write_none, IOArgumentParser
 from .lib.util import logmsg, bin_calc_log, measure_memory
 
 # MAX_MEM = 64 * (1024 ** 3)
@@ -33,18 +31,18 @@ def get_column_array(mm, column, start, stop):
             dur += mm['last_ms'][start:stop]
             dur -= mm['first_ms'][start:stop]
             dur[mm['packets'][start:stop] == 1] = 0
-            if column == 'duration':
-                return dur
+        if column == 'duration':
+            return dur
         if column == 'rate':
-            rate = np.zeros(stop - start)
+            rate = np.zeros_like(dur, dtype=np.float64)
             np.divide(8000 * mm['octets'][start:stop], dur, out=rate, where=dur != 0)
             return rate
     else:
         raise ValueError(f'Cannot compute column: {column}')
 
-def calc_chunk(memory_maps, key_column, start, stop, columns, algorithm='bincount'):
+def calc_chunk(memory_maps, key_column, start, stop, columns, filtered=..., algorithm='bincount'):
     sums = {}
-    key_array = memory_maps[key_column][start:stop]
+    key_array = memory_maps[key_column][start:stop][filtered]
     max_key = key_array.max()
 
     if max_key * 8 < MAX_MEM:
@@ -62,7 +60,7 @@ def calc_chunk(memory_maps, key_column, start, stop, columns, algorithm='bincoun
 
     if algorithm == 'bincount':
         for column in columns:
-            hist = np.bincount(key_array.view('q'), get_column_array(memory_maps, column, start, stop))[bins]
+            hist = np.bincount(key_array.view('q'), get_column_array(memory_maps, column, start, stop)[filtered])[bins]
             sums[column] = hist
     elif algorithm == 'addat':
         assert len(key_array) < 2_147_483_648
@@ -70,7 +68,7 @@ def calc_chunk(memory_maps, key_column, start, stop, columns, algorithm='bincoun
         indices = indices.astype(np.min_scalar_type(len(bins)))
         for column in columns:
             hist = np.zeros(len(bins))
-            np.add.at(hist, indices, get_column_array(memory_maps, column, start, stop))
+            np.add.at(hist, indices, get_column_array(memory_maps, column, start, stop)[filtered])
             sums[column] = hist
         if 'flows' not in sums:
             hist = np.zeros(len(bins))
@@ -81,7 +79,10 @@ def calc_chunk(memory_maps, key_column, start, stop, columns, algorithm='bincoun
 
     return bins, sums
 
-def calc_dir(path,  x_value, columns):
+def calc_dir(path,  x_value, columns, counters=None, filter_expr=None):
+
+    if counters is None:
+        counters = {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
 
     logmsg(f'Processing directory: {path}')
     assert path.is_dir()
@@ -101,6 +102,10 @@ def calc_dir(path,  x_value, columns):
                 size = in_mm.size
             else:
                 assert in_mm.size == size
+            if counters['skip_in'] > 0:
+                in_mm = in_mm[counters['skip_in']:]
+            if counters['count_in'] > 0:
+                in_mm = in_mm[:counters['count_in']]
             memory_maps[name] = in_mm
             logmsg(f'Loaded array: {path / name}')
         except FileNotFoundError:
@@ -109,7 +114,27 @@ def calc_dir(path,  x_value, columns):
     if ('duration' in columns or 'rate' in columns) and 'duration' not in memory_maps:
         for name in ['first', 'first_ms', 'last', 'last_ms']:
             logmsg(f'Loading array: {path / name}')
-            memory_maps[name] = load_array_np(path / name, 'r')[2]
+            name, dtype, in_mm = load_array_np(path / name, 'r')
+            if counters['skip_in'] > 0:
+                in_mm = in_mm[counters['skip_in']:]
+            if counters['count_in'] > 0:
+                in_mm = in_mm[:counters['count_in']]
+            memory_maps[name] = in_mm
+
+    if counters['skip_in'] > 0:
+        size = max(size - counters['skip_in'], 0)
+        counters['skip_in'] -= min(counters['skip_in'], size)
+
+    if counters['count_in'] > 0:
+        size = min(size, counters['count_in'])
+        counters['count_in'] -= min(counters['count_in'], size)
+
+    for name in memory_maps:
+        assert memory_maps[name].shape[0] == size
+
+    filtered = ...
+    if filter_expr is not None:
+        filtered = eval(filter_expr, memory_maps)
 
     i = 0
     while True:
@@ -128,7 +153,7 @@ def calc_dir(path,  x_value, columns):
     with concurrent.futures.ThreadPoolExecutor(max_workers=N_JOBS) as executor:
         futures = {}
         for start, stop in zip(starts, stops):
-            future = executor.submit(calc_chunk, memory_maps, key_column, start, stop, columns)
+            future = executor.submit(calc_chunk, memory_maps, key_column, start, stop, columns, filtered)
             futures[future] = start, stop
         for future in concurrent.futures.as_completed(futures):
             start, stop = futures[future]
@@ -166,10 +191,11 @@ def histogram(in_files, out_file, in_format='binary', out_format='csv_hist', ski
     else:
         dirs = [pathlib.Path(in_files)]
 
+    counters = {'skip_in': skip_in, 'count_in': count_in, 'skip_out': skip_out, 'count_out': count_out}
     results = []
 
     for d in dirs:
-        results += calc_dir(d, x_value, columns)
+        results += calc_dir(d, x_value, columns, counters, filter_expr)
 
     bins = functools.reduce(np.union1d, (bins for bins, _ in results))
     sums = {c: np.zeros(len(bins)) for c in ['flows'] + columns}
@@ -212,14 +238,14 @@ def histogram(in_files, out_file, in_format='binary', out_format='csv_hist', ski
     logmsg(f'Finished all directories. Flows: NA Written: {written}')
 
 def parser():
-    p = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, description=__doc__)
-    p.add_argument('files', nargs='+', help='input dirs')
-    p.add_argument('-i', default='binary', choices=['binary'], help='format of input files')
-    p.add_argument('-o', default='csv_hist', choices=['csv_hist'], help='format of output')
-    p.add_argument('-O', default=sys.stdout, help='file for output')
-    p.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
-    p.add_argument('-b', default=0, type=int, help='bin width exponent of 2')
-    p.add_argument('-c', action='append', default=[], help='additional column to sum')
+    p = IOArgumentParser(description=__doc__)
+    p._option_string_actions['-i'].choices = ['binary']
+    p._option_string_actions['-i'].default = 'binary'
+    p._option_string_actions['-o'].choices = OUT_FORMATS
+    p._option_string_actions['-o'].default = 'csv_hist'
+    p.add_argument('-b', '--bin-exp', default=0, type=int, help='bin width exponent of 2')
+    p.add_argument('-x', '--x-value', default='length', choices=X_VALUES, help='x axis value')
+    p.add_argument('-c', '--additional-columns', action='append', default=[], help='additional column to sum')
     p.add_argument('--measure-memory', action='store_true', help='collect and print memory statistics')
     return p
 
