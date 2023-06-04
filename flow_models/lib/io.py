@@ -11,7 +11,7 @@ class ZeroArray:
     def __getitem__(self, item):
         return 0
 
-class FlowKeyFields:
+class FlowFields:
     fields = {
         'af': 'B',
         'prot': 'B',
@@ -26,13 +26,7 @@ class FlowKeyFields:
         'da2': 'I',
         'da3': 'I',
         'sp': 'H',
-        'dp': 'H'
-    }
-
-    __slots__ = ['af', 'prot', 'inif', 'outif', 'sa0', 'sa1', 'sa2', 'sa3', 'da0', 'da1', 'da2', 'da3', 'sp', 'dp']
-
-class FlowValFields:
-    fields = {
+        'dp': 'H',
         'first': 'I',
         'first_ms': 'H',
         'last': 'I',
@@ -42,46 +36,46 @@ class FlowValFields:
         'aggs': 'I'
     }
 
-    __slots__ = ['first', 'first_ms', 'last', 'last_ms', 'packets', 'octets', 'aggs']
+    __slots__ = ['af', 'prot', 'inif', 'outif', 'sa0', 'sa1', 'sa2', 'sa3', 'da0', 'da1', 'da2', 'da3', 'sp', 'dp',
+                 'first', 'first_ms', 'last', 'last_ms', 'packets', 'octets', 'aggs']
 
 def flow_to_csv_line(flow):
-    return f'{str(flow[0])[1:-1]}, {str(flow[1:])[1:-1]}'
+    return f'{str(flow)[1:-1]}'
 
-def flow_append(flow, keys, vals):
-    keys.af.append(flow[0][0])
-    keys.prot.append(flow[0][1])
-    keys.inif.append(flow[0][2])
-    keys.outif.append(flow[0][3])
-    keys.sa0.append(flow[0][4])
-    keys.sa1.append(flow[0][5])
-    keys.sa2.append(flow[0][6])
-    keys.sa3.append(flow[0][7])
-    keys.da0.append(flow[0][8])
-    keys.da1.append(flow[0][9])
-    keys.da2.append(flow[0][10])
-    keys.da3.append(flow[0][11])
-    keys.sp.append(flow[0][12])
-    keys.dp.append(flow[0][13])
-    vals.first.append(flow[1])
-    vals.first_ms.append(flow[2])
-    vals.last.append(flow[3])
-    vals.last_ms.append(flow[4])
-    vals.packets.append(flow[5])
-    vals.octets.append(flow[6])
-    vals.aggs.append(flow[7])
+def flow_append(flow, fields):
+    fields.af.append(flow[0])
+    fields.prot.append(flow[1])
+    fields.inif.append(flow[2])
+    fields.outif.append(flow[3])
+    fields.sa0.append(flow[4])
+    fields.sa1.append(flow[5])
+    fields.sa2.append(flow[6])
+    fields.sa3.append(flow[7])
+    fields.da0.append(flow[8])
+    fields.da1.append(flow[9])
+    fields.da2.append(flow[10])
+    fields.da3.append(flow[11])
+    fields.sp.append(flow[12])
+    fields.dp.append(flow[13])
+    fields.first.append(flow[14])
+    fields.first_ms.append(flow[15])
+    fields.last.append(flow[16])
+    fields.last_ms.append(flow[17])
+    fields.packets.append(flow[18])
+    fields.octets.append(flow[19])
+    fields.aggs.append(flow[20])
 
-def read_flow_csv(in_file, counters=None, filter_expr=None, key_fields=None, val_fields=None):
+def read_flow_csv(in_file, counters=None, filter_expr=None, fields=None):
     """
     Read and yield all flows in a csv_flow file/stream.
 
     :param os.PathLike | _io.IOWrapper in_file: csv_flow file or stream to read
     :param counters: {'count': int, 'skip_input': int, 'skip_output': int}
     :param filter_expr: filter expression
-    :param key_fields: read only these key fields, other can be zeros
-    :param val_fields: read only these val fields, other can be zeros
+    :param fields: read only these fields, other can be zeros
 
-    :return: key, first, first_ms, last, last_ms, packets, octets, aggs
-    :rtype: (tuple, int, int, int, int, int, int, int)
+    :return: af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
+    :rtype: (int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int)
     """
 
     if counters is None:
@@ -91,11 +85,6 @@ def read_flow_csv(in_file, counters=None, filter_expr=None, key_fields=None, val
         stream = in_file
     else:
         stream = open(str(in_file), 'r')
-
-    if key_fields is None or key_fields:
-        key = None
-    else:
-        key = ()
 
     for line in stream:
         if counters['skip_input'] > 0:
@@ -115,17 +104,16 @@ def read_flow_csv(in_file, counters=None, filter_expr=None, key_fields=None, val
                             counters['count'] -= 1
                         else:
                             break
-                    if key is None:
-                        key = (int(af), int(prot), int(inif), int(outif),
-                               int(sa0), int(sa1), int(sa2), int(sa3),
-                               int(da0), int(da1), int(da2), int(da3),
-                               int(sp), int(dp))
-                    yield key, int(first), int(first_ms), int(last), int(last_ms), int(packets), int(octets), int(aggs)
+                    yield int(af), int(prot), int(inif), int(outif), \
+                          int(sa0), int(sa1), int(sa2), int(sa3), \
+                          int(da0), int(da1), int(da2), int(da3), \
+                          int(sp), int(dp), \
+                          int(first), int(first_ms), int(last), int(last_ms), int(packets), int(octets), int(aggs)
 
     if not isinstance(in_file, io.IOBase):
         stream.close()
 
-def read_pipe(in_file, counters=None, filter_expr=None, key_fields=None, val_fields=None):
+def read_pipe(in_file, counters=None, filter_expr=None, fields=None):
     """
     Read and yield all flows in a nfdump pipe file/stream.
 
@@ -134,11 +122,10 @@ def read_pipe(in_file, counters=None, filter_expr=None, key_fields=None, val_fie
     :param os.PathLike | _io.IOWrapper in_file: nfdump pipe file or stream to read
     :param counters: {'count': int, 'skip_input': int, 'skip_output': int}
     :param filter_expr: filter expression
-    :param key_fields: read only these key fields, other can be zeros
-    :param val_fields: read only these val fields, other can be zeros
+    :param fields: read only these fields, other can be zeros
 
-    :return: key, first, first_ms, last, last_ms, packets, octets, aggs
-    :rtype: (tuple, int, int, int, int, int, int, int)
+    :return: af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
+    :rtype: (int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int)
     """
 
     if counters is None:
@@ -148,11 +135,6 @@ def read_pipe(in_file, counters=None, filter_expr=None, key_fields=None, val_fie
         stream = in_file
     else:
         stream = open(str(in_file), 'r')
-
-    if key_fields is None or key_fields:
-        key = None
-    else:
-        key = ()
 
     for line in stream:
         if counters['skip_input'] > 0:
@@ -171,17 +153,16 @@ def read_pipe(in_file, counters=None, filter_expr=None, key_fields=None, val_fie
                             counters['count'] -= 1
                         else:
                             break
-                    if key is None:
-                        key = (int(af), int(prot), int(inif), int(outif),
-                               int(sa0), int(sa1), int(sa2), int(sa3),
-                               int(da0), int(da1), int(da2), int(da3),
-                               int(sp), int(dp))
-                    yield key, int(first), int(first_ms), int(last), int(last_ms), int(packets), int(octets), 0
+                    yield int(af), int(prot), int(inif), int(outif), \
+                          int(sa0), int(sa1), int(sa2), int(sa3), \
+                          int(da0), int(da1), int(da2), int(da3), \
+                          int(sp), int(dp), \
+                          int(first), int(first_ms), int(last), int(last_ms), int(packets), int(octets), 0
 
     if not isinstance(in_file, io.IOBase):
         stream.close()
 
-def read_nfcapd(in_file, counters=None, filter_expr=None, key_fields=None, val_fields=None):
+def read_nfcapd(in_file, counters=None, filter_expr=None, fields=None):
     """
     Read and yield all flows in a nfdump nfpcapd file.
 
@@ -190,32 +171,30 @@ def read_nfcapd(in_file, counters=None, filter_expr=None, key_fields=None, val_f
     :param os.PathLike in_file: nfdump nfpcapd file to read
     :param counters: {'count': int, 'skip_input': int, 'skip_output': int}
     :param filter_expr: filter expression
-    :param key_fields: read only these key fields, other can be zeros
-    :param val_fields: read only these val fields, other can be zeros
+    :param fields: read only these key fields, other can be zeros
 
-    :return: key, first, first_ms, last, last_ms, packets, octets, aggs
-    :rtype: (tuple, int, int, int, int, int, int, int)
+    :return: af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
+    :rtype: (int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int)
     """
 
     nfdump_process = subprocess.Popen(['nfdump', '-r', str(in_file), '-q', '-o', 'pipe'], stdout=subprocess.PIPE)
     stream = nfdump_process.stdout
 
-    yield from read_pipe(stream, counters, filter_expr, key_fields, val_fields)
+    yield from read_pipe(stream, counters, filter_expr, fields)
 
     if nfdump_process is not None:
         rc = nfdump_process.wait()
         if rc != 0:
             raise subprocess.CalledProcessError(nfdump_process.returncode, nfdump_process.args)
 
-def read_flow_binary(in_dir, counters=None, filter_expr=None, key_fields=None, val_fields=None):
+def read_flow_binary(in_dir, counters=None, filter_expr=None, fields=None):
     """
     Read and yield all flows in a directory containing array files.
 
     :param in_dir: directory to read from
     :param counters: {'count': int, 'skip_input': int, 'skip_output': int}
     :param filter_expr: filter expression
-    :param key_fields: read only these key fields, other can be zeros
-    :param val_fields: read only these val fields, other can be zeros
+    :param fields: read only these key fields, other can be zeros
 
     :return: key, first, first_ms, last, last_ms, packets, octets, aggs
     :rtype: (tuple, int, int, int, int, int, int, int)
@@ -226,47 +205,36 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, key_fields=None, v
 
     d = pathlib.Path(in_dir)
     assert d.exists() and d.is_dir()
-    keys = FlowKeyFields()
-    vals = FlowValFields()
+    flow_fields = FlowFields()
     size = None
-    for mvs, interesting_fields in [(keys, key_fields), (vals, val_fields)]:
-        for name in mvs.fields.keys():
-            if interesting_fields is None or name in interesting_fields:
-                try:
-                    _, dtype, mv = load_array_mv(d / name)
-                    if size is None:
-                        size = len(mv)
-                    else:
-                        assert len(mv) == size
-                    if counters['skip_input'] > 0:
-                        mv = mv[counters['skip_input']:]
-                    setattr(mvs, name, mv)
-                except FileNotFoundError:
-                    warnings.warn(f"Array file for flow field '{name}' not found in directory {d}."
-                                  " Assuming None as value of this field")
-                    setattr(mvs, name, ZeroArray())
-            else:
-                setattr(mvs, name, ZeroArray())
+    for name in flow_fields.fields.keys():
+        if fields is None or name in fields or name in filter_expr.co_names:
+            try:
+                _, dtype, mv = load_array_mv(d / name)
+                if size is None:
+                    size = len(mv)
+                else:
+                    assert len(mv) == size
+                if counters['skip_input'] > 0:
+                    mv = mv[counters['skip_input']:]
+                setattr(flow_fields, name, mv)
+            except FileNotFoundError:
+                warnings.warn(f"Array file for flow field '{name}' not found in directory {d}."
+                              " Assuming None as value of this field")
+                setattr(flow_fields, name, ZeroArray())
+        else:
+            setattr(flow_fields, name, ZeroArray())
 
-    # TODO: lazy reading of fields
-    arrays = {}
     filtered = ZeroArray()
     if filter_expr is not None:
         import numpy as np
-        for name in keys.fields:
-            mv = getattr(keys, name)
-            if not isinstance(mv, ZeroArray):
-                arrays[name] = np.asarray(mv)
-        for name in vals.fields:
-            mv = getattr(vals, name)
+        arrays = {}
+        for name in filter_expr.co_names:
+            mv = getattr(flow_fields, name)
             if not isinstance(mv, ZeroArray):
                 arrays[name] = np.asarray(mv)
         filtered = eval(filter_expr, arrays)
-
-    if all(isinstance(getattr(keys, name), ZeroArray) for name in keys.fields):
-        key = ()
-    else:
-        key = None
+        del arrays
 
     if counters['skip_input'] > 0:
         size = max(size - counters['skip_input'], 0)
@@ -282,24 +250,16 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, key_fields=None, v
                         counters['count'] -= 1
                     else:
                         break
-                if key is None:
-                    key = (keys.af[n], keys.prot[n], keys.inif[n], keys.outif[n],
-                           keys.sa0[n], keys.sa1[n], keys.sa2[n], keys.sa3[n],
-                           keys.da0[n], keys.da1[n], keys.da2[n], keys.da3[n],
-                           keys.sp[n], keys.dp[n])
-                yield key, vals.first[n], vals.first_ms[n], vals.last[n], vals.last_ms[n], \
-                           vals.packets[n], vals.octets[n], vals.aggs[n]
+                yield flow_fields.af[n], flow_fields.prot[n], flow_fields.inif[n], flow_fields.outif[n], \
+                      flow_fields.sa0[n], flow_fields.sa1[n], flow_fields.sa2[n], flow_fields.sa3[n], \
+                      flow_fields.da0[n], flow_fields.da1[n], flow_fields.da2[n], flow_fields.da3[n], \
+                      flow_fields.sp[n], flow_fields.dp[n], \
+                      flow_fields.first[n], flow_fields.first_ms[n], flow_fields.last[n], flow_fields.last_ms[n], \
+                      flow_fields.packets[n], flow_fields.octets[n], flow_fields.aggs[n]
 
     try:
-        del arrays
-        for name in keys.fields:
-            mv = getattr(keys, name)
-            if not isinstance(mv, ZeroArray):
-                obj = mv.obj
-                mv.release()
-                obj.close()
-        for name in vals.fields:
-            mv = getattr(vals, name)
+        for name in flow_fields.fields:
+            mv = getattr(flow_fields, name)
             if not isinstance(mv, ZeroArray):
                 obj = mv.obj
                 mv.release()
@@ -346,44 +306,36 @@ def write_flow_binary(out_dir):
     d = pathlib.Path(out_dir)
     d.mkdir(parents=True, exist_ok=True)
     assert d.is_dir()
-    keys = FlowKeyFields()
-    vals = FlowValFields()
+    fields = FlowFields()
     files = {}
-    for name, typecode in keys.fields.items():
-        setattr(keys, name, array.array(typecode))
-        files[name] = open(str(d / f'_{name}.{typecode}'), 'wb')
-    for name, typecode in vals.fields.items():
-        setattr(vals, name, array.array(typecode))
+    for name, typecode in fields.fields.items():
+        setattr(fields, name, array.array(typecode))
         files[name] = open(str(d / f'{name}.{typecode}'), 'wb')
     n = 0
     try:
         while True:
             flow = yield
-            flow_append(flow, keys, vals)
+            flow_append(flow, fields)
             n += 1
             if n == 32768:
-                dump_binary(keys, vals, files)
+                dump_binary(fields, files)
                 n = 0
     except GeneratorExit:
         pass
-    dump_binary(keys, vals, files)
+    dump_binary(fields, files)
     for f in files.values():
         f.close()
 
-def dump_binary(keys, vals, files):
-    for name in keys.fields:
-        arr = getattr(keys, name)
-        arr.tofile(files[name])
-        del arr[:]
-    for name in vals.fields:
-        arr = getattr(vals, name)
+def dump_binary(fields, files):
+    for name in fields.fields:
+        arr = getattr(fields, name)
         arr.tofile(files[name])
         del arr[:]
 
 def find_array_path(path):
     p = pathlib.Path(path)
     if not p.suffix:
-        candidates = list(p.parent.glob(f'{p.stem}.*')) + list(p.parent.glob(f'_{p.stem}.*'))
+        candidates = list(p.parent.glob(f'{p.stem}.*'))
         if not candidates:
             raise FileNotFoundError(0, p.parent, f'{p.stem}.*')
         elif len(candidates) > 1:
@@ -449,7 +401,7 @@ class IOArgumentParser(argparse.ArgumentParser):
         if not isinstance(namespace.out_file, io.IOBase):
             namespace.out_file = pathlib.Path(namespace.out_file)
         if namespace.filter_expr:
-            namespace.filter_expr = compile(namespace.filter_expr, '<filter_expr>', 'eval')
+            namespace.filter_expr = compile(namespace.filter_expr, f'FILTER: {namespace.filter_expr}', 'eval')
         return namespace
 
 

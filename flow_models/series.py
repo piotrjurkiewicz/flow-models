@@ -34,13 +34,7 @@ def series(in_files, out_file, in_format='nfcapd', out_format='csv_series', coun
     reader = IN_FORMATS[in_format]
     assert out_format == 'csv_series'
 
-    # TODO
-    if filter_expr is None:
-        key_fields = []
-    else:
-        key_fields = None
-
-    val_fields = ['first', 'first_ms', 'last', 'last_ms', 'packets', 'octets']
+    fields = ['first', 'first_ms', 'last', 'last_ms', 'packets', 'octets']
 
     counters = {'count': count, 'skip_input': skip_input, 'skip_output': skip_output}
     written = 0
@@ -48,7 +42,7 @@ def series(in_files, out_file, in_format='nfcapd', out_format='csv_series', coun
     dd = collections.defaultdict(lambda: [[0, 0] for _ in range(86400)])
 
     for file in in_files:
-        for key, first, first_ms, last, last_ms, packets, octets, aggs in reader(file, counters=counters, filter_expr=filter_expr, key_fields=key_fields, val_fields=val_fields):
+        for key, first, first_ms, last, last_ms, packets, octets, aggs in reader(file, counters=counters, filter_expr=filter_expr, fields=fields):
             day = first // 86400
             second_in_day = first % 86400
             d = dd[day]

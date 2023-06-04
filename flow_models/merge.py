@@ -5,27 +5,25 @@ Merges flows which were split across multiple records due to *active timeout*.
 
 import warnings
 
-from .lib.io import FlowValFields, IOArgumentParser, IN_FORMATS, OUT_FORMATS
+from .lib.io import IOArgumentParser, IN_FORMATS, OUT_FORMATS
 from .lib.util import logmsg
 
 class Flow:
 
-    __slots__ = 'key', 'val'
+    __slots__ = 'key', 'first', 'first_ms', 'last', 'last_ms', 'packets', 'octets', 'aggs'
 
-    def __init__(self, key, first, first_ms, last, last_ms, packets, octets, aggs):
-        self.key = key
-        self.val = FlowValFields()
-        self.val.first = first
-        self.val.first_ms = first_ms
-        self.val.last = last
-        self.val.last_ms = last_ms
-        self.val.packets = packets
-        self.val.octets = octets
-        self.val.aggs = aggs or 1
+    def __init__(self, flow_tuple):
+        self.key = flow_tuple[0:14]
+        self.first = flow_tuple[14]
+        self.first_ms = flow_tuple[15]
+        self.last = flow_tuple[16]
+        self.last_ms = flow_tuple[17]
+        self.packets = flow_tuple[18]
+        self.octets = flow_tuple[19]
+        self.aggs = flow_tuple[20] or 1
 
     def to_tuple(self):
-        return self.key, self.val.first, self.val.first_ms, self.val.last, self.val.last_ms, \
-               self.val.packets, self.val.octets, self.val.aggs
+        return *self.key, self.first, self.first_ms, self.last, self.last_ms, self.packets, self.octets, self.aggs
 
 def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', count=None, skip_input=0, skip_output=0, filter_expr=None, inactive_timeout=15.0, active_timeout=300.0):
     """
@@ -60,14 +58,15 @@ def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', count=N
     wrong = 0
 
     for file in in_files:
-        for key, first, first_ms, last, last_ms, packets, octets, aggs in reader(file, counters=counters, filter_expr=filter_expr):
-            new_flow = Flow(key, first, first_ms, last, last_ms, packets, octets, aggs)
+        for flow_tuple in reader(file, counters=counters, filter_expr=filter_expr):
+            new_flow = Flow(flow_tuple)
+            key = new_flow.key
             if key in cache:
                 old_flow = cache[key]
-                nfs, nfm = new_flow.val.first, new_flow.val.first_ms
-                ols, olm = old_flow.val.last, old_flow.val.last_ms
-                nls, nlm = new_flow.val.last, new_flow.val.last_ms
-                ofs, ofm = old_flow.val.first, old_flow.val.first_ms
+                nfs, nfm = new_flow.first, new_flow.first_ms
+                ols, olm = old_flow.last, old_flow.last_ms
+                nls, nlm = new_flow.last, new_flow.last_ms
+                ofs, ofm = old_flow.first, old_flow.first_ms
                 if nfs > ols or nfs == ols and nfm > olm:    # new first > old last
                     # correct order
                     pass
@@ -80,20 +79,20 @@ def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', count=N
                     wrong += 1
                     del cache[key]
                     continue
-                delta_s = new_flow.val.first - old_flow.val.last
-                delta_ms = new_flow.val.first_ms - old_flow.val.last_ms
+                delta_s = new_flow.first - old_flow.last
+                delta_ms = new_flow.first_ms - old_flow.last_ms
                 if delta_ms < 0:
                     delta_s -= 1
                     delta_ms = 1000 - delta_ms
                 if delta_s < inactive_s or delta_s == inactive_s and delta_ms < inactive_ms:
                     # merge flows
                     merged += 1
-                    old_flow.val.last = new_flow.val.last                    # update last
-                    old_flow.val.last_ms = new_flow.val.last_ms              # update last
-                    old_flow.val.aggs += 1                                   # add flow
-                    old_flow.val.packets += new_flow.val.packets             # add packets
-                    old_flow.val.octets += new_flow.val.octets               # add octets
-                    if new_flow.val.last - new_flow.val.first < active_time:
+                    old_flow.last = new_flow.last                    # update last
+                    old_flow.last_ms = new_flow.last_ms              # update last
+                    old_flow.aggs += 1                                   # add flow
+                    old_flow.packets += new_flow.packets             # add packets
+                    old_flow.octets += new_flow.octets               # add octets
+                    if new_flow.last - new_flow.first < active_time:
                         # too short to merge
                         # dump it
                         del cache[key]
@@ -105,7 +104,7 @@ def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', count=N
                     writer.send(old_flow.to_tuple())
                     written += 1
                     # new flow
-                    if new_flow.val.last - new_flow.val.first < active_time:
+                    if new_flow.last - new_flow.first < active_time:
                         # too short to merge
                         # dump new flow too
                         writer.send(new_flow.to_tuple())
@@ -116,7 +115,7 @@ def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', count=N
                         cache[key] = new_flow
             else:
                 # new flow
-                if new_flow.val.last - new_flow.val.first < active_time:
+                if new_flow.last - new_flow.first < active_time:
                     # too short to merge
                     # dump it asap
                     writer.send(new_flow.to_tuple())
