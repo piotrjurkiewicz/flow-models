@@ -25,20 +25,34 @@ class Flow:
     def to_tuple(self):
         return *self.key, self.first, self.first_ms, self.last, self.last_ms, self.packets, self.octets, self.aggs
 
-def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', count=None, skip_input=0, skip_output=0, filter_expr=None, inactive_timeout=15.0, active_timeout=300.0):
+def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, inactive_timeout=15.0, active_timeout=300.0):
     """
     Merge flows split due to timeout.
 
-    :param list[os.PathLike] in_files: input files paths
-    :param os.PathLike | _io.TextIOWrapper out_file: output file or directory path or stream
-    :param in_format: format of input files
-    :param out_format: format of output
-    :param count: number of flows to output
-    :param skip_input: number of flows to skip at the beginning of input
-    :param skip_output: number of flows to skip after filtering
-    :param filter_expr: filter expression
-    :param inactive_timeout: inactive timeout in seconds
-    :param active_timeout: active timeout in seconds
+    Parameters
+    ----------
+    in_files : list[os.PathLike]
+        input files paths
+    out_file : Union[os.PathLike, io.TextIOWrapper]
+        directory path
+    in_format : str, optional
+        input format (Default is 'nfcapd')
+    out_format : str, optional
+        output format (Default is 'csv_series')
+    skip_in : int, optional
+        number of flows to skip at the beginning of input (Default is 0)
+    count_in : int, optional
+        number of flows to read from input (Default is None (all flows))
+    skip_out : int, optional
+        number of flows to skip after filtering (Default is 0)
+    count_out : int, optional
+        number of flows to output after filtering (Default is None (all flows))
+    filter_expr : str, optional
+        filter expression (Default is None)
+    inactive_timeout : float, optional
+        inactive timeout in seconds (Default is 15.0)
+    active_timeout : float, optional
+        active timeout in seconds (Default is 300.0)
     """
     inactive_s, inactive_ms = divmod(inactive_timeout, 1)
     inactive_s, inactive_ms = int(inactive_s), int(inactive_ms * 1000)
@@ -52,7 +66,7 @@ def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', count=N
     writer = writer(out_file)
     next(writer)
 
-    counters = {'count': count, 'skip_input': skip_input, 'skip_output': skip_output}
+    counters = {'skip_in': skip_in, 'count_in': count_in, 'skip_out': skip_out, 'count_out': count_out}
     written = 0
     merged = 0
     wrong = 0

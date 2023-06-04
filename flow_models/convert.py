@@ -6,7 +6,7 @@ Converts flow records between supported formats.
 from .lib.io import IOArgumentParser, IN_FORMATS, OUT_FORMATS
 from .lib.util import logmsg
 
-def convert(in_files, out_file, in_format='nfcapd', out_format='csv_flow', count=None, skip_input=0, skip_output=0, filter_expr=None):
+def convert(in_files, out_file, in_format='nfcapd', out_format='csv_flow', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None):
     """
     Convert one flow format to another.
 
@@ -20,12 +20,14 @@ def convert(in_files, out_file, in_format='nfcapd', out_format='csv_flow', count
         input format (Default is 'nfcapd')
     out_format : str, optional
         output format (Default is 'csv_flow')
-    count : int, optional
-        number of flows to output (Default is 0 (all flows))
-    skip_input : int, optional
+    skip_in : int, optional
         number of flows to skip at the beginning of input (Default is 0)
-    skip_output : int, optional
+    count_in : int, optional
+        number of flows to read from input (Default is None (all flows))
+    skip_out : int, optional
         number of flows to skip after filtering (Default is 0)
+    count_out : int, optional
+        number of flows to output after filtering (Default is None (all flows))
     filter_expr : str, optional
         filter expression (Default is None)
     """
@@ -35,7 +37,7 @@ def convert(in_files, out_file, in_format='nfcapd', out_format='csv_flow', count
     writer = writer(out_file)
     next(writer)
 
-    counters = {'count': count, 'skip_input': skip_input, 'skip_output': skip_output}
+    counters = {'skip_in': skip_in, 'count_in': count_in, 'skip_out': skip_out, 'count_out': count_out}
     written = 0
 
     for file in in_files:

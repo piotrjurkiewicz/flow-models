@@ -8,6 +8,7 @@ import sys
 import warnings
 
 class ZeroArray:
+    shape = [0]
     def __getitem__(self, item):
         return 0
 
@@ -70,7 +71,7 @@ def read_flow_csv(in_file, counters=None, filter_expr=None, fields=None):
     Read and yield all flows in a csv_flow file/stream.
 
     :param os.PathLike | _io.IOWrapper in_file: csv_flow file or stream to read
-    :param counters: {'count': int, 'skip_input': int, 'skip_output': int}
+    :param counters: {'skip_in': int, 'count_in': int, 'skip_out': int, 'count_out': int}
     :param filter_expr: filter expression
     :param fields: read only these fields, other can be zeros
 
@@ -79,7 +80,7 @@ def read_flow_csv(in_file, counters=None, filter_expr=None, fields=None):
     """
 
     if counters is None:
-        counters = {'count': None, 'skip_input': 0, 'skip_output': 0}
+        counters = {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
 
     if isinstance(in_file, io.IOBase):
         stream = in_file
@@ -87,21 +88,26 @@ def read_flow_csv(in_file, counters=None, filter_expr=None, fields=None):
         stream = open(str(in_file), 'r')
 
     for line in stream:
-        if counters['skip_input'] > 0:
-            counters['skip_input'] -= 1
+        if counters['skip_in'] > 0:
+            counters['skip_in'] -= 1
         else:
+            if counters['count_in'] is not None:
+                if counters['count_in'] > 0:
+                    counters['count_in'] -= 1
+                else:
+                    break
             af, prot, inif, outif, \
                 sa0, sa1, sa2, sa3, \
                 da0, da1, da2, da3, \
                 sp, dp, first, first_ms, last, last_ms, \
                 packets, octets, aggs = line.split(',')
             if filter_expr is None or eval(filter_expr):
-                if counters['skip_output'] > 0:
-                    counters['skip_output'] -= 1
+                if counters['skip_out'] > 0:
+                    counters['skip_out'] -= 1
                 else:
-                    if counters['count'] is not None:
-                        if counters['count'] > 0:
-                            counters['count'] -= 1
+                    if counters['count_out'] is not None:
+                        if counters['count_out'] > 0:
+                            counters['count_out'] -= 1
                         else:
                             break
                     yield int(af), int(prot), int(inif), int(outif), \
@@ -120,7 +126,7 @@ def read_pipe(in_file, counters=None, filter_expr=None, fields=None):
     This function calls nfdump program to parse nfdump file.
 
     :param os.PathLike | _io.IOWrapper in_file: nfdump pipe file or stream to read
-    :param counters: {'count': int, 'skip_input': int, 'skip_output': int}
+    :param counters: {'skip_in': int, 'count_in': int, 'skip_out': int, 'count_out': int}
     :param filter_expr: filter expression
     :param fields: read only these fields, other can be zeros
 
@@ -129,7 +135,7 @@ def read_pipe(in_file, counters=None, filter_expr=None, fields=None):
     """
 
     if counters is None:
-        counters = {'count': None, 'skip_input': 0, 'skip_output': 0}
+        counters = {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
 
     if isinstance(in_file, io.IOBase):
         stream = in_file
@@ -137,20 +143,25 @@ def read_pipe(in_file, counters=None, filter_expr=None, fields=None):
         stream = open(str(in_file), 'r')
 
     for line in stream:
-        if counters['skip_input'] > 0:
-            counters['skip_input'] -= 1
+        if counters['skip_in'] > 0:
+            counters['skip_in'] -= 1
         else:
+            if counters['count_in'] is not None:
+                if counters['count_in'] > 0:
+                    counters['count_in'] -= 1
+                else:
+                    break
             af, first, first_ms, last, last_ms, prot, \
                 sa0, sa1, sa2, sa3, sp, da0, da1, da2, da3, dp, \
                 srcas, dstas, inif, outif, \
                 tcp_flags, tos, packets, octets = line.split(b'|')
             if filter_expr is None or eval(filter_expr):
-                if counters['skip_output'] > 0:
-                    counters['skip_output'] -= 1
+                if counters['skip_out'] > 0:
+                    counters['skip_out'] -= 1
                 else:
-                    if counters['count'] is not None:
-                        if counters['count'] > 0:
-                            counters['count'] -= 1
+                    if counters['count_out'] is not None:
+                        if counters['count_out'] > 0:
+                            counters['count_out'] -= 1
                         else:
                             break
                     yield int(af), int(prot), int(inif), int(outif), \
@@ -169,7 +180,7 @@ def read_nfcapd(in_file, counters=None, filter_expr=None, fields=None):
     This function calls nfdump program to parse nfpcapd file.
 
     :param os.PathLike in_file: nfdump nfpcapd file to read
-    :param counters: {'count': int, 'skip_input': int, 'skip_output': int}
+    :param counters: {'skip_in': int, 'count_in': int, 'skip_out': int, 'count_out': int}
     :param filter_expr: filter expression
     :param fields: read only these key fields, other can be zeros
 
@@ -192,7 +203,7 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, fields=None):
     Read and yield all flows in a directory containing array files.
 
     :param in_dir: directory to read from
-    :param counters: {'count': int, 'skip_input': int, 'skip_output': int}
+    :param counters: {'skip_in': int, 'count_in': int, 'skip_out': int, 'count_out': int}
     :param filter_expr: filter expression
     :param fields: read only these key fields, other can be zeros
 
@@ -201,7 +212,7 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, fields=None):
     """
 
     if counters is None:
-        counters = {'count': None, 'skip_input': 0, 'skip_output': 0}
+        counters = {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
 
     d = pathlib.Path(in_dir)
     assert d.exists() and d.is_dir()
@@ -215,8 +226,10 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, fields=None):
                     size = len(mv)
                 else:
                     assert len(mv) == size
-                if counters['skip_input'] > 0:
-                    mv = mv[counters['skip_input']:]
+                if counters['skip_in'] > 0:
+                    mv = mv[counters['skip_in']:]
+                if counters['count_in'] > 0:
+                    mv = mv[:counters['count_in']]
                 setattr(flow_fields, name, mv)
             except FileNotFoundError:
                 warnings.warn(f"Array file for flow field '{name}' not found in directory {d}."
@@ -236,18 +249,27 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, fields=None):
         filtered = eval(filter_expr, arrays)
         del arrays
 
-    if counters['skip_input'] > 0:
-        size = max(size - counters['skip_input'], 0)
-        counters['skip_input'] -= min(counters['skip_input'], size)
+    if counters['skip_in'] > 0:
+        size = max(size - counters['skip_in'], 0)
+        counters['skip_in'] -= min(counters['skip_in'], size)
+
+    if counters['count_in'] > 0:
+        size = min(size, counters['count_in'])
+        counters['count_in'] -= min(counters['count_in'], size)
+
+    for name in flow_fields.fields:
+        mv = getattr(flow_fields, name)
+        if not isinstance(mv, ZeroArray):
+            assert mv.shape[0] == size
 
     for n in range(size):
         if filter_expr is None or filtered[n]:
-            if counters['skip_output'] > 0:
-                counters['skip_output'] -= 1
+            if counters['skip_out'] > 0:
+                counters['skip_out'] -= 1
             else:
-                if counters['count'] is not None:
-                    if counters['count'] > 0:
-                        counters['count'] -= 1
+                if counters['count_out'] is not None:
+                    if counters['count_out'] > 0:
+                        counters['count_out'] -= 1
                     else:
                         break
                 yield flow_fields.af[n], flow_fields.prot[n], flow_fields.inif[n], flow_fields.outif[n], \
@@ -389,9 +411,10 @@ class IOArgumentParser(argparse.ArgumentParser):
         self.add_argument('-i', '--in-format', default='nfcapd', choices=IN_FORMATS, help='format of input files')
         self.add_argument('-o', '--out-format', default='csv_flow', choices=OUT_FORMATS, help='format of output')
         self.add_argument('-O', '--out-file', default=sys.stdout, help='file or directory for output')
-        self.add_argument('--count', type=int, default=None, help='number of flows to output')
-        self.add_argument('--skip-input', type=int, default=0, help='number of flows to skip at the beginning of input')
-        self.add_argument('--skip-output', type=int, default=0, help='number of flows to skip after filtering')
+        self.add_argument('--skip-in', type=int, default=0, help='number of flows to skip at the beginning of input')
+        self.add_argument('--count-in', type=int, default=None, help='number of flows to read from input')
+        self.add_argument('--skip-out', type=int, default=0, help='number of flows to skip after filtering')
+        self.add_argument('--count-out', type=int, default=None, help='number of flows to output after filtering')
         self.add_argument('--filter-expr', default=None, help='expression of filter')
 
     def parse_args(self, *args):

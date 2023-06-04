@@ -145,9 +145,13 @@ def calc_dir(path,  x_value, columns):
 
     return results
 
-def histogram(in_files, out_file, in_format='binary', out_format='csv_hist', bin_exp=0, x_value='length', additional_columns=()):
+def histogram(in_files, out_file, in_format='binary', out_format='csv_hist', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, bin_exp=0, x_value='length', additional_columns=()):
 
     assert in_format == 'binary'
+    if count_out is not None:
+        raise NotImplementedError
+    if skip_out != 0:
+        raise NotImplementedError
 
     if bin_exp == 0:
         bin_calc_fn = None

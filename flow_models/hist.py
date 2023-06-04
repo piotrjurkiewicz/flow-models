@@ -27,7 +27,7 @@ class FlowBin:
     def to_line(self, fields):
         return ','.join(str(int(getattr(self, c))) for c in fields)
 
-def histogram(in_files, out_file, in_format='nfcapd', out_format='csv_hist', count=None, skip_input=0, skip_output=0, filter_expr=None, bin_exp=0, x_value='length', additional_columns=()):
+def histogram(in_files, out_file, in_format='nfcapd', out_format='csv_hist', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, bin_exp=0, x_value='length', additional_columns=()):
 
     if bin_exp == 0:
         bin_calc_fn = bin_calc_one
@@ -53,7 +53,7 @@ def histogram(in_files, out_file, in_format='nfcapd', out_format='csv_hist', cou
     if 'aggs' in additional_columns:
         fields += ['aggs']
 
-    counters = {'count': count, 'skip_input': skip_input, 'skip_output': skip_output}
+    counters = {'skip_in': skip_in, 'count_in': count_in, 'skip_out': skip_out, 'count_out': count_out}
 
     try:
         for file in in_files:
