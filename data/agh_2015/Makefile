@@ -16,7 +16,7 @@ merged: cleaned
 	nice pypy3 -m flow_models.merge -i nfcapd -o binary -I 15 -A 300 -O merged cleaned
 
 sorted: merged
-	nice python3 -m flow_models.sort -k merged/last merged/last_ms -O sorted merged
+	nice python3 -m flow_models.sort -k last last_ms -O sorted merged
 
 histograms/%/length.csv: sorted
 	mkdir -p $(@D)
