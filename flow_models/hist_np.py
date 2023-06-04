@@ -10,7 +10,7 @@ import pathlib
 
 import numpy as np
 
-from .lib.io import load_array_np, write_line, write_none, IOArgumentParser
+from .lib.io import load_array_np, write_line, write_none, IOArgumentParser, load_arrays
 from .lib.util import logmsg, bin_calc_log, measure_memory
 
 # MAX_MEM = 64 * (1024 ** 3)
@@ -79,7 +79,7 @@ def calc_chunk(memory_maps, key_column, start, stop, columns, filtered=..., algo
 
     return bins, sums
 
-def calc_dir(path,  x_value, columns, counters=None, filter_expr=None):
+def calc_dir(path, x_value, columns, counters=None, filter_expr=None):
 
     if counters is None:
         counters = {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
@@ -90,51 +90,13 @@ def calc_dir(path,  x_value, columns, counters=None, filter_expr=None):
     key_columns = {'length': 'packets',
                    'size': 'octets'}
     key_column = key_columns[x_value]
-    size = None
-    memory_maps = {}
 
-    for name in columns:
+    if 'duration' in columns or 'rate' in columns:
+        fields_to_load = columns + ['first', 'first_ms', 'last', 'last_ms']
+    else:
+        fields_to_load = columns
 
-        try:
-            name, dtype, in_mm = load_array_np(path / name, 'r')
-            assert name not in memory_maps
-            if size is None:
-                size = in_mm.size
-            else:
-                assert in_mm.size == size
-            if counters['skip_in'] > 0:
-                in_mm = in_mm[counters['skip_in']:]
-            if counters['count_in'] > 0:
-                in_mm = in_mm[:counters['count_in']]
-            memory_maps[name] = in_mm
-            logmsg(f'Loaded array: {path / name}')
-        except FileNotFoundError:
-            logmsg(f'Not found array: {path / name}, will try to compute this column')
-
-    if ('duration' in columns or 'rate' in columns) and 'duration' not in memory_maps:
-        for name in ['first', 'first_ms', 'last', 'last_ms']:
-            logmsg(f'Loading array: {path / name}')
-            name, dtype, in_mm = load_array_np(path / name, 'r')
-            if counters['skip_in'] > 0:
-                in_mm = in_mm[counters['skip_in']:]
-            if counters['count_in'] > 0:
-                in_mm = in_mm[:counters['count_in']]
-            memory_maps[name] = in_mm
-
-    if counters['skip_in'] > 0:
-        size = max(size - counters['skip_in'], 0)
-        counters['skip_in'] -= min(counters['skip_in'], size)
-
-    if counters['count_in'] > 0:
-        size = min(size, counters['count_in'])
-        counters['count_in'] -= min(counters['count_in'], size)
-
-    for name in memory_maps:
-        assert memory_maps[name].shape[0] == size
-
-    filtered = ...
-    if filter_expr is not None:
-        filtered = eval(filter_expr, memory_maps)
+    arrays, filtered, size = load_arrays(path, fields_to_load, counters, filter_expr)
 
     i = 0
     while True:
@@ -153,7 +115,7 @@ def calc_dir(path,  x_value, columns, counters=None, filter_expr=None):
     with concurrent.futures.ThreadPoolExecutor(max_workers=N_JOBS) as executor:
         futures = {}
         for start, stop in zip(starts, stops):
-            future = executor.submit(calc_chunk, memory_maps, key_column, start, stop, columns, filtered)
+            future = executor.submit(calc_chunk, arrays, key_column, start, stop, columns, filtered)
             futures[future] = start, stop
         for future in concurrent.futures.as_completed(futures):
             start, stop = futures[future]
@@ -253,7 +215,8 @@ def main():
     app_args = parser().parse_args()
 
     with measure_memory(app_args.measure_memory):
-        histogram(app_args.files, app_args.O, app_args.i, app_args.o, app_args.b, app_args.x, app_args.c)
+        delattr(app_args, 'measure_memory')
+        histogram(**vars(app_args))
 
 
 if __name__ == '__main__':

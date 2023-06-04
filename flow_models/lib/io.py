@@ -8,11 +8,10 @@ import sys
 import warnings
 
 class ZeroArray:
-    shape = [0]
     def __getitem__(self, item):
         return 0
 
-class FlowFields:
+class Flows:
     fields = {
         'af': 'B',
         'prot': 'B',
@@ -97,10 +96,10 @@ def read_flow_csv(in_file, counters=None, filter_expr=None, fields=None):
                 else:
                     break
             af, prot, inif, outif, \
-                sa0, sa1, sa2, sa3, \
-                da0, da1, da2, da3, \
-                sp, dp, first, first_ms, last, last_ms, \
-                packets, octets, aggs = line.split(',')
+            sa0, sa1, sa2, sa3, \
+            da0, da1, da2, da3, \
+            sp, dp, first, first_ms, last, last_ms, \
+            packets, octets, aggs = line.split(',')
             if filter_expr is None or eval(filter_expr):
                 if counters['skip_out'] > 0:
                     counters['skip_out'] -= 1
@@ -152,9 +151,9 @@ def read_pipe(in_file, counters=None, filter_expr=None, fields=None):
                 else:
                     break
             af, first, first_ms, last, last_ms, prot, \
-                sa0, sa1, sa2, sa3, sp, da0, da1, da2, da3, dp, \
-                srcas, dstas, inif, outif, \
-                tcp_flags, tos, packets, octets = line.split(b'|')
+            sa0, sa1, sa2, sa3, sp, da0, da1, da2, da3, dp, \
+            srcas, dstas, inif, outif, \
+            tcp_flags, tos, packets, octets = line.split(b'|')
             if filter_expr is None or eval(filter_expr):
                 if counters['skip_out'] > 0:
                     counters['skip_out'] -= 1
@@ -214,56 +213,20 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, fields=None):
     if counters is None:
         counters = {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
 
-    d = pathlib.Path(in_dir)
-    assert d.exists() and d.is_dir()
-    flow_fields = FlowFields()
-    size = None
-    for name in flow_fields.fields.keys():
-        if fields is None or name in fields or name in filter_expr.co_names:
-            try:
-                _, dtype, mv = load_array_mv(d / name)
-                if size is None:
-                    size = len(mv)
-                else:
-                    assert len(mv) == size
-                if counters['skip_in'] > 0:
-                    mv = mv[counters['skip_in']:]
-                if counters['count_in'] > 0:
-                    mv = mv[:counters['count_in']]
-                setattr(flow_fields, name, mv)
-            except FileNotFoundError:
-                warnings.warn(f"Array file for flow field '{name}' not found in directory {d}."
-                              " Assuming None as value of this field")
-                setattr(flow_fields, name, ZeroArray())
+    path = pathlib.Path(in_dir)
+    assert path.exists() and path.is_dir()
+    flows = Flows()
+    fields_to_load = [name for name in flows.fields if fields is None or name in fields]
+
+    arrays, filtered, size = load_arrays(path, fields_to_load, counters, filter_expr)
+    for name in flows.fields:
+        if name in arrays:
+            setattr(flows, name, arrays[name])
         else:
-            setattr(flow_fields, name, ZeroArray())
-
-    filtered = ZeroArray()
-    if filter_expr is not None:
-        import numpy as np
-        arrays = {}
-        for name in filter_expr.co_names:
-            mv = getattr(flow_fields, name)
-            if not isinstance(mv, ZeroArray):
-                arrays[name] = np.asarray(mv)
-        filtered = eval(filter_expr, arrays)
-        del arrays
-
-    if counters['skip_in'] > 0:
-        size = max(size - counters['skip_in'], 0)
-        counters['skip_in'] -= min(counters['skip_in'], size)
-
-    if counters['count_in'] > 0:
-        size = min(size, counters['count_in'])
-        counters['count_in'] -= min(counters['count_in'], size)
-
-    for name in flow_fields.fields:
-        mv = getattr(flow_fields, name)
-        if not isinstance(mv, ZeroArray):
-            assert mv.shape[0] == size
+            setattr(flows, name, ZeroArray())
 
     for n in range(size):
-        if filter_expr is None or filtered[n]:
+        if filtered is ... or filtered[n]:
             if counters['skip_out'] > 0:
                 counters['skip_out'] -= 1
             else:
@@ -272,23 +235,12 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, fields=None):
                         counters['count_out'] -= 1
                     else:
                         break
-                yield flow_fields.af[n], flow_fields.prot[n], flow_fields.inif[n], flow_fields.outif[n], \
-                      flow_fields.sa0[n], flow_fields.sa1[n], flow_fields.sa2[n], flow_fields.sa3[n], \
-                      flow_fields.da0[n], flow_fields.da1[n], flow_fields.da2[n], flow_fields.da3[n], \
-                      flow_fields.sp[n], flow_fields.dp[n], \
-                      flow_fields.first[n], flow_fields.first_ms[n], flow_fields.last[n], flow_fields.last_ms[n], \
-                      flow_fields.packets[n], flow_fields.octets[n], flow_fields.aggs[n]
-
-    try:
-        for name in flow_fields.fields:
-            mv = getattr(flow_fields, name)
-            if not isinstance(mv, ZeroArray):
-                obj = mv.obj
-                mv.release()
-                obj.close()
-    except AttributeError:
-        # Bug in PyPy: https://bitbucket.org/pypy/pypy/issues/3016/attributeerror-memoryview-object-has-no
-        pass
+                yield flows.af[n], flows.prot[n], flows.inif[n], flows.outif[n], \
+                      flows.sa0[n], flows.sa1[n], flows.sa2[n], flows.sa3[n], \
+                      flows.da0[n], flows.da1[n], flows.da2[n], flows.da3[n], \
+                      flows.sp[n], flows.dp[n], \
+                      flows.first[n], flows.first_ms[n], flows.last[n], flows.last_ms[n], \
+                      flows.packets[n], flows.octets[n], flows.aggs[n]
 
 def write_none(_):
     while True:
@@ -328,7 +280,7 @@ def write_flow_binary(out_dir):
     d = pathlib.Path(out_dir)
     d.mkdir(parents=True, exist_ok=True)
     assert d.is_dir()
-    fields = FlowFields()
+    fields = Flows()
     files = {}
     for name, typecode in fields.fields.items():
         setattr(fields, name, array.array(typecode))
@@ -367,12 +319,6 @@ def find_array_path(path):
     name, dtype = p.stem, p.suffix[1:]
     return name, dtype, p
 
-def load_array_np(path, mode='r'):
-    import numpy as np
-    name, dtype, path = find_array_path(path)
-    mm = np.memmap(str(path), dtype=dtype, mode=mode)
-    return name, dtype, mm
-
 def load_array_mv(path, mode='r'):
     name, dtype, path = find_array_path(path)
     flags = mmap.MAP_SHARED if mode == 'c' else mmap.MAP_SHARED
@@ -383,6 +329,54 @@ def load_array_mv(path, mode='r'):
         mm = mmap.mmap(f.fileno(), 0, flags=flags, prot=prot)
     mv = memoryview(mm).cast(dtype)
     return name, dtype, mv
+
+def load_array_np(path, mode='r'):
+    import numpy as np
+    name, dtype, path = find_array_path(path)
+    mm = np.memmap(str(path), dtype=dtype, mode=mode)
+    return name, dtype, mm
+
+def load_arrays(path, fields, counters, filter_expr):
+    ars = {}
+    fields_to_load = set(fields) | set(filter_expr.co_names if filter_expr else ())
+    size = None
+    for name in fields_to_load:
+        try:
+            name, dtype, ar = load_array_np(path / name, 'r')
+            if size is None:
+                size = ar.size
+            else:
+                assert ar.size == size
+            if counters['skip_in'] > 0:
+                ar = ar[counters['skip_in']:]
+            if counters['count_in'] is not None and counters['count_in'] > 0:
+                ar = ar[:counters['count_in']]
+            ars[name] = ar
+        except FileNotFoundError:
+            warnings.warn(f"Array file for flow field '{name}' not found in directory {path}."
+                          " Assuming zero as value of this field")
+            ars[name] = ZeroArray()
+
+    if counters['skip_in'] > 0:
+        size = max(size - counters['skip_in'], 0)
+        counters['skip_in'] -= min(counters['skip_in'], size)
+    if counters['count_in'] is not None and counters['count_in'] > 0:
+        size = min(size, counters['count_in'])
+        counters['count_in'] -= min(counters['count_in'], size)
+
+    for ar in ars.values():
+        if not isinstance(ar, ZeroArray):
+            assert len(ar) == size
+
+    filtered = ...
+    if filter_expr is not None:
+        filtered = eval(filter_expr, ars)
+
+    arrays = {}
+    for name in fields:
+        arrays[name] = ars[name]
+
+    return arrays, filtered, size
 
 def prepare_file_list(file_paths):
     files = []
@@ -426,7 +420,6 @@ class IOArgumentParser(argparse.ArgumentParser):
         if namespace.filter_expr:
             namespace.filter_expr = compile(namespace.filter_expr, f'FILTER: {namespace.filter_expr}', 'eval')
         return namespace
-
 
 IN_FORMATS = {'csv_flow': read_flow_csv, 'pipe': read_pipe, 'nfcapd': read_nfcapd, 'binary': read_flow_binary}
 OUT_FORMATS = {'csv_flow': write_flow_csv, 'binary': write_flow_binary, 'none': write_none}
