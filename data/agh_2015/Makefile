@@ -3,11 +3,11 @@ export PYTHONPATH = $(CURDIR)/../..
 
 dumps:
 	mkdir -p dumps
-	cd dumps; zstd -d --stdout ~/nfcaps.tar.zst | tar --strip-components 1 --wildcards -xvf - 'nfcaps/2015-06-*'
+	cd dumps; zstd -d --stdout ~/nfcaps.tar.zst | tar -xv
 
 cleaned: dumps
 	mkdir -p cleaned
-	for file in dumps/2015-06-*/nfcapd.* ; \
+	for file in dumps/nfcapd.* ; \
 	do \
 	    nice nfdump -y -r $$file -w cleaned/$${file##*/} 'router ip 10.156.119.1 and if 83 and duration < 1000000' ; \
 	done

@@ -150,10 +150,12 @@ def read_pipe(in_file, counters=None, filter_expr=None, fields=None):
                     counters['count_in'] -= 1
                 else:
                     break
-            af, first, first_ms, last, last_ms, prot, \
+            af, first, last, prot, \
             sa0, sa1, sa2, sa3, sp, da0, da1, da2, da3, dp, \
             srcas, dstas, inif, outif, \
             tcp_flags, tos, packets, octets = line.split(b'|')
+            first, first_ms = first[:-3], first[-3:]
+            last, last_ms = last[:-3], last[-3:]
             if filter_expr is None or eval(filter_expr):
                 if counters['skip_out'] > 0:
                     counters['skip_out'] -= 1
