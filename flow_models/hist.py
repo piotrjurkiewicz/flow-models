@@ -8,7 +8,6 @@ from .lib.util import logmsg, bin_calc_one, bin_calc_log
 
 X_VALUES = ['length', 'size', 'duration', 'rate']
 OUT_FORMATS = {'csv_hist': write_line, 'none': write_none}
-PROTS = {'all': None, 'tcp': 6, 'udp': 17}
 
 class FlowBin:
 
@@ -96,15 +95,10 @@ def parser():
     p.add_argument('-b', '--bin-exp', default=0, type=int, help='bin width exponent of 2')
     p.add_argument('-x', '--x-value', default='length', choices=X_VALUES, help='x axis value')
     p.add_argument('-c', '--additional-columns', action='append', default=[], help='additional column to sum')
-    p.add_argument('--prot', choices=PROTS, help='limit only to selected protocol flows')
     return p
 
 def main():
     app_args = parser().parse_args()
-
-    if app_args.prot and app_args.prot != 'all' and app_args.filter_expr is None:
-        app_args.filter_expr = compile(f"prot=={PROTS[app_args.prot]}", '<filter_expr>', 'eval')
-
     histogram(**vars(app_args))
 
 
