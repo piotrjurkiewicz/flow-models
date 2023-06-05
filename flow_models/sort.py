@@ -100,11 +100,11 @@ def sort_array(input_file, output_dir, index_array, counters=None):
 
     if mode == 'r':
         output_dir.mkdir(parents=True, exist_ok=True)
-        out_file = output_dir / f'{name}.{dtype}'
-        out_mm = np.memmap(out_file, dtype=dtype, mode='w+', shape=(size,))
-        logmsg('Sort array: sorting:', input_file, 'to new file:', out_file)
+        output_file = output_dir / f'{name}.{dtype}'
+        out_mm = np.memmap(output_file, dtype=dtype, mode='w+', shape=(size,))
+        logmsg('Sort array: sorting:', input_file, 'to new file:', output_file)
     else:
-        out_file = input_file
+        output_file = input_file
         out_mm = in_mm
         logmsg('Sort array: sorting in-place:', input_file)
 
@@ -120,7 +120,7 @@ def sort_array(input_file, output_dir, index_array, counters=None):
     out_mm[:] = result
     del result
 
-    logmsg('Sort array: flushing:', out_file)
+    logmsg('Sort array: flushing:', output_file)
 
     out_mm.flush()
 
@@ -128,7 +128,7 @@ def sort_array(input_file, output_dir, index_array, counters=None):
 
     del out_mm
 
-def sort(in_files, out_dir, in_format='binary', out_format='binary', key_fields=(), index_file=None, skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, no_index=False, reverse=False):
+def sort(in_files, output, in_format='binary', out_format='binary', key_fields=(), index_file=None, skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, reverse=False):
 
     assert in_format == 'binary'
     assert out_format == 'binary'
@@ -153,7 +153,7 @@ def sort(in_files, out_dir, in_format='binary', out_format='binary', key_fields=
             _, _, index = load_array_np(index_file)
 
     for f in prepare_file_list(in_files):
-        sort_array(f, out_dir, index, counters)
+        sort_array(f, output, index, counters)
 
 def parser():
     p = IOArgumentParser(description=__doc__)
@@ -161,6 +161,8 @@ def parser():
     p._option_string_actions['-i'].default = 'binary'
     p._option_string_actions['-o'].choices = ['binary']
     p._option_string_actions['-o'].default = 'binary'
+    p._option_string_actions['-O'].help = 'directory for output'
+    p._option_string_actions['-O'].default = '.'
     p.add_argument('-k', '--key-files', nargs='*', help='ordered key fields names')
     p.add_argument('-I', '--index-file', default='_index', help='index file')
     p.add_argument('--no-index', action='store_true', help='do not save index into file')
@@ -171,7 +173,7 @@ def parser():
 def main():
     app_args = parser().parse_args()
 
-    if not app_args.O:
+    if not app_args.output:
         logmsg('Output directory not specified. To sort in-place specify file containing directory as the output directory.')
         raise ValueError
 

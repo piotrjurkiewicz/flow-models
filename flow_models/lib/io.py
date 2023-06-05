@@ -246,11 +246,11 @@ def write_none(_):
     while True:
         _ = yield
 
-def write_line(out_file, header_line=None):
-    if isinstance(out_file, io.IOBase):
-        stream = out_file
+def write_line(output, header_line=None):
+    if isinstance(output, io.IOBase):
+        stream = output
     else:
-        stream = open(str(out_file), 'w')
+        stream = open(str(output), 'w')
     if header_line:
         print(header_line, file=stream)
     try:
@@ -259,25 +259,25 @@ def write_line(out_file, header_line=None):
             print(line, file=stream)
     except GeneratorExit:
         pass
-    if not isinstance(out_file, io.IOBase):
+    if not isinstance(output, io.IOBase):
         stream.close()
 
-def write_flow_csv(out_file):
-    if isinstance(out_file, io.IOBase):
-        stream = out_file
+def write_flow_csv(output):
+    if isinstance(output, io.IOBase):
+        stream = output
     else:
-        stream = open(str(out_file), 'w')
+        stream = open(str(output), 'w')
     try:
         while True:
             flow = yield
             print(flow_to_csv_line(flow), file=stream)
     except GeneratorExit:
         pass
-    if not isinstance(out_file, io.IOBase):
+    if not isinstance(output, io.IOBase):
         stream.close()
 
-def write_flow_binary(out_dir):
-    d = pathlib.Path(out_dir)
+def write_flow_binary(output_dir):
+    d = pathlib.Path(output_dir)
     d.mkdir(parents=True, exist_ok=True)
     assert d.is_dir()
     fields = Flows()
@@ -400,11 +400,11 @@ def prepare_file_list(file_paths):
 
 class IOArgumentParser(argparse.ArgumentParser):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs, formatter_class=argparse.ArgumentDefaultsHelpFormatter, add_help=False)
+        super().__init__(**kwargs, formatter_class=argparse.ArgumentDefaultsHelpFormatter, add_help=True)
         self.add_argument('in_files', nargs='+', help='input files or directories')
         self.add_argument('-i', '--in-format', default='nfcapd', choices=IN_FORMATS, help='format of input files')
         self.add_argument('-o', '--out-format', default='csv_flow', choices=OUT_FORMATS, help='format of output')
-        self.add_argument('-O', '--out-file', default=sys.stdout, help='file or directory for output')
+        self.add_argument('-O', '--output', default=sys.stdout, help='file or directory for output')
         self.add_argument('--skip-in', type=int, default=0, help='number of flows to skip at the beginning of input')
         self.add_argument('--count-in', type=int, default=None, help='number of flows to read from input')
         self.add_argument('--skip-out', type=int, default=0, help='number of flows to skip after filtering')
@@ -415,8 +415,8 @@ class IOArgumentParser(argparse.ArgumentParser):
         namespace = super().parse_args(*args)
         if namespace.in_format != 'binary':
             namespace.in_files = prepare_file_list(namespace.in_files)
-        if not isinstance(namespace.out_file, io.IOBase):
-            namespace.out_file = pathlib.Path(namespace.out_file)
+        if not isinstance(namespace.output, io.IOBase):
+            namespace.output = pathlib.Path(namespace.output)
         if namespace.filter_expr:
             namespace.filter_expr = compile(namespace.filter_expr, f'FILTER: {namespace.filter_expr}', 'eval')
         return namespace

@@ -25,7 +25,7 @@ class Flow:
     def to_tuple(self):
         return *self.key, self.first, self.first_ms, self.last, self.last_ms, self.packets, self.octets, self.aggs
 
-def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, inactive_timeout=15.0, active_timeout=300.0):
+def merge(in_files, output, in_format='nfcapd', out_format='csv_flow', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, inactive_timeout=15.0, active_timeout=300.0):
     """
     Merge flows split due to timeout.
 
@@ -33,7 +33,7 @@ def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', skip_in
     ----------
     in_files : list[os.PathLike]
         input files paths
-    out_file : Union[os.PathLike, io.TextIOWrapper]
+    output : Union[os.PathLike, io.TextIOWrapper]
         directory path
     in_format : str, optional
         input format (Default is 'nfcapd')
@@ -63,7 +63,7 @@ def merge(in_files, out_file, in_format='nfcapd', out_format='csv_flow', skip_in
 
     reader, writer = IN_FORMATS[in_format], OUT_FORMATS[out_format]
 
-    writer = writer(out_file)
+    writer = writer(output)
     next(writer)
 
     counters = {'skip_in': skip_in, 'count_in': count_in, 'skip_out': skip_out, 'count_out': count_out}

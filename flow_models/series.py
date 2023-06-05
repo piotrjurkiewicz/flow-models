@@ -7,7 +7,7 @@ import collections
 from .lib.io import IOArgumentParser, IN_FORMATS
 from .lib.util import logmsg
 
-def series(in_files, out_file, in_format='nfcapd', out_format='csv_series', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None):
+def series(in_files, output, in_format='nfcapd', out_format='csv_series', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None):
     """
     Generate packets and octets time series from flow records.
 
@@ -15,7 +15,7 @@ def series(in_files, out_file, in_format='nfcapd', out_format='csv_series', skip
     ----------
     in_files : list[os.PathLike]
         input files paths
-    out_file : Union[os.PathLike, io.TextIOWrapper]
+    output : Union[os.PathLike, io.TextIOWrapper]
         directory path
     in_format : str, optional
         input format (Default is 'nfcapd')
@@ -73,7 +73,7 @@ def series(in_files, out_file, in_format='nfcapd', out_format='csv_series', skip
         logmsg(f'Finished: {file}. Written: {written}')
 
     for day in dd:
-        with open(out_file / f"{day}.packets", 'w') as p, open(out_file / f"{day}.octets", 'w') as o:
+        with open(output / f"{day}.packets", 'w') as p, open(output / f"{day}.octets", 'w') as o:
             for second_in_day in range(86400):
                 p.write("%d\n" % dd[day][second_in_day][0])
                 o.write("%d\n" % dd[day][second_in_day][1])

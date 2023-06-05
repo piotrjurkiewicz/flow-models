@@ -27,7 +27,7 @@ class FlowBin:
     def to_line(self, fields):
         return ','.join(str(int(getattr(self, c))) for c in fields)
 
-def histogram(in_files, out_file, in_format='nfcapd', out_format='csv_hist', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, bin_exp=0, x_value='length', additional_columns=()):
+def histogram(in_files, output, in_format='nfcapd', out_format='csv_hist', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, bin_exp=0, x_value='length', additional_columns=()):
 
     if bin_exp == 0:
         bin_calc_fn = bin_calc_one
@@ -80,7 +80,7 @@ def histogram(in_files, out_file, in_format='nfcapd', out_format='csv_hist', ski
     fields = ['bin_lo', 'bin_hi', 'flows_sum', 'packets_sum', 'octets_sum']
     fields += [c + '_sum' for c in additional_columns]
 
-    writer = writer(out_file, ','.join(fields))
+    writer = writer(output, ','.join(fields))
     next(writer)
     for bin_lo in sorted(bins):
         writer.send(bins[bin_lo].to_line(fields))

@@ -103,9 +103,9 @@ def generate_flows(obj, size=1, x_val='length', random_state=None):
             raise NotImplementedError
         yield key, 0, 0, 0, 0, pks, ocs, 0
 
-def generate(obj, out_file, size=1, x_val='length', random_state=None, out_format='csv_flow'):
+def generate(obj, output, size=1, x_val='length', random_state=None, out_format='csv_flow'):
     writer = OUT_FORMATS[out_format]
-    writer = writer(out_file)
+    writer = writer(output)
     next(writer)
 
     for flow in generate_flows(obj, size, x_val, random_state):

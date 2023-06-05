@@ -6,7 +6,7 @@ Converts flow records between supported formats.
 from .lib.io import IOArgumentParser, IN_FORMATS, OUT_FORMATS
 from .lib.util import logmsg
 
-def convert(in_files, out_file, in_format='nfcapd', out_format='csv_flow', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None):
+def convert(in_files, output, in_format='nfcapd', out_format='csv_flow', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None):
     """
     Convert one flow format to another.
 
@@ -14,7 +14,7 @@ def convert(in_files, out_file, in_format='nfcapd', out_format='csv_flow', skip_
     ----------
     in_files : list[os.PathLike]
         input files paths
-    out_file : Union[os.PathLike, io.TextIOWrapper]
+    output : Union[os.PathLike, io.TextIOWrapper]
         output file or directory path or stream
     in_format : str, optional
         input format (Default is 'nfcapd')
@@ -34,7 +34,7 @@ def convert(in_files, out_file, in_format='nfcapd', out_format='csv_flow', skip_
 
     reader, writer = IN_FORMATS[in_format], OUT_FORMATS[out_format]
 
-    writer = writer(out_file)
+    writer = writer(output)
     next(writer)
 
     counters = {'skip_in': skip_in, 'count_in': count_in, 'skip_out': skip_out, 'count_out': count_out}
