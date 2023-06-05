@@ -141,8 +141,8 @@ def sort(in_files, output, in_format='binary', out_format='binary', key_fields=(
 
     counters = {'skip_in': skip_in, 'count_in': count_in, 'skip_out': skip_out, 'count_out': count_out}
 
-    if no_index:
-        index = create_index(in_files, key_fields, None, counters, reverse)
+    if index_file is None:
+        index = create_index(pathlib.Path(in_files[0]), key_fields, None, counters, reverse)
     else:
         try:
             _, _, index = load_array_np(index_file)
@@ -163,9 +163,8 @@ def parser():
     p._option_string_actions['-o'].default = 'binary'
     p._option_string_actions['-O'].help = 'directory for output'
     p._option_string_actions['-O'].default = '.'
-    p.add_argument('-k', '--key-files', nargs='*', help='ordered key fields names')
-    p.add_argument('-I', '--index-file', default='_index', help='index file')
-    p.add_argument('--no-index', action='store_true', help='do not save index into file')
+    p.add_argument('-k', '--key-fields', nargs='*', help='ordered key fields names')
+    p.add_argument('-I', '--index-file', default=None, help='index file')
     p.add_argument('--reverse', action='store_true', help='reverse order')
     p.add_argument('--measure-memory', action='store_true', help='collect and print memory statistics')
     return p
