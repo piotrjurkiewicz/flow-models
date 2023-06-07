@@ -7,6 +7,16 @@ import subprocess
 import sys
 import warnings
 
+FILTER_HELP = \
+"""
+To filter flow records, the filter expressions should be specified. Filter expression should use
+the Python syntax. Bitwise (&, |, ~) operators should be used instead logical ones (and, or, not).
+The following fields are available:
+
+    af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp,
+    first, first_ms, last, last_ms, packets, octets, aggs
+"""
+
 class ZeroArray:
     def __getitem__(self, item):
         return 0
@@ -406,17 +416,20 @@ def prepare_file_list(file_paths):
                     raise ValueError(f'File {path} is not file')
     return files
 
+class Formatter(argparse.RawDescriptionHelpFormatter, argparse.ArgumentDefaultsHelpFormatter):
+    pass
+
 class IOArgumentParser(argparse.ArgumentParser):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs, formatter_class=argparse.ArgumentDefaultsHelpFormatter, add_help=True)
+        super().__init__(**kwargs, formatter_class=Formatter, add_help=True)
         self.add_argument('in_files', nargs='+', help='input files or directories')
         self.add_argument('-i', '--in-format', default='nfcapd', choices=IN_FORMATS, help='format of input files')
         self.add_argument('-o', '--out-format', default='csv_flow', choices=OUT_FORMATS, help='format of output')
         self.add_argument('-O', '--output', default='-', help='file or directory for output')
         self.add_argument('--skip-in', type=int, default=0, help='number of flows to skip at the beginning of input')
-        self.add_argument('--count-in', type=int, default=None, help='number of flows to read from input')
+        self.add_argument('--count-in', type=int, default=None, help='limit for number of flows to read from input')
         self.add_argument('--skip-out', type=int, default=0, help='number of flows to skip after filtering')
-        self.add_argument('--count-out', type=int, default=None, help='number of flows to output after filtering')
+        self.add_argument('--count-out', type=int, default=None, help='limit for number of flows to output after filtering')
         self.add_argument('--filter-expr', default=None, help='expression of filter')
 
     def parse_args(self, *args):
@@ -428,6 +441,7 @@ class IOArgumentParser(argparse.ArgumentParser):
                 namespace.output = sys.stdout
             else:
                 namespace.output = pathlib.Path(namespace.output)
+        if 'filter_expr' in namespace and namespace.filter_expr:
             namespace.filter_expr = compile(namespace.filter_expr, f'FILTER: {namespace.filter_expr}', 'eval')
         return namespace
 
