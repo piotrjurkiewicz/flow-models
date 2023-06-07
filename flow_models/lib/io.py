@@ -79,7 +79,7 @@ def read_flow_csv(in_file, counters=None, filter_expr=None, fields=None):
     """
     Read and yield all flows in a csv_flow file/stream.
 
-    :param os.PathLike | _io.IOWrapper in_file: csv_flow file or stream to read
+    :param os.PathLike | io.IOBase in_file: csv_flow file or stream to read
     :param counters: {'skip_in': int, 'count_in': int, 'skip_out': int, 'count_out': int}
     :param filter_expr: filter expression
     :param fields: read only these fields, other can be zeros
@@ -134,7 +134,7 @@ def read_pipe(in_file, counters=None, filter_expr=None, fields=None):
 
     This function calls nfdump program to parse nfdump file.
 
-    :param os.PathLike | _io.IOWrapper in_file: nfdump pipe file or stream to read
+    :param os.PathLike | io.IOBase in_file: nfdump pipe file or stream to read
     :param counters: {'skip_in': int, 'count_in': int, 'skip_out': int, 'count_out': int}
     :param filter_expr: filter expression
     :param fields: read only these fields, other can be zeros
@@ -218,8 +218,8 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, fields=None):
     :param filter_expr: filter expression
     :param fields: read only these key fields, other can be zeros
 
-    :return: key, first, first_ms, last, last_ms, packets, octets, aggs
-    :rtype: (tuple, int, int, int, int, int, int, int)
+    :return: af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
+    :rtype: (int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int)
     """
 
     if counters is None:
@@ -319,6 +319,10 @@ def dump_binary(fields, files):
         del arr[:]
 
 def find_array_path(path):
+    """
+    :type path: os.PathLike
+    :rtype: (str, str, pathlib.Path)
+    """
     p = pathlib.Path(path)
     if not p.suffix:
         candidates = list(p.parent.glob(f'{p.stem}.*'))
@@ -332,6 +336,10 @@ def find_array_path(path):
     return name, dtype, p
 
 def load_array_mv(path, mode='r'):
+    """
+    :type path: os.PathLike
+    :type mode: str
+    """
     name, dtype, path = find_array_path(path)
     flags = mmap.MAP_SHARED if mode == 'c' else mmap.MAP_SHARED
     prot = mmap.PROT_READ
@@ -343,12 +351,28 @@ def load_array_mv(path, mode='r'):
     return name, dtype, mv
 
 def load_array_np(path, mode='r'):
+    """
+    :type path: os.PathLike
+    :type mode: str
+    """
     import numpy as np
     name, dtype, path = find_array_path(path)
     mm = np.memmap(str(path), dtype=dtype, mode=mode)
     return name, dtype, mm
 
 def load_arrays(path, fields, counters, filter_expr):
+    """
+    :param path:
+    :param fields:
+    :param counters:
+    :param filter_expr:
+    :return: (arrays, filtered, size)
+    :type path: pathlib.Path
+    :type fields: List[str]
+    :type counters: Dict[str, int]
+    :type filter_expr: None | CodeType
+    :rtype: (List[object], object, int)
+    """
     ars = {}
     fields_to_load = set(fields) | set(filter_expr.co_names if filter_expr else ())
     size = None
@@ -395,6 +419,10 @@ def load_arrays(path, fields, counters, filter_expr):
     return arrays, filtered, size
 
 def prepare_file_list(file_paths):
+    """
+    :type file_paths: List[str]
+    :rtype: List[pathlib.Path | io.IOBase]
+    """
     files = []
     for file_path in file_paths:
         if isinstance(file_path, io.IOBase):

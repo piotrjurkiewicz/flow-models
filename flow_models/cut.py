@@ -64,7 +64,7 @@ def cut(in_files, output, in_format='binary', out_format='binary', skip_in=0, co
     count_out : int, optional
         number of flows to output after filtering (Default is None (all flows))
     filter_expr : str, optional
-        filter expression (Default is None)
+        not supported
     """
 
     if in_format != 'binary' or out_format != 'binary':
@@ -98,7 +98,7 @@ def cut(in_files, output, in_format='binary', out_format='binary', skip_in=0, co
 
 
 def parser():
-    p = IOArgumentParser(description=__doc__)
+    p = IOArgumentParser(description=__doc__, epilog=EPILOG)
     p._option_string_actions['-i'].choices = ['binary']
     p._option_string_actions['-i'].default = 'binary'
     p._option_string_actions['-o'].choices = ['binary']

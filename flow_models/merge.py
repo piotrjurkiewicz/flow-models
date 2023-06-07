@@ -33,7 +33,7 @@ def merge(in_files, output, in_format='nfcapd', out_format='csv_flow', skip_in=0
     ----------
     in_files : list[os.PathLike]
         input files paths
-    output : Union[os.PathLike, io.TextIOWrapper]
+    output : os.PathLike | io.TextIOWrapper
         directory path
     in_format : str, optional
         input format (Default is 'nfcapd')

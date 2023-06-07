@@ -11,19 +11,25 @@ from .lib.io import load_array_np, prepare_file_list, load_arrays, IOArgumentPar
 from .lib.util import logmsg, measure_memory
 
 def create_index(path, key_fields, index_file, counters=None, reverse=False):
+    """
+    :type path: os.PathLike
+    :type key_fields: List[str]
+    :type index_file: None | os.PathLike
+    :type counters: Dict[str, int]
+    :type reverse: bool
+    :rtype: object
+    """
 
     if counters is None:
         counters = {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
 
     keys = []
-
     logmsg('Create index: loading key files')
-
     if not key_fields:
         logmsg('At least one key field must be specified when creating an index.')
         raise ValueError
 
-    arrays, filtered, size = load_arrays(path, key_fields, counters, None)
+    arrays, filtered, size = load_arrays(pathlib.Path(path), key_fields, counters, None)
 
     for name in key_fields:
         keys.append(arrays[name])
@@ -31,11 +37,8 @@ def create_index(path, key_fields, index_file, counters=None, reverse=False):
     del arrays
 
     logmsg('Create index: sorting keys')
-
     result = np.lexsort(list(reversed(keys)))
-
     logmsg('Create index: sorting keys completed')
-
     del keys
 
     if reverse:
@@ -57,32 +60,30 @@ def create_index(path, key_fields, index_file, counters=None, reverse=False):
         index_array = np.memmap(f'{index_file}.{result_dtype}', dtype=result_dtype, mode='w+', shape=(size,))
 
         logmsg('Create index: copying index to file')
-
         index_array[:] = result[:]
         del result
-
         logmsg('Create index: flushing index file')
-
         index_array.flush()
-
         logmsg('Create index: finished')
-
-        del index_array
-
-        return None
+        return index_array
 
     else:
         return result
 
 def sort_array(input_file, output_dir, index_array, counters=None):
+    """
+    :type input_file: os.PathLike
+    :type output_dir: os.PathLike
+    :type index_array: object
+    :type counters: Dict[str, int]
+    :rtype: None
+    """
 
     if counters is None:
         counters = {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
 
     logmsg('Sort array: loading:', input_file)
-
     size = index_array.size
-
     input_file = pathlib.Path(input_file)
     output_dir = pathlib.Path(output_dir)
 
@@ -92,6 +93,7 @@ def sort_array(input_file, output_dir, index_array, counters=None):
         mode = 'r'
 
     name, dtype, in_mm = load_array_np(input_file, mode)
+
     if counters['skip_in'] > 0:
         in_mm = in_mm[counters['skip_in']:]
     if counters['count_in'] is not None and counters['count_in'] > 0:
@@ -109,48 +111,73 @@ def sort_array(input_file, output_dir, index_array, counters=None):
         logmsg('Sort array: sorting in-place:', input_file)
 
     result = in_mm[index_array]
-
     logmsg('Sort array: sorting completed:', input_file)
 
     del in_mm
     del index_array
 
     logmsg('Sort array: copying result to output file')
-
     out_mm[:] = result
     del result
 
     logmsg('Sort array: flushing:', output_file)
-
     out_mm.flush()
-
     logmsg('Sort array: finished:', input_file)
 
     del out_mm
 
-def sort(in_files, output, in_format='binary', out_format='binary', key_fields=(), index_file=None, skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, reverse=False):
+def sort(in_files, output, key_fields, in_format='binary', out_format='binary', index_file=None, skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, reverse=False):
+    """
+    Sorts flow records according to specified key fields.
 
-    assert in_format == 'binary'
-    assert out_format == 'binary'
+    Parameters
+    ----------
+    in_files : List[str]
+        input files paths
+    output : os.PathLike
+        output directory path
+    key_fields : List[str]
+        ordered list of key fields
+    in_format : str, optional
+        input format (Default is 'binary')
+    out_format : str, optional
+        output format (Default is 'binary')
+    index_file : str | None, optional
+        index file path
+    skip_in : int, optional
+        number of flows to skip at the beginning of input (Default is 0)
+    count_in : int, optional
+        number of flows to read from input (Default is None (all flows))
+    skip_out : int, optional
+        not supported
+    count_out : int, optional
+        not supported
+    filter_expr : str, optional
+        not supported
+    reverse : bool
+        reverse order
+    """
+
+    if in_format != 'binary' or out_format != 'binary':
+        raise ValueError("Both input and output formats must be binary")
     if count_out is not None:
         raise NotImplementedError
     if skip_out != 0:
         raise NotImplementedError
     if filter_expr is not None:
-        raise NotImplementedError
+        raise NotImplementedError("Filter expressions are not supported")
 
     counters = {'skip_in': skip_in, 'count_in': count_in, 'skip_out': skip_out, 'count_out': count_out}
 
     if index_file is None:
-        index = create_index(pathlib.Path(in_files[0]), key_fields, None, counters, reverse)
+        index = create_index(in_files[0], key_fields, None, counters, reverse)
     else:
         try:
             _, _, index = load_array_np(index_file)
             logmsg('Using existing index file...')
         except FileNotFoundError:
             logmsg('Index file not exists, will be created...')
-            create_index(in_files, key_fields, index_file, counters, reverse)
-            _, _, index = load_array_np(index_file)
+            index = create_index(in_files, key_fields, index_file, counters, reverse)
 
     for f in prepare_file_list(in_files):
         sort_array(f, output, index, counters)
@@ -163,6 +190,9 @@ def parser():
     p._option_string_actions['-o'].default = 'binary'
     p._option_string_actions['-O'].help = 'directory for output'
     p._option_string_actions['-O'].default = '.'
+    p._optionals._remove_action(p._option_string_actions['--skip-out'])
+    p._optionals._remove_action(p._option_string_actions['--count-out'])
+    p._optionals._remove_action(p._option_string_actions['--filter-expr'])
     p.add_argument('-k', '--key-fields', nargs='*', help='ordered key fields names')
     p.add_argument('-I', '--index-file', default=None, help='index file')
     p.add_argument('--reverse', action='store_true', help='reverse order')

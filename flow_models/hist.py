@@ -26,7 +26,37 @@ class FlowBin:
     def to_line(self, fields):
         return ','.join(str(int(getattr(self, c))) for c in fields)
 
-def histogram(in_files, output, in_format='nfcapd', out_format='csv_hist', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, bin_exp=0, x_value='length', additional_columns=()):
+def hist(in_files, output, in_format='nfcapd', out_format='csv_hist', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, bin_exp=0, x_value='length', additional_columns=()):
+    """
+    Calculates histograms of flows length, size, duration or rate.
+
+    Parameters
+    ----------
+    in_files : list[os.PathLike]
+        input files paths
+    output : os.PathLike | io.TextIOWrapper
+        output file or directory path or stream
+    in_format : str, optional
+        input format (Default is 'nfcapd')
+    out_format : str, optional
+        output format (Default is 'csv_flow')
+    skip_in : int, optional
+        number of flows to skip at the beginning of input (Default is 0)
+    count_in : int, optional
+        number of flows to read from input (Default is None (all flows))
+    skip_out : int, optional
+        number of flows to skip after filtering (Default is 0)
+    count_out : int, optional
+        number of flows to output after filtering (Default is None (all flows))
+    filter_expr : str, optional
+        filter expression (Default is None)
+    bin_exp: int, optional
+        bin width exponent of 2 (Default is 0)
+    x_value : str, optional
+        x axis value (Default is length)
+    additional_columns : List[str], optional
+        additional column to sum
+    """
 
     if bin_exp == 0:
         bin_calc_fn = bin_calc_one
@@ -99,7 +129,7 @@ def parser():
 
 def main():
     app_args = parser().parse_args()
-    histogram(**vars(app_args))
+    hist(**vars(app_args))
 
 
 if __name__ == '__main__':
