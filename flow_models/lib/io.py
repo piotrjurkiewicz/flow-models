@@ -387,7 +387,9 @@ def load_arrays(path, fields, counters, filter_expr):
 def prepare_file_list(file_paths):
     files = []
     for file_path in file_paths:
-        if file_path == '-':
+        if isinstance(file_path, io.IOBase):
+            files.append(file_path)
+        elif file_path == '-':
             files.append(sys.stdin)
         else:
             path = pathlib.Path(file_path)
@@ -410,7 +412,7 @@ class IOArgumentParser(argparse.ArgumentParser):
         self.add_argument('in_files', nargs='+', help='input files or directories')
         self.add_argument('-i', '--in-format', default='nfcapd', choices=IN_FORMATS, help='format of input files')
         self.add_argument('-o', '--out-format', default='csv_flow', choices=OUT_FORMATS, help='format of output')
-        self.add_argument('-O', '--output', default=sys.stdout, help='file or directory for output')
+        self.add_argument('-O', '--output', default='-', help='file or directory for output')
         self.add_argument('--skip-in', type=int, default=0, help='number of flows to skip at the beginning of input')
         self.add_argument('--count-in', type=int, default=None, help='number of flows to read from input')
         self.add_argument('--skip-out', type=int, default=0, help='number of flows to skip after filtering')
@@ -422,8 +424,10 @@ class IOArgumentParser(argparse.ArgumentParser):
         if namespace.in_format != 'binary':
             namespace.in_files = prepare_file_list(namespace.in_files)
         if not isinstance(namespace.output, io.IOBase):
-            namespace.output = pathlib.Path(namespace.output)
-        if namespace.filter_expr:
+            if namespace.output == '-':
+                namespace.output = sys.stdout
+            else:
+                namespace.output = pathlib.Path(namespace.output)
             namespace.filter_expr = compile(namespace.filter_expr, f'FILTER: {namespace.filter_expr}', 'eval')
         return namespace
 
