@@ -359,12 +359,13 @@ def load_arrays(path, fields, counters, filter_expr):
                           " Assuming zero as value of this field")
             ars[name] = ZeroArray()
 
-    if counters['skip_in'] > 0:
-        size = max(size - counters['skip_in'], 0)
-        counters['skip_in'] -= min(counters['skip_in'], size)
-    if counters['count_in'] is not None and counters['count_in'] > 0:
-        size = min(size, counters['count_in'])
-        counters['count_in'] -= min(counters['count_in'], size)
+    if size is not None:
+        if counters['skip_in'] > 0:
+            size = max(size - counters['skip_in'], 0)
+            counters['skip_in'] -= min(counters['skip_in'], size)
+        if counters['count_in'] is not None and counters['count_in'] > 0:
+            size = min(size, counters['count_in'])
+            counters['count_in'] -= min(counters['count_in'], size)
 
     for ar in ars.values():
         if not isinstance(ar, ZeroArray):
@@ -372,6 +373,9 @@ def load_arrays(path, fields, counters, filter_expr):
 
     filtered = ...
     if filter_expr is not None:
+        for name in filter_expr.co_names:
+            if isinstance(ars[name], ZeroArray):
+                raise ValueError(f"Filter is using flow field '{name}' which is not present in input files")
         filtered = eval(filter_expr, ars)
 
     arrays = {}
