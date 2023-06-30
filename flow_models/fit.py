@@ -185,9 +185,9 @@ def fit(in_file, y_value, max_iter=100, initial=None, max_pareto_w=None, cb=None
     cb : function, optional
         callback function to call after each iteration
 
-   Returns
+    Returns
     ------
-    {'mix': result_mix, 'sum': np.sum(weights)}
+        {'mix': result_mix, 'sum': np.sum(weights)}
     """
 
     in_file = pathlib.Path(in_file)

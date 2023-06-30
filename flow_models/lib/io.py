@@ -83,7 +83,7 @@ def read_flow_csv(in_file, counters=None, filter_expr=None, fields=None):
     ----------
     in_file : os.PathLike | io.TextIOWrapper
         csv_flow file or stream to read
-    counters: dict[str, int], default {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
+    counters: dict[str, int], default
         skip_in : int, default 0
             number of flows to skip at the beginning of input
         count_in : int, default None, meaning all flows
@@ -99,7 +99,8 @@ def read_flow_csv(in_file, counters=None, filter_expr=None, fields=None):
 
     Returns
     -------
-    af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
+    (int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int)
+        af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
     """
 
     if counters is None:
@@ -152,7 +153,7 @@ def read_pipe(in_file, counters=None, filter_expr=None, fields=None):
     ----------
     in_file : os.PathLike | io.TextIOWrapper
         nfdump pipe file or stream to read
-    counters: dict[str, int], default {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
+    counters: dict[str, int], default
         skip_in : int, default 0
             number of flows to skip at the beginning of input
         count_in : int, default None, meaning all flows
@@ -168,7 +169,8 @@ def read_pipe(in_file, counters=None, filter_expr=None, fields=None):
 
     Returns
     -------
-    af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
+    (int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int)
+        af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
     """
 
     if counters is None:
@@ -222,7 +224,7 @@ def read_nfcapd(in_file, counters=None, filter_expr=None, fields=None):
     ----------
     in_file : os.PathLike
         nfdump nfpcapd file to read
-    counters: dict[str, int], default {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
+    counters: dict[str, int], default
         skip_in : int, default 0
             number of flows to skip at the beginning of input
         count_in : int, default None, meaning all flows
@@ -238,7 +240,8 @@ def read_nfcapd(in_file, counters=None, filter_expr=None, fields=None):
 
     Returns
     -------
-    af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
+    (int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int)
+        af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
     """
 
     nfdump_process = subprocess.Popen(['nfdump', '-r', str(in_file), '-q', '-o', 'pipe'], stdout=subprocess.PIPE)
@@ -259,7 +262,7 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, fields=None):
     ----------
     in_dir : os.PathLike
         directory to read from
-    counters: dict[str, int], default {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
+    counters: dict[str, int], default
         skip_in : int, default 0
             number of flows to skip at the beginning of input
         count_in : int, default None, meaning all flows
@@ -275,7 +278,8 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, fields=None):
 
     Returns
     -------
-    af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
+    (int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int)
+        af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
     """
 
     if counters is None:
@@ -439,6 +443,7 @@ def load_array_mv(path, mode='r'):
     path : os.PathLike
         array file path
     mode : str, default 'r'
+        file open mode
     """
 
     name, dtype, path = find_array_path(path)
@@ -460,6 +465,7 @@ def load_array_np(path, mode='r'):
     path : os.PathLike
         array file path
     mode : str, default 'r'
+        file open mode
     """
 
     import numpy as np
@@ -477,7 +483,7 @@ def load_arrays(path, fields, counters, filter_expr):
         directory path
     fields : list[str]
         fields to load
-    counters: dict[str, int], default {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
+    counters: dict[str, int], default
         skip_in : int, default 0
             number of flows to skip at the beginning of input
         count_in : int, default None, meaning all flows

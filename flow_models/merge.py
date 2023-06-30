@@ -54,10 +54,10 @@ def merge(in_files, output, in_format='nfcapd', out_format='csv_flow', skip_in=0
         input files paths
     output : os.PathLike | io.TextIOWrapper
         directory path
-    in_format : str, optional
-        input format (Default is 'nfcapd')
-    out_format : str, optional
-        output format (Default is 'csv_flow')
+    in_format : str, default 'nfcapd'
+        input format
+    out_format : str, default 'csv_flow'
+        output format
     skip_in : int, default 0
         number of flows to skip at the beginning of input
     count_in : int, default None, meaning all flows

@@ -49,7 +49,7 @@ def create_index(path, key_fields, index_file, counters=None, reverse=False):
         ordered list of key fields
     index_file : str, optional
         index file path
-    counters: dict[str, int], default {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
+    counters: dict[str, int], default
         skip_in : int, default 0
             number of flows to skip at the beginning of input
         count_in : int, default None, meaning all flows
@@ -129,7 +129,7 @@ def sort_array(input_file, output_dir, index_array, counters=None):
         output directory path
     index_array: object
         index array
-    counters: dict[str, int], default {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
+    counters: dict[str, int], default
         skip_in : int, default 0
             number of flows to skip at the beginning of input
         count_in : int, default None, meaning all flows
