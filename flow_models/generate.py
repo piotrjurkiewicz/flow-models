@@ -17,6 +17,13 @@ from .lib.io import OUT_FORMATS
 from .lib.mix import rvs, avg
 from .lib.util import logmsg
 
+EPILOG = \
+f"""
+This tool can be used to generate flow tuples from mixture or histogram file.
+
+    flow_models.generate -s 1000 histograms/udp/length.csv
+"""
+
 X_VALUES = ['length', 'size', 'duration', 'rate']
 
 def load_data(obj):
@@ -81,40 +88,77 @@ def iterate_arrays(packets, octets, number):
             else:
                 yield from itertools.repeat((packets, octets), number)
 
-def generate_flows(obj, size=1, x_val='length', random_state=None):
-    data = load_data(obj)
+def generate_flows(in_file, size=1, x_value='length', random_state=None):
+    """
+    Generate flows from mixture or histogram file.
+
+    Parameters
+    ----------
+    in_file : os.PathLike
+        csv_hist file or mixture director
+    size : int, default 1
+        number of flows to generate
+    x_value : str, default 'length'
+        x axis value
+    random_state : object, optional
+        initial random state
+
+    Yields
+    ------
+    (int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int)
+        af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
+    """
+
+    data = load_data(in_file)
 
     assert isinstance(size, int) and size >= 0
     rng = random.Random(random_state)
 
-    key = 7 * (0, 0)
-
-    packets, octets, number = generate_arrays(data, size, x_val, random_state)
+    packets, octets, number = generate_arrays(data, size, x_value, random_state)
     for packets, octets in iterate_arrays(packets, octets, number):
-        if x_val == 'length':
+        if x_value == 'length':
             pks = int(packets)
             ocs = int(octets)
             ocs = ocs if rng.random() + ocs >= octets else ocs + 1
-        elif x_val == 'size':
+        elif x_value == 'size':
             pks = int(packets)
             pks = pks if rng.random() + pks >= packets else pks + 1
             ocs = int(octets)
         else:
             raise NotImplementedError
-        yield key, 0, 0, 0, 0, pks, ocs, 0
+        yield 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, pks, ocs, 0
 
-def generate(obj, output, size=1, x_val='length', random_state=None, out_format='csv_flow'):
+def generate(in_file, output, out_format='csv_flow', size=1, x_value='length', random_state=None):
+    """
+    Generate flows from mixture or histogram file.
+
+    Parameters
+    ----------
+    in_file : os.PathLike
+        csv_hist file or mixture director
+    output : os.PathLike | io.TextIOWrapper
+        file or directory for output
+    out_format : str, default 'csv_flow'
+        output format
+    size : int, default 1
+        number of flows to generate
+    x_value : str, default 'length'
+        x axis value
+    random_state : object, optional
+        initial random state
+    """
+
     writer = OUT_FORMATS[out_format]
     writer = writer(output)
     next(writer)
 
-    for flow in generate_flows(obj, size, x_val, random_state):
+    for flow in generate_flows(in_file, size, x_value, random_state):
         writer.send(flow)
 
     writer.close()
 
 def parser():
-    p = argparse.ArgumentParser(description=__doc__)
+    p = argparse.ArgumentParser(description=__doc__, epilog=EPILOG)
     p.add_argument('-s', type=int, default=1, help='number of generated flows')
     p.add_argument('--seed', type=int, default=None, help='seed')
     p.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
@@ -126,7 +170,7 @@ def parser():
 def main():
     app_args = parser().parse_args()
 
-    generate(app_args.file, app_args.O, app_args.s, app_args.x, app_args.seed, out_format=app_args.o)
+    generate(app_args.file, app_args.O, app_args.o, app_args.s, app_args.x, app_args.seed)
 
 
 if __name__ == '__main__':

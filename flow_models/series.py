@@ -4,8 +4,23 @@ Generates packets and octets time series from flow records.
 """
 import collections
 
-from .lib.io import IOArgumentParser, IN_FORMATS
+from .lib.io import IOArgumentParser, IN_FORMATS, FILTER_HELP
 from .lib.util import logmsg
+
+EPILOG = \
+f"""
+This tool can be used to calculate packets and octets time series from flow records.
+
+{FILTER_HELP}
+
+Skipping of flow records can be done with skip_in, count_in, skip_out, count_out parameters.
+They specify how many flow records should be skipped (skip_in) and then read (count_in)
+from input and to be skipped (skip_out) and written (count_out) after filtering.
+
+Example: (skips the first 100 records and calculates series for the next 1000)
+
+    flow_models.series -i binary -O series --skip-in 100 --count-in 1000 sorted
+"""
 
 def series(in_files, output, in_format='nfcapd', out_format='csv_series', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None):
     """
@@ -13,24 +28,24 @@ def series(in_files, output, in_format='nfcapd', out_format='csv_series', skip_i
 
     Parameters
     ----------
-    in_files : list[os.PathLike]
+    in_files : list[pathlib.Path]
         input files paths
-    output : Union[os.PathLike, io.TextIOWrapper]
+    output : os.PathLike | io.TextIOWrapper
         directory path
-    in_format : str, optional
-        input format (Default is 'nfcapd')
-    out_format : str, optional
-        output format (Default is 'csv_series')
-    skip_in : int, optional
-        number of flows to skip at the beginning of input (Default is 0)
-    count_in : int, optional
-        number of flows to read from input (Default is None (all flows))
-    skip_out : int, optional
-        number of flows to skip after filtering (Default is 0)
-    count_out : int, optional
-        number of flows to output after filtering (Default is None (all flows))
-    filter_expr : str, optional
-        filter expression (Default is None)
+    in_format : str, default 'nfcapd'
+        input format
+    out_format : str, default 'csv_series'
+        output format
+    skip_in : int, default 0
+        number of flows to skip at the beginning of input
+    count_in : int, default None, meaning all flows
+        number of flows to read from input
+    skip_out : int, default 0
+        number of flows to skip after filtering
+    count_out : int, default None, meaning all flows
+        number of flows to output after filtering
+    filter_expr : CodeType, optional
+        filter expression
     """
 
     reader = IN_FORMATS[in_format]
@@ -81,7 +96,7 @@ def series(in_files, output, in_format='nfcapd', out_format='csv_series', skip_i
     logmsg(f'Finished all files. Written: {written}')
 
 def parser():
-    p = IOArgumentParser(description=__doc__)
+    p = IOArgumentParser(description=__doc__, epilog=EPILOG)
     p._option_string_actions['-o'].choices = ['csv_series']
     p._option_string_actions['-o'].default = 'csv_series'
     p._option_string_actions['-O'].default = '.'

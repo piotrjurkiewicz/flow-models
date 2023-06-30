@@ -3,8 +3,29 @@
 Calculates histograms of flows length, size, duration or rate.
 """
 
-from .lib.io import IOArgumentParser, IN_FORMATS, write_none, write_line
+from .lib.io import IOArgumentParser, IN_FORMATS, write_none, write_line, FILTER_HELP
 from .lib.util import logmsg, bin_calc_one, bin_calc_log
+
+EPILOG = \
+f"""
+Use this tool to calculate histogram of flow features.
+
+The output is a histogram of a selected feature in csv_hist format.
+
+Feature selection is being done with -x parameter. Additionally -b parameter can be
+specified, which will make histogram logarithmically binned to reduce its size.
+
+
+{FILTER_HELP}
+
+Skipping of flow records can be done with skip_in, count_in, skip_out, count_out parameters.
+They specify how many flow records should be skipped (skip_in) and then read (count_in)
+from input and to be skipped (skip_out) and written (count_out) after filtering.
+
+Example: (calculates logarithmically binned histogram of flow length from sorted directory)
+
+    flow_models.hist -i binary -x length -b 12 sorted
+"""
 
 X_VALUES = ['length', 'size', 'duration', 'rate']
 OUT_FORMATS = {'csv_hist': write_line, 'none': write_none}
@@ -36,25 +57,25 @@ def hist(in_files, output, in_format='nfcapd', out_format='csv_hist', skip_in=0,
         input files paths
     output : os.PathLike | io.TextIOWrapper
         output file or directory path or stream
-    in_format : str, optional
-        input format (Default is 'nfcapd')
-    out_format : str, optional
-        output format (Default is 'csv_flow')
-    skip_in : int, optional
-        number of flows to skip at the beginning of input (Default is 0)
-    count_in : int, optional
-        number of flows to read from input (Default is None (all flows))
-    skip_out : int, optional
-        number of flows to skip after filtering (Default is 0)
-    count_out : int, optional
-        number of flows to output after filtering (Default is None (all flows))
-    filter_expr : str, optional
-        filter expression (Default is None)
-    bin_exp: int, optional
-        bin width exponent of 2 (Default is 0)
-    x_value : str, optional
-        x axis value (Default is length)
-    additional_columns : List[str], optional
+    in_format : str, default 'nfcapd'
+        input format
+    out_format : str, default 'csv_hist'
+        output format
+    skip_in : int, default 0
+        number of flows to skip at the beginning of input
+    count_in : int, default None, meaning all flows
+        number of flows to read from input
+    skip_out : int, default 0
+        number of flows to skip after filtering
+    count_out : int, default None, meaning all flows
+        number of flows to output after filtering
+    filter_expr : CodeType, optional
+        filter expression
+    bin_exp: int, default 0
+        bin width exponent of 2
+    x_value : str, default 'length'
+        x axis value
+    additional_columns : list[str], optional
         additional column to sum
     """
 
@@ -119,7 +140,7 @@ def hist(in_files, output, in_format='nfcapd', out_format='csv_hist', skip_in=0,
     logmsg(f'Finished all files. Flows: {flows} Written: {written}')
 
 def parser():
-    p = IOArgumentParser(description=__doc__)
+    p = IOArgumentParser(description=__doc__, epilog=EPILOG)
     p._option_string_actions['-o'].choices = OUT_FORMATS
     p._option_string_actions['-o'].default = 'csv_hist'
     p.add_argument('-b', '--bin-exp', default=0, type=int, help='bin width exponent of 2')

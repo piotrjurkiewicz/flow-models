@@ -10,8 +10,28 @@ import pathlib
 
 import numpy as np
 
-from .lib.io import load_array_np, write_line, write_none, IOArgumentParser, load_arrays
+from .lib.io import write_line, write_none, IOArgumentParser, load_arrays, FILTER_HELP
 from .lib.util import logmsg, bin_calc_log, measure_memory
+
+EPILOG = \
+f"""
+Use this tool to calculate histogram of flow features.
+
+The output is a histogram of a selected feature in csv_hist format.
+
+Feature selection is being done with -x parameter. Additionally -b parameter can be
+specified, which will make histogram logarithmically binned to reduce its size.
+
+{FILTER_HELP}
+
+Skipping of flow records can be done with skip_in and count_in parameters.
+They specify how many flow records should be skipped (skip_in) and then read (count_in)
+from input.
+
+Example: (calculates logarithmically binned histogram of flow length from sorted directory)
+
+    flow_models.hist -i binary -x length -b 12 sorted
+"""
 
 # MAX_MEM = 64 * (1024 ** 3)
 MAX_MEM = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES') // 4
@@ -132,7 +152,37 @@ def calc_dir(path, x_value, columns, counters=None, filter_expr=None):
 
     return results
 
-def histogram(in_files, output, in_format='binary', out_format='csv_hist', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, bin_exp=0, x_value='length', additional_columns=()):
+def hist(in_files, output, in_format='binary', out_format='csv_hist', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, bin_exp=0, x_value='length', additional_columns=()):
+    """
+    Calculates histograms of flows length, size, duration or rate.
+
+    Parameters
+    ----------
+    in_files : list[os.PathLike]
+        input files paths
+    output : os.PathLike | io.TextIOWrapper
+        output file or directory path or stream
+    in_format : str, default 'binary'
+        input format
+    out_format : str, default 'csv_hist'
+        output format
+    skip_in : int, default 0
+        number of flows to skip at the beginning of input
+    count_in : int, default None, meaning all flows
+        number of flows to read from input
+    skip_out : int, default 0
+        not supported
+    count_out : int, default None, meaning all flows
+        not supported
+    filter_expr : CodeType, optional
+        filter expression
+    bin_exp: int, default 0
+        bin width exponent of 2
+    x_value : str, default 'length'
+        x axis value
+    additional_columns : list[str], optional
+        additional column to sum
+    """
 
     assert in_format == 'binary'
     if count_out is not None:
@@ -200,7 +250,7 @@ def histogram(in_files, output, in_format='binary', out_format='csv_hist', skip_
     logmsg(f'Finished all directories. Flows: NA Written: {written}')
 
 def parser():
-    p = IOArgumentParser(description=__doc__)
+    p = IOArgumentParser(description=__doc__, epilog=EPILOG)
     p._option_string_actions['-i'].choices = ['binary']
     p._option_string_actions['-i'].default = 'binary'
     p._option_string_actions['-o'].choices = OUT_FORMATS
@@ -216,7 +266,7 @@ def main():
 
     with measure_memory(app_args.measure_memory):
         delattr(app_args, 'measure_memory')
-        histogram(**vars(app_args))
+        hist(**vars(app_args))
 
 
 if __name__ == '__main__':

@@ -49,8 +49,7 @@ field as an array of binary values with a specified type.
 
 File naming schema is the following: ::
 
-    _{field_name}.{dtype}  -- key fields
-    {field_name}.{dtype}   -- value fields
+    {field_name}.{dtype}
 
 Suffix ``dtype`` specifies the type of binary object stored in the file (using `array` type codes):
 
@@ -87,20 +86,20 @@ Example:
 
     agh_2015/
     └── day-01
-        ├── _af.B            ─┐
-        ├── _da0.I            │
-        ├── _da1.I            │
-        ├── _da2.I            │
-        ├── _da3.I            │
-        ├── _dp.H             │
-        ├── _inif.H           │ key
-        ├── _outif.H          │ fields
-        ├── _prot.B           │
-        ├── _sa0.I            │
-        ├── _sa1.I            │
-        ├── _sa2.I            │
-        ├── _sa3.I            │
-        ├── _sp.H            ─┘
+        ├── af.B             ─┐
+        ├── da0.I             │
+        ├── da1.I             │
+        ├── da2.I             │
+        ├── da3.I             │
+        ├── dp.H              │
+        ├── inif.H            │ key
+        ├── outif.H           │ fields
+        ├── prot.B            │
+        ├── sa0.I             │
+        ├── sa1.I             │
+        ├── sa2.I             │
+        ├── sa3.I             │
+        ├── sp.H             ─┘
         ├── first.I          ─┐
         ├── first_ms.H        │
         ├── last.I            │ value

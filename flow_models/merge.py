@@ -5,8 +5,27 @@ Merges flows which were split across multiple records due to *active timeout*.
 
 import warnings
 
-from .lib.io import IOArgumentParser, IN_FORMATS, OUT_FORMATS
+from .lib.io import IOArgumentParser, IN_FORMATS, OUT_FORMATS, FILTER_HELP
 from .lib.util import logmsg
+
+EPILOG = \
+f"""
+This tool can be used to merge flow records which were split during the collection
+into multiple records due to active timeout.
+
+User should specify active and inactive timeout values which were used during the
+records collection.
+
+{FILTER_HELP}
+
+Skipping of flow records can be done with skip_in, count_in, skip_out, count_out parameters.
+They specify how many flow records should be skipped (skip_in) and then read (count_in)
+from input and to be skipped (skip_out) and written (count_out) after filtering.
+
+Example: (merges flows from cleaned directory and writes output to the merged directory)
+
+    flow_models.merge -i nfcapd -o binary -I 15 -A 300 -O merged cleaned
+"""
 
 class Flow:
 
@@ -38,21 +57,21 @@ def merge(in_files, output, in_format='nfcapd', out_format='csv_flow', skip_in=0
     in_format : str, optional
         input format (Default is 'nfcapd')
     out_format : str, optional
-        output format (Default is 'csv_series')
-    skip_in : int, optional
-        number of flows to skip at the beginning of input (Default is 0)
-    count_in : int, optional
-        number of flows to read from input (Default is None (all flows))
-    skip_out : int, optional
-        number of flows to skip after filtering (Default is 0)
-    count_out : int, optional
-        number of flows to output after filtering (Default is None (all flows))
-    filter_expr : str, optional
-        filter expression (Default is None)
-    inactive_timeout : float, optional
-        inactive timeout in seconds (Default is 15.0)
-    active_timeout : float, optional
-        active timeout in seconds (Default is 300.0)
+        output format (Default is 'csv_flow')
+    skip_in : int, default 0
+        number of flows to skip at the beginning of input
+    count_in : int, default None, meaning all flows
+        number of flows to read from input
+    skip_out : int, default 0
+        number of flows to skip after filtering
+    count_out : int, default None, meaning all flows
+        number of flows to output after filtering
+    filter_expr : CodeType, optional
+        filter expression
+    inactive_timeout : float, default 15.0
+        inactive timeout in seconds
+    active_timeout : float, default 300.0
+        active timeout in seconds
     """
     inactive_s, inactive_ms = divmod(inactive_timeout, 1)
     inactive_s, inactive_ms = int(inactive_s), int(inactive_ms * 1000)
@@ -151,7 +170,7 @@ def merge(in_files, output, in_format='nfcapd', out_format='csv_flow', skip_in=0
     logmsg(f'Finished all files. Wrong: {wrong} Merged: {merged} Written: {written}')
 
 def parser():
-    p = IOArgumentParser(description=__doc__)
+    p = IOArgumentParser(description=__doc__, epilog=EPILOG)
     p.add_argument('-I', '--inactive-timeout', type=float, default=15.0, help='inactive timeout in seconds')
     p.add_argument('-A', '--active-timeout', type=float, default=300.0, help='active timeout in seconds')
     return p

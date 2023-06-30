@@ -1,23 +1,70 @@
 #!/usr/bin/python3
 """
-Sorts flow records according to specified fields (requires `numpy`).
+Sorts flow records according to specified key fields (requires `numpy`).
 """
 
 import pathlib
 
 import numpy as np
 
-from .lib.io import load_array_np, prepare_file_list, load_arrays, IOArgumentParser
+from .lib.io import load_array_np, prepare_file_list, load_arrays, IOArgumentParser, FILTER_HELP
 from .lib.util import logmsg, measure_memory
+
+EPILOG = \
+f"""
+This tool can be used to sort flow records in binary format.
+
+Sorting in being done according to the specified key fields. Key fields should be
+specified in an order, for example '-k first first_ms' means that records
+are sorted according to the first second value, and than records with the same
+second value are sorted according to the millisecond.
+
+By default records are sorted in an ascending order. To get the descending order,
+use --reverse parameter.
+
+User can specify directory for output with the -O parameter. When the output
+directory is the same as the input directory, sorting will be done in-place and
+overwrite input files.
+
+Sorting of flow records can be done with skip_in and count_in parameters.
+They specify how many flow records should be skipped (skip_in) and then read (count_in)
+from input.
+
+{FILTER_HELP}
+
+Example: (sorts flows in the merged directory and saves the output to the sorted directory)
+
+    flow_models.sort -i -k first first_ms -O sorted merged
+"""
 
 def create_index(path, key_fields, index_file, counters=None, reverse=False):
     """
-    :type path: os.PathLike
-    :type key_fields: List[str]
-    :type index_file: None | os.PathLike
-    :type counters: Dict[str, int]
-    :type reverse: bool
-    :rtype: object
+    Create index array, optionally saving it to file.
+
+    Parameters
+    ----------
+    path: os.PathLike
+        path of a directory with key files
+    key_fields: list[str]
+        ordered list of key fields
+    index_file : str, optional
+        index file path
+    counters: dict[str, int], default {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
+        skip_in : int, default 0
+            number of flows to skip at the beginning of input
+        count_in : int, default None, meaning all flows
+            number of flows to read from input
+        skip_out : int, default 0
+            not supported
+        count_out : int, default None, meaning all flows
+            not supported
+    reverse : bool, default False
+        reverse order
+
+    Returns
+    -------
+    numpy.array
+        index array
     """
 
     if counters is None:
@@ -72,11 +119,25 @@ def create_index(path, key_fields, index_file, counters=None, reverse=False):
 
 def sort_array(input_file, output_dir, index_array, counters=None):
     """
-    :type input_file: os.PathLike
-    :type output_dir: os.PathLike
-    :type index_array: object
-    :type counters: Dict[str, int]
-    :rtype: None
+    Sorts flow records according to an index array.
+
+    Parameters
+    ----------
+    input_file : os.PathLike
+        input files path
+    output_dir: os.PathLike
+        output directory path
+    index_array: object
+        index array
+    counters: dict[str, int], default {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
+        skip_in : int, default 0
+            number of flows to skip at the beginning of input
+        count_in : int, default None, meaning all flows
+            number of flows to read from input
+        skip_out : int, default 0
+            not supported
+        count_out : int, default None, meaning all flows
+            not supported
     """
 
     if counters is None:
@@ -132,29 +193,29 @@ def sort(in_files, output, key_fields, in_format='binary', out_format='binary', 
 
     Parameters
     ----------
-    in_files : List[str]
+    in_files : list[str]
         input files paths
     output : os.PathLike
         output directory path
-    key_fields : List[str]
+    key_fields : list[str]
         ordered list of key fields
-    in_format : str, optional
-        input format (Default is 'binary')
-    out_format : str, optional
-        output format (Default is 'binary')
-    index_file : str | None, optional
+    in_format : str, default 'binary'
+        input format
+    out_format : str, default 'binary'
+        output format
+    index_file : str, optional
         index file path
-    skip_in : int, optional
-        number of flows to skip at the beginning of input (Default is 0)
-    count_in : int, optional
-        number of flows to read from input (Default is None (all flows))
-    skip_out : int, optional
+    skip_in : int, default 0
+        number of flows to skip at the beginning of input
+    count_in : int, default None, meaning all flows
+        number of flows to read from input
+    skip_out : int, default 0
         not supported
-    count_out : int, optional
+    count_out : int, default None, meaning all flows
         not supported
-    filter_expr : str, optional
+    filter_expr : CodeType, optional
         not supported
-    reverse : bool
+    reverse : bool, default False
         reverse order
     """
 
@@ -183,7 +244,7 @@ def sort(in_files, output, key_fields, in_format='binary', out_format='binary', 
         sort_array(f, output, index, counters)
 
 def parser():
-    p = IOArgumentParser(description=__doc__)
+    p = IOArgumentParser(description=__doc__, epilog=EPILOG)
     p._option_string_actions['-i'].choices = ['binary']
     p._option_string_actions['-i'].default = 'binary'
     p._option_string_actions['-o'].choices = ['binary']

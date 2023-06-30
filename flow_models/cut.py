@@ -3,10 +3,10 @@
 Cuts binary flow records with dd.
 """
 
+import array
 import pathlib
 import subprocess
 import sys
-import array
 
 from .lib.io import IOArgumentParser, prepare_file_list
 from .lib.util import logmsg
@@ -49,21 +49,21 @@ def cut(in_files, output, in_format='binary', out_format='binary', skip_in=0, co
     ----------
     in_files : list[pathlib.Path]
         input files paths
-    output : Union[os.PathLike, io.TextIOWrapper]
+    output : os.PathLike | io.TextIOWrapper
         output file or directory path or stream
-    in_format : str, optional
-        input format (Default is 'nfcapd')
-    out_format : str, optional
-        output format (Default is 'csv_flow')
-    skip_in : int, optional
-        number of flows to skip at the beginning of input (Default is 0)
-    count_in : int, optional
-        number of flows to read from input (Default is None (all flows))
-    skip_out : int, optional
-        number of flows to skip after filtering (Default is 0)
-    count_out : int, optional
-        number of flows to output after filtering (Default is None (all flows))
-    filter_expr : str, optional
+    in_format : str, default 'binary'
+        input format
+    out_format : str, default 'binary'
+        output format
+    skip_in : int, default 0
+        number of flows to skip at the beginning of input
+    count_in : int, default None, meaning all flows
+        number of flows to read from input
+    skip_out : int, default 0
+        number of flows to skip after filtering
+    count_out : int, default None, meaning all flows
+        number of flows to output after filtering
+    filter_expr : CodeType, optional
         not supported
     """
 

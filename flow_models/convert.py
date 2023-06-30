@@ -44,28 +44,28 @@ Converting, filtering and cutting can be done simultaneously in a single command
 
 def convert(in_files, output, in_format='nfcapd', out_format='csv_flow', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None):
     """
-    Converts flow records between supported formats. Can be used for filtering and cutting flow record files.
+    Converts flow records between supported formats. Can also be used for filtering and cutting flow record files.
 
     Parameters
     ----------
-    in_files : list[os.PathLike]
-        input files or directories paths
-    output : Union[os.PathLike, io.TextIOWrapper]
+    in_files : list[pathlib.Path]
+        input files paths
+    output : os.PathLike | io.TextIOWrapper
         output file or directory path or stream
-    in_format : str, optional
-        input format (Default is 'nfcapd')
-    out_format : str, optional
-        output format (Default is 'csv_flow')
-    skip_in : int, optional
-        number of flows to skip at the beginning of input (Default is 0)
-    count_in : int, optional
-        number of flows to read from input (Default is None (all flows))
-    skip_out : int, optional
-        number of flows to skip after filtering (Default is 0)
-    count_out : int, optional
-        number of flows to output after filtering (Default is None (all flows))
-    filter_expr : str, optional
-        filter expression (Default is None)
+    in_format : str, default 'nfcapd'
+        input format
+    out_format : str, default 'csv_flow'
+        output format
+    skip_in : int, default 0
+        number of flows to skip at the beginning of input
+    count_in : int, default None, meaning all flows
+        number of flows to read from input
+    skip_out : int, default 0
+        number of flows to skip after filtering
+    count_out : int, default None, meaning all flows
+        number of flows to output after filtering
+    filter_expr : CodeType, optional
+        filter expression
     """
 
     reader, writer = IN_FORMATS[in_format], OUT_FORMATS[out_format]

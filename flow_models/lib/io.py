@@ -79,13 +79,27 @@ def read_flow_csv(in_file, counters=None, filter_expr=None, fields=None):
     """
     Read and yield all flows in a csv_flow file/stream.
 
-    :param os.PathLike | io.IOBase in_file: csv_flow file or stream to read
-    :param counters: {'skip_in': int, 'count_in': int, 'skip_out': int, 'count_out': int}
-    :param filter_expr: filter expression
-    :param fields: read only these fields, other can be zeros
+    Parameters
+    ----------
+    in_file : os.PathLike | io.TextIOWrapper
+        csv_flow file or stream to read
+    counters: dict[str, int], default {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
+        skip_in : int, default 0
+            number of flows to skip at the beginning of input
+        count_in : int, default None, meaning all flows
+            number of flows to read from input
+        skip_out : int, default 0
+            number of flows to skip after filtering
+        count_out : int, default None, meaning all flows
+            number of flows to output after filtering
+    filter_expr : CodeType, optional
+        filter expression
+    fields : list[str], optional
+        read only these fields, other can be zeros
 
-    :return: af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
-    :rtype: (int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int)
+    Returns
+    -------
+    af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
     """
 
     if counters is None:
@@ -134,13 +148,27 @@ def read_pipe(in_file, counters=None, filter_expr=None, fields=None):
 
     This function calls nfdump program to parse nfdump file.
 
-    :param os.PathLike | io.IOBase in_file: nfdump pipe file or stream to read
-    :param counters: {'skip_in': int, 'count_in': int, 'skip_out': int, 'count_out': int}
-    :param filter_expr: filter expression
-    :param fields: read only these fields, other can be zeros
+    Parameters
+    ----------
+    in_file : os.PathLike | io.TextIOWrapper
+        nfdump pipe file or stream to read
+    counters: dict[str, int], default {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
+        skip_in : int, default 0
+            number of flows to skip at the beginning of input
+        count_in : int, default None, meaning all flows
+            number of flows to read from input
+        skip_out : int, default 0
+            number of flows to skip after filtering
+        count_out : int, default None, meaning all flows
+            number of flows to output after filtering
+    filter_expr : CodeType, optional
+        filter expression
+    fields : list[str], optional
+        read only these fields, other can be zeros
 
-    :return: af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
-    :rtype: (int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int)
+    Returns
+    -------
+    af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
     """
 
     if counters is None:
@@ -190,13 +218,27 @@ def read_nfcapd(in_file, counters=None, filter_expr=None, fields=None):
 
     This function calls nfdump program to parse nfpcapd file.
 
-    :param os.PathLike in_file: nfdump nfpcapd file to read
-    :param counters: {'skip_in': int, 'count_in': int, 'skip_out': int, 'count_out': int}
-    :param filter_expr: filter expression
-    :param fields: read only these key fields, other can be zeros
+    Parameters
+    ----------
+    in_file : os.PathLike
+        nfdump nfpcapd file to read
+    counters: dict[str, int], default {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
+        skip_in : int, default 0
+            number of flows to skip at the beginning of input
+        count_in : int, default None, meaning all flows
+            number of flows to read from input
+        skip_out : int, default 0
+            number of flows to skip after filtering
+        count_out : int, default None, meaning all flows
+            number of flows to output after filtering
+    filter_expr : CodeType, optional
+        filter expression
+    fields : list[str], optional
+        read only these fields, other can be zeros
 
-    :return: af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
-    :rtype: (int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int)
+    Returns
+    -------
+    af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
     """
 
     nfdump_process = subprocess.Popen(['nfdump', '-r', str(in_file), '-q', '-o', 'pipe'], stdout=subprocess.PIPE)
@@ -213,13 +255,27 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, fields=None):
     """
     Read and yield all flows in a directory containing array files.
 
-    :param in_dir: directory to read from
-    :param counters: {'skip_in': int, 'count_in': int, 'skip_out': int, 'count_out': int}
-    :param filter_expr: filter expression
-    :param fields: read only these key fields, other can be zeros
+    Parameters
+    ----------
+    in_dir : os.PathLike
+        directory to read from
+    counters: dict[str, int], default {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
+        skip_in : int, default 0
+            number of flows to skip at the beginning of input
+        count_in : int, default None, meaning all flows
+            number of flows to read from input
+        skip_out : int, default 0
+            number of flows to skip after filtering
+        count_out : int, default None, meaning all flows
+            number of flows to output after filtering
+    filter_expr : CodeType, optional
+        filter expression
+    fields : list[str], optional
+        read only these fields, other can be zeros
 
-    :return: af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
-    :rtype: (int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int)
+    Returns
+    -------
+    af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
     """
 
     if counters is None:
@@ -259,6 +315,17 @@ def write_none(_):
         _ = yield
 
 def write_line(output, header_line=None):
+    """
+    Write lines to the output.
+
+    Parameters
+    ----------
+    output : os.PathLike | io.TextIOWrapper
+        file to write or stream
+    header_line: str, optional
+        header line to write at the beggining of the file
+    """
+
     if isinstance(output, io.IOBase):
         stream = output
     else:
@@ -275,6 +342,15 @@ def write_line(output, header_line=None):
         stream.close()
 
 def write_flow_csv(output):
+    """
+    Write flow tuples to the output.
+
+    Parameters
+    ----------
+    output : os.PathLike | io.TextIOWrapper
+        file to write or stream
+    """
+
     if isinstance(output, io.IOBase):
         stream = output
     else:
@@ -289,6 +365,15 @@ def write_flow_csv(output):
         stream.close()
 
 def write_flow_binary(output_dir):
+    """
+    Write flow tuples to binary flow files.
+
+    Parameters
+    ----------
+    output_dir : os.PathLike
+        directory to write to
+    """
+
     d = pathlib.Path(output_dir)
     d.mkdir(parents=True, exist_ok=True)
     assert d.is_dir()
@@ -320,26 +405,42 @@ def dump_binary(fields, files):
 
 def find_array_path(path):
     """
-    :type path: os.PathLike
-    :rtype: (str, str, pathlib.Path)
+    Find an exact numpy array path and type.
+
+    Parameters
+    ----------
+    path : os.PathLike
+        array file path
+
+    Returns
+    -------
+    (str, str, pathlib.Path)
+        name, dtype, path
     """
-    p = pathlib.Path(path)
-    if not p.suffix:
-        candidates = list(p.parent.glob(f'{p.stem}.*'))
+
+    path = pathlib.Path(path)
+    if not path.suffix:
+        candidates = list(path.parent.glob(f'{path.stem}.*'))
         if not candidates:
-            raise FileNotFoundError(0, p.parent, f'{p.stem}.*')
+            raise FileNotFoundError(0, path.parent, f'{path.stem}.*')
         elif len(candidates) > 1:
             raise FileExistsError('More than one file matching to pattern: ', candidates)
         else:
-            p = candidates[0]
-    name, dtype = p.stem, p.suffix[1:]
-    return name, dtype, p
+            path = candidates[0]
+    name, dtype = path.stem, path.suffix[1:]
+    return name, dtype, path
 
 def load_array_mv(path, mode='r'):
     """
-    :type path: os.PathLike
-    :type mode: str
+    Load a numpy array as memoryview.
+
+    Parameters
+    ----------
+    path : os.PathLike
+        array file path
+    mode : str, default 'r'
     """
+
     name, dtype, path = find_array_path(path)
     flags = mmap.MAP_SHARED if mode == 'c' else mmap.MAP_SHARED
     prot = mmap.PROT_READ
@@ -352,9 +453,15 @@ def load_array_mv(path, mode='r'):
 
 def load_array_np(path, mode='r'):
     """
-    :type path: os.PathLike
-    :type mode: str
+    Load a numpy array as numpy.memmap.
+
+    Parameters
+    ----------
+    path : os.PathLike
+        array file path
+    mode : str, default 'r'
     """
+
     import numpy as np
     name, dtype, path = find_array_path(path)
     mm = np.memmap(str(path), dtype=dtype, mode=mode)
@@ -362,17 +469,32 @@ def load_array_np(path, mode='r'):
 
 def load_arrays(path, fields, counters, filter_expr):
     """
-    :param path:
-    :param fields:
-    :param counters:
-    :param filter_expr:
-    :return: (arrays, filtered, size)
-    :type path: pathlib.Path
-    :type fields: List[str]
-    :type counters: Dict[str, int]
-    :type filter_expr: None | CodeType
-    :rtype: (List[object], object, int)
+    Load all binary flow arrays from a directory.
+
+    Parameters
+    ----------
+    path : os.PathLike
+        directory path
+    fields : list[str]
+        fields to load
+    counters: dict[str, int], default {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
+        skip_in : int, default 0
+            number of flows to skip at the beginning of input
+        count_in : int, default None, meaning all flows
+            number of flows to read from input
+        skip_out : int, default 0
+            not supported
+        count_out : int, default None, meaning all flows
+            not supported
+    filter_expr : CodeType, optional
+            filter expression
+
+    Returns
+    -------
+    (list[numpy.array], numpy.array, int)
+        arrays, filtered, size
     """
+
     ars = {}
     fields_to_load = set(fields) | set(filter_expr.co_names if filter_expr else ())
     size = None
@@ -420,9 +542,19 @@ def load_arrays(path, fields, counters, filter_expr):
 
 def prepare_file_list(file_paths):
     """
-    :type file_paths: List[str]
-    :rtype: List[pathlib.Path | io.IOBase]
+    Prepare files list from file list or directory.
+
+    Parameters
+    ----------
+    file_paths : list[str | os.PathLike | io.IOBase]
+        list of file paths
+
+    Returns
+    -------
+    list[pathlib.Path | io.IOBase]
+        prepared file list
     """
+
     files = []
     for file_path in file_paths:
         if isinstance(file_path, io.IOBase):

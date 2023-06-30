@@ -166,11 +166,34 @@ def initial_mix(mode, x):
 
     return mix
 
-def fit(path, y_value, max_iter=100, initial=None, max_pareto_w=None, cb=None):
-    path = pathlib.Path(path)
-    logmsg(f'Processing: {path}')
+def fit(in_file, y_value, max_iter=100, initial=None, max_pareto_w=None, cb=None):
+    """
+    Fit distribution mixture to flow histogram.
 
-    data = pd.read_csv(path, index_col=0, sep=',', low_memory=False, usecols=lambda n: not n.endswith('_ssq'))
+    Parameters
+    ----------
+    in_file : os.PathLike
+        input histogram file
+    y_value : str
+        y axis value
+    max_iter : int, default 100
+        maximum number of iterations
+    initial : dict, optional
+        initial mixture
+    max_pareto_w : float, optional
+        maximum pareto weight
+    cb : function, optional
+        callback function to call after each iteration
+
+   Returns
+    ------
+    {'mix': result_mix, 'sum': np.sum(weights)}
+    """
+
+    in_file = pathlib.Path(in_file)
+    logmsg(f'Processing: {in_file}')
+
+    data = pd.read_csv(in_file, index_col=0, sep=',', low_memory=False, usecols=lambda n: not n.endswith('_ssq'))
     x = data.index.values
     weights = data[f'{y_value}_sum'].values
 

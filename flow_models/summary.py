@@ -13,6 +13,15 @@ import scipy.interpolate
 from .lib.data import UNITS, detect_x_value
 from .lib.util import logmsg
 
+EPILOG = \
+f"""
+This tool can be used to generate LaTeX summary of flow histogram statistics.
+
+Example:
+
+    flow_models.summary histograms/udp/length.csv
+"""
+
 X_VALUES = ['length', 'size', 'duration', 'rate']
 Y_VALUES = ['flows', 'packets', 'octets']
 
@@ -91,7 +100,7 @@ def cdf_summary(data, x_val):
         return '\n'.join(s)
 
 def parser():
-    p = argparse.ArgumentParser(description=__doc__)
+    p = argparse.ArgumentParser(description=__doc__, epilog=EPILOG)
     p.add_argument('-x', choices=X_VALUES, help='x axis value')
     p.add_argument('file', help='csv_hist file to summarize')
     return p
