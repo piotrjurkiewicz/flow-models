@@ -231,7 +231,7 @@ def hist(in_files, output, in_format='binary', out_format='csv_hist', skip_in=0,
             writer.send(f'{bin_lo},{bin_lo + 1},' + ','.join(str(int(float(s[n]))) for s in sums.values()))
             written += 1
     else:
-        bin_lo, bin_hi = bin_calc_fn(bins[0], bin_exp)
+        bin_lo, bin_hi = bin_calc_fn(bins.item(0), bin_exp)
         bin_sums = [0.0] * len(sums)
         for n, x in enumerate(bins):
             x = int(x)
