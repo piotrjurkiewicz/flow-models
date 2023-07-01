@@ -28,7 +28,7 @@ Example: (encrypts flow records in binary format and outputs as csv lines to sta
 
 def anonymize(in_files, output, in_format='nfcapd', out_format='csv_flow', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, key=None):
     """
-    Converts flow records between supported formats. Can also be used for filtering and cutting flow record files.
+    Anonymizes IP addresses in IPv4 flows using Crypto-PAn algorithm.
 
     Parameters
     ----------

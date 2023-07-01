@@ -11,6 +11,10 @@ NetFlow/IPFIX flow records. It can be used to merge split records, calculate his
 General Mixture Models fitting them. Created models can be used both as an input in analytical calculations and to
 generate realistic traffic in simulations.
 
+Elephants subpackage provides functionalities to
+
+Elephant flows (also called heavy-hitters) are flows which are responsible for the vast majority of traffic in the Internet.
+
 Provided tools
 ==============
 
@@ -22,9 +26,13 @@ The framework currently includes the following tools:
 - `tools/hist_np` -- calculates histograms using multiple threads (requires `numpy`, much faster, but uses more memory)
 - `tools/fit` -- creates General Mixture Models (GMM) fitted to flow records (requires `scipy`)
 - `tools/plot` -- generates plots from flow records and fitted models (requires `pandas` and `scipy`)
-- `tools/generate` -- generates flow records from histograms or mixture models
+- `tools/generate` -- generates example flow records from histograms or mixture models
 - `tools/summary` -- produces TeX tables containing summary statistics of flow dataset (requires `scipy`)
-- `tools/convert` -- converts flow records between supported formats
+- `tools/convert` -- coverts flow records between different formats, can also cut and filter them
+- `tools/cut` -- cuts binary flow record files using `dd`
+- `tools/anonymize` -- anonymizes IPv4 addreses in flow records with prefix-preserving Crypto-PAn algorithm
+- `tools/series` -- generates time series of link's bit or packet rate from flow records
+
 
 Following the Unix philosophy, each tool is a separate Python program aimed at a single purpose. Features provided
 by the tools are orthogonal and they are tailored to be used sequentially in data-processing pipelines.
@@ -42,6 +50,7 @@ Contents
 
    tutorial
    workflow
+   elephants
    formats
    tools
    flow_models
