@@ -13,8 +13,7 @@ Use this tool to calculate histogram of flow features.
 The output is a histogram of a selected feature in csv_hist format.
 
 Feature selection is being done with -x parameter. Additionally -b parameter can be
-specified, which will make histogram logarithmically binned to reduce its size.
-
+specified, which will make histogram logarithmically binned to help reduce its size.
 
 {FILTER_HELP}
 
@@ -22,7 +21,7 @@ Skipping of flow records can be done with skip_in, count_in, skip_out, count_out
 They specify how many flow records should be skipped (skip_in) and then read (count_in)
 from input and to be skipped (skip_out) and written (count_out) after filtering.
 
-Example: (calculates logarithmically binned histogram of flow length from sorted directory)
+Example: (calculates logarithmically binned histogram of flow length from the sorted directory)
 
     flow_models.hist -i binary -x length -b 12 sorted
 """

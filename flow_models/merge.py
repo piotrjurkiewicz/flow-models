@@ -14,7 +14,7 @@ This tool can be used to merge flow records which were split during the collecti
 into multiple records due to active timeout.
 
 User should specify active and inactive timeout values which were used during the
-records collection.
+records collection to correctly merge flow records.
 
 {FILTER_HELP}
 
@@ -22,7 +22,7 @@ Skipping of flow records can be done with skip_in, count_in, skip_out, count_out
 They specify how many flow records should be skipped (skip_in) and then read (count_in)
 from input and to be skipped (skip_out) and written (count_out) after filtering.
 
-Example: (merges flows from cleaned directory and writes output to the merged directory)
+Example: (merges flows from the cleaned directory and writes output to the merged directory)
 
     flow_models.merge -i nfcapd -o binary -I 15 -A 300 -O merged cleaned
 """

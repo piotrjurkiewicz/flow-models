@@ -14,9 +14,9 @@ EPILOG = \
 f"""
 This tool can be used to sort flow records in binary format.
 
-Sorting in being done according to the specified key fields. Key fields should be
+Sorting in being done according to specified key fields. Key fields should be
 specified in an order, for example '-k first first_ms' means that records
-are sorted according to the first second value, and than records with the same
+are sorted according to the first second value, and next records with the same
 second value are sorted according to the millisecond.
 
 By default records are sorted in an ascending order. To get the descending order,

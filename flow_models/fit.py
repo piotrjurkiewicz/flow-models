@@ -187,6 +187,7 @@ def fit(in_file, y_value, max_iter=100, initial=None, max_pareto_w=None, cb=None
 
     Returns
     ------
+    dict
         {'mix': result_mix, 'sum': np.sum(weights)}
     """
 

@@ -19,7 +19,11 @@ from .lib.util import logmsg
 
 EPILOG = \
 f"""
-This tool can be used to generate flow tuples from mixture or histogram file.
+This tool can be used to generate example flow tuples from mixture or histogram file.
+
+Generated flow stream will preserve distribution of flow features (length, size).
+
+Example:
 
     flow_models.generate -s 1000 histograms/udp/length.csv
 """
