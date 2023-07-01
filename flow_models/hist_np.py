@@ -116,7 +116,7 @@ def calc_dir(path, x_value, columns, counters=None, filter_expr=None):
     else:
         fields_to_load = columns
 
-    arrays, filtered, size = load_arrays(path, fields_to_load, counters, filter_expr)
+    arrays, filtered, size = load_arrays(path, fields_to_load, counters, filter_expr, use_numpy=True)
 
     i = 0
     while True:

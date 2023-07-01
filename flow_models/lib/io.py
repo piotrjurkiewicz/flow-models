@@ -20,6 +20,8 @@ The following fields are available:
 class ZeroArray:
     def __getitem__(self, item):
         return 0
+    def item(self, _):
+        return 0
 
 class Flows:
     fields = {
@@ -289,16 +291,34 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, fields=None):
     assert path.exists() and path.is_dir()
     flows = Flows()
     fields_to_load = [name for name in flows.fields if fields is None or name in fields]
+    use_numpy = filter_expr is not None
 
-    arrays, filtered, size = load_arrays(path, fields_to_load, counters, filter_expr)
+    arrays, filtered, size = load_arrays(path, fields_to_load, counters, filter_expr, use_numpy)
     for name in flows.fields:
         if name in arrays:
             setattr(flows, name, arrays[name])
         else:
             setattr(flows, name, ZeroArray())
 
-    for n in range(size):
-        if filtered is ... or filtered[n]:
+    if use_numpy:
+        for n in range(size):
+            if filtered is ... or filtered[n]:
+                if counters['skip_out'] > 0:
+                    counters['skip_out'] -= 1
+                else:
+                    if counters['count_out'] is not None:
+                        if counters['count_out'] > 0:
+                            counters['count_out'] -= 1
+                        else:
+                            break
+                    yield flows.af.item(n), flows.prot.item(n), flows.inif.item(n), flows.outif.item(n), \
+                          flows.sa0.item(n), flows.sa1.item(n), flows.sa2.item(n), flows.sa3.item(n), \
+                          flows.da0.item(n), flows.da1.item(n), flows.da2.item(n), flows.da3.item(n), \
+                          flows.sp.item(n), flows.dp.item(n), \
+                          flows.first.item(n), flows.first_ms.item(n), flows.last.item(n), flows.last_ms.item(n), \
+                          flows.packets.item(n), flows.octets.item(n), flows.aggs.item(n)
+    else:
+        for n in range(size):
             if counters['skip_out'] > 0:
                 counters['skip_out'] -= 1
             else:
@@ -307,12 +327,12 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, fields=None):
                         counters['count_out'] -= 1
                     else:
                         break
-                yield flows.af.item(n), flows.prot.item(n), flows.inif.item(n), flows.outif.item(n), \
-                      flows.sa0.item(n), flows.sa1.item(n), flows.sa2.item(n), flows.sa3.item(n), \
-                      flows.da0.item(n), flows.da1.item(n), flows.da2.item(n), flows.da3.item(n), \
-                      flows.sp.item(n), flows.dp.item(n), \
-                      flows.first.item(n), flows.first_ms.item(n), flows.last.item(n), flows.last_ms.item(n), \
-                      flows.packets.item(n), flows.octets.item(n), flows.aggs.item(n)
+                yield flows.af[n], flows.prot[n], flows.inif[n], flows.outif[n], \
+                      flows.sa0[n], flows.sa1[n], flows.sa2[n], flows.sa3[n], \
+                      flows.da0[n], flows.da1[n], flows.da2[n], flows.da3[n], \
+                      flows.sp[n], flows.dp[n], \
+                      flows.first[n], flows.first_ms[n], flows.last[n], flows.last_ms[n], \
+                      flows.packets[n], flows.octets[n], flows.aggs[n]
 
 def write_none(_):
     while True:
@@ -473,7 +493,7 @@ def load_array_np(path, mode='r'):
     mm = np.memmap(str(path), dtype=dtype, mode=mode)
     return name, dtype, mm
 
-def load_arrays(path, fields, counters, filter_expr):
+def load_arrays(path, fields, counters, filter_expr, use_numpy=False):
     """
     Load all binary flow arrays from a directory.
 
@@ -506,11 +526,14 @@ def load_arrays(path, fields, counters, filter_expr):
     size = None
     for name in fields_to_load:
         try:
-            name, dtype, ar = load_array_np(path / name, 'r')
-            if size is None:
-                size = ar.size
+            if use_numpy:
+                name, dtype, ar = load_array_np(path / name, 'r')
             else:
-                assert ar.size == size
+                name, dtype, ar = load_array_mv(path / name, 'r')
+            if size is None:
+                size = len(ar)
+            else:
+                assert len(ar) == size
             if counters['skip_in'] > 0:
                 ar = ar[counters['skip_in']:]
             if counters['count_in'] is not None and counters['count_in'] > 0:
@@ -535,6 +558,8 @@ def load_arrays(path, fields, counters, filter_expr):
 
     filtered = ...
     if filter_expr is not None:
+        if not use_numpy:
+            raise ValueError("Cannot filter when numpy is not used")
         for name in filter_expr.co_names:
             if isinstance(ars[name], ZeroArray):
                 raise ValueError(f"Filter is using flow field '{name}' which is not present in input files")

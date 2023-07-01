@@ -76,7 +76,7 @@ def create_index(path, key_fields, index_file, counters=None, reverse=False):
         logmsg('At least one key field must be specified when creating an index.')
         raise ValueError
 
-    arrays, filtered, size = load_arrays(pathlib.Path(path), key_fields, counters, None)
+    arrays, filtered, size = load_arrays(pathlib.Path(path), key_fields, counters, None, use_numpy=True)
 
     for name in key_fields:
         keys.append(arrays[name])
