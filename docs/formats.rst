@@ -11,9 +11,10 @@ The framework currently supports the following flow records formats:
 - ``csv_flow`` -- comma-separated values text format (see below)
 - ``binary`` -- separate binary array file for each field (see below)
 
-Additionally, the framework currently supports the following flow histograms formats:
+Additionally, the framework currently supports the following formats:
 
-- ``csv_hist`` -- comma-separated values text format (see below)
+- ``csv_hist`` -- comma-separated values flow histogram text format (see below)
+- ``csv_series`` -- line-separated time series of packets and bytes (see below)
 
 .. _csv_flow:
 
@@ -126,3 +127,6 @@ File contains the following fields: ::
 Histograms can be calculated using `hist` or `hist_np` modules. The former is a pure Python implementation which can take advantage of unlimited width integer support in Python in order to perform more accurate calculations. The latter uses the `numpy` package to perform binning, which can utilise SIMD instructions and multiple threads and is therefore many orders of magnitude faster but requires more memory and can introduce rounding errors due to the operation on doubles having limited precision. Both tools output a CSV file which can be directly used to plot a histogram, CDF or PDF of a particular flow feature.
 
 The framework user can specify a parameter *b*, which is a power-of-two defining starting point for logarithmic binning. For example, *b = 12* means that bin widths will start increasing for values *> 4096* (for lower values bin width will be equal to one). Therefore, values between 4096-8192 would be binned into bins of width 2, between 8192-16384 into bins of width 4, etc.
+
+``csv_series``
+==============
