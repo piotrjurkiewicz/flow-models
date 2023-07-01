@@ -307,12 +307,12 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, fields=None):
                         counters['count_out'] -= 1
                     else:
                         break
-                yield flows.af[n], flows.prot[n], flows.inif[n], flows.outif[n], \
-                      flows.sa0[n], flows.sa1[n], flows.sa2[n], flows.sa3[n], \
-                      flows.da0[n], flows.da1[n], flows.da2[n], flows.da3[n], \
-                      flows.sp[n], flows.dp[n], \
-                      flows.first[n], flows.first_ms[n], flows.last[n], flows.last_ms[n], \
-                      flows.packets[n], flows.octets[n], flows.aggs[n]
+                yield flows.af.item(n), flows.prot.item(n), flows.inif.item(n), flows.outif.item(n), \
+                      flows.sa0.item(n), flows.sa1.item(n), flows.sa2.item(n), flows.sa3.item(n), \
+                      flows.da0.item(n), flows.da1.item(n), flows.da2.item(n), flows.da3.item(n), \
+                      flows.sp.item(n), flows.dp.item(n), \
+                      flows.first.item(n), flows.first_ms.item(n), flows.last.item(n), flows.last_ms.item(n), \
+                      flows.packets.item(n), flows.octets.item(n), flows.aggs.item(n)
 
 def write_none(_):
     while True:

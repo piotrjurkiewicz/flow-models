@@ -107,7 +107,7 @@ def hist(in_files, output, in_format='nfcapd', out_format='csv_hist', skip_in=0,
 
     try:
         for file in in_files:
-            for key, first, first_ms, last, last_ms, packets, octets, aggs in reader(file, counters=counters, filter_expr=filter_expr, fields=fields):
+            for af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs in reader(file, counters=counters, filter_expr=filter_expr, fields=fields):
                 duration = 0 if packets == 1 else (last - first) * 1000 + last_ms - first_ms
                 rate = 0 if duration == 0 else (8000 * octets) / duration
                 bin_lo, bin_hi = bin_calc(packets, octets, duration, rate)

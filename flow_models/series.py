@@ -59,7 +59,7 @@ def series(in_files, output, in_format='nfcapd', out_format='csv_series', skip_i
     dd = collections.defaultdict(lambda: [[0, 0] for _ in range(86400)])
 
     for file in in_files:
-        for key, first, first_ms, last, last_ms, packets, octets, aggs in reader(file, counters=counters, filter_expr=filter_expr, fields=fields):
+        for af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs in reader(file, counters=counters, filter_expr=filter_expr, fields=fields):
             day = first // 86400
             second_in_day = first % 86400
             d = dd[day]
