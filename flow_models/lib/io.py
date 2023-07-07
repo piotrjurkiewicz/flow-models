@@ -7,6 +7,8 @@ import subprocess
 import sys
 import warnings
 
+from flow_models.lib.util import logmsg
+
 FILTER_HELP = \
 """
 To filter flow records, the filter expressions should be specified. Filter expression should use
@@ -291,12 +293,14 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, fields=None):
     assert path.exists() and path.is_dir()
     flows = Flows()
     fields_to_load = [name for name in flows.fields if fields is None or name in fields]
-    use_numpy = filter_expr is not None
+    use_numpy = True
 
-    arrays, filtered, size = load_arrays(path, fields_to_load, counters, filter_expr, use_numpy)
+    arrays, filtered, size = load_arrays(path, fields_to_load, counters, filter_expr)
     for name in flows.fields:
         if name in arrays:
             setattr(flows, name, arrays[name])
+            if isinstance(arrays[name], memoryview):
+                use_numpy = False
         else:
             setattr(flows, name, ZeroArray())
 
@@ -319,21 +323,41 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, fields=None):
                           flows.packets.item(n), flows.octets.item(n), flows.aggs.item(n)
     else:
         for n in range(size):
-            if counters['skip_out'] > 0:
-                counters['skip_out'] -= 1
-            else:
-                if counters['count_out'] is not None:
-                    if counters['count_out'] > 0:
-                        counters['count_out'] -= 1
-                    else:
-                        break
-                yield flows.af[n], flows.prot[n], flows.inif[n], flows.outif[n], \
-                      flows.sa0[n], flows.sa1[n], flows.sa2[n], flows.sa3[n], \
-                      flows.da0[n], flows.da1[n], flows.da2[n], flows.da3[n], \
-                      flows.sp[n], flows.dp[n], \
-                      flows.first[n], flows.first_ms[n], flows.last[n], flows.last_ms[n], \
-                      flows.packets[n], flows.octets[n], flows.aggs[n]
-
+            af = flows.af[n]
+            prot = flows.prot[n]
+            inif = flows.inif[n]
+            outif = flows.outif[n]
+            sa0 = flows.sa0[n]
+            sa1 = flows.sa1[n]
+            sa2 = flows.sa2[n]
+            sa3 = flows.sa3[n]
+            da0 = flows.da0[n]
+            da1 = flows.da1[n]
+            da2 = flows.da2[n]
+            da3 = flows.da3[n]
+            sp = flows.sp[n]
+            dp = flows.dp[n]
+            first = flows.first[n]
+            first_ms = flows.first_ms[n]
+            last = flows.last[n]
+            last_ms = flows.last_ms[n]
+            packets = flows.packets[n]
+            octets = flows.octets[n]
+            aggs = flows.aggs[n]
+            if filter_expr is None or eval(filter_expr):
+                if counters['skip_out'] > 0:
+                    counters['skip_out'] -= 1
+                else:
+                    if counters['count_out'] is not None:
+                        if counters['count_out'] > 0:
+                            counters['count_out'] -= 1
+                        else:
+                            break
+                    yield af, prot, inif, outif, \
+                          sa0, sa1, sa2, sa3, \
+                          da0, da1, da2, da3, \
+                          sp, dp, \
+                          first, first_ms, last, last_ms, packets, octets, aggs
 def write_none(_):
     while True:
         _ = yield
@@ -493,7 +517,7 @@ def load_array_np(path, mode='r'):
     mm = np.memmap(str(path), dtype=dtype, mode=mode)
     return name, dtype, mm
 
-def load_arrays(path, fields, counters, filter_expr, use_numpy=False):
+def load_arrays(path, fields, counters, filter_expr, require_numpy=False):
     """
     Load all binary flow arrays from a directory.
 
@@ -514,12 +538,23 @@ def load_arrays(path, fields, counters, filter_expr, use_numpy=False):
             not supported
     filter_expr : CodeType, optional
             filter expression
+    require_numpy : bool, default False
+            require to load arrays as numpy arrays
 
     Returns
     -------
-    (list[numpy.array], numpy.array, int)
+    (dict[str, memoryview | numpy.array], numpy.array, int)
         arrays, filtered, size
     """
+
+    use_numpy = False
+    if require_numpy or filter_expr is not None:
+        try:
+            import numpy as np
+            use_numpy = True
+        except ImportError:
+            if require_numpy:
+                raise
 
     ars = {}
     fields_to_load = set(fields) | set(filter_expr.co_names if filter_expr else ())
@@ -557,16 +592,17 @@ def load_arrays(path, fields, counters, filter_expr, use_numpy=False):
             assert len(ar) == size
 
     filtered = ...
-    if filter_expr is not None:
-        if not use_numpy:
-            raise ValueError("Cannot filter when numpy is not used")
+    if use_numpy and filter_expr is not None:
         for name in filter_expr.co_names:
             if isinstance(ars[name], ZeroArray):
                 raise ValueError(f"Filter is using flow field '{name}' which is not present in input files")
+        logmsg(f"Starting filtering: {filter_expr.co_filename}")
         filtered = eval(filter_expr, ars)
+        filtered_count = np.count_nonzero(filtered)
+        logmsg(f"Finished filtering: {filtered_count}/{size} ({100 * filtered_count/size} %)")
 
     arrays = {}
-    for name in fields:
+    for name in (fields if use_numpy else fields_to_load):
         arrays[name] = ars[name]
 
     return arrays, filtered, size
