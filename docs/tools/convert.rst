@@ -1,9 +1,6 @@
 :program:`convert` (new in 2.0)
 *******************************
 
-.. toctree::
-   :maxdepth: 0
-
 .. argparse::
    :ref: flow_models.convert.parser
    :prog: flow-models-convert
