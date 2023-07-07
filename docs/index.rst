@@ -11,9 +11,9 @@ NetFlow/IPFIX flow records. It can be used to merge split records, calculate his
 General Mixture Models fitting them. Created models can be used both as an input in analytical calculations and to
 generate realistic traffic in simulations.
 
-Elephants subpackage provides functionalities to simulate and analyze elephant flow related mechanisms. Elephant flows (also called heavy-hitters) are flows which are responsible for the vast majority of traffic in the Internet. Keeping focused on such flows allows to utilise advanced traffic engineering (TE) mechanisms in the network without the need to maintain individual entries for all flows.
-
 First mirror subpackage allows to simulate first N packet mirroring feature in switches, which sends copies for first packets of a new flow to switch's CPU or controller to perform inspection and flow identification.
+
+Elephants subpackage provides functionalities to simulate and analyze elephant flow related mechanisms. Elephant flows (also called heavy-hitters) are flows which are responsible for the vast majority of traffic in the Internet. Keeping focused on such flows allows to utilise advanced traffic engineering (TE) mechanisms in the network without the need to maintain individual entries for all flows.
 
 Provided tools
 ==============
@@ -54,6 +54,13 @@ Contents
    tools
    first_mirror
    elephants
+
+Reference
+=========
+
+.. toctree::
+   :maxdepth: 4
+
    flow_models
 
 Indices and tables
