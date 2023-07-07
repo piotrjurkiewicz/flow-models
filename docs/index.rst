@@ -50,7 +50,6 @@ Contents
 
    tutorial
    workflow
-   formats
    tools
    first_mirror
    elephants
@@ -59,8 +58,9 @@ Reference
 =========
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
 
+   formats
    flow_models
 
 Indices and tables

@@ -10,6 +10,6 @@ Tools
 
 .. toctree::
    :glob:
-   :maxdepth: 2
+   :maxdepth: 1
 
    first_mirror/*

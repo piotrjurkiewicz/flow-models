@@ -92,11 +92,9 @@ flow\_models.summary module
    :members:
    :show-inheritance:
 
-Subpackages
------------
-
 .. toctree::
    :maxdepth: 4
 
+   flow_models.first_mirror
    flow_models.elephants
    flow_models.lib
