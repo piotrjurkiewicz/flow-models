@@ -51,6 +51,7 @@ Contents
    tutorial
    workflow
    elephants
+   first_mirror
    formats
    tools
    flow_models

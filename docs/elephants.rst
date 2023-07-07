@@ -1,4 +1,4 @@
-Elephants modelling (new in 2.0)
+Elephants detection (new in 2.0)
 ********************************
 
 .. toctree::

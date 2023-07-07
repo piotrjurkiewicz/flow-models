@@ -29,6 +29,22 @@ HIST_NBINS = 64
 KDE_NBINS = 64
 
 def normalize_data(org_data, bin_exp=None):
+    """
+    Normalizes data binned exponentially to present it on plot.
+
+    Parameters
+    ----------
+    org_data : pandas.DataFrame
+        histogram
+    bin_exp : int, optional
+        bin width exponent of 2
+
+    Returns
+    -------
+    pandas.DataFrame
+        normalized histogram
+    """
+
     bin_widths = org_data['bin_hi'] - org_data.index.values
     if bin_widths.min() == bin_widths.max() == 1:
         bin_calc = bin_calc_one
@@ -81,6 +97,22 @@ def log_gaussian_kde(x, y, xmin=None, xmax=None, ymin=None, ymax=None, nbins=KDE
     return np.power(10, xi), np.power(10, yi), zi.reshape(xi.shape)
 
 def calc_minmax(idx, *rest):
+    """
+    Calculate minimum and maximum values from many arrays.
+
+    Parameters
+    ----------
+    idx : numpy.array | pandas.Series | pandas.DataFrame
+        container
+    *rest : list[numpy.array | pandas.Series | pandas.DataFrame]
+        rest of containers
+
+    Returns
+    -------
+    (float, float, float, float)
+        xmin, xmax, ymin, ymax
+    """
+
     if isinstance(idx, (pd.Series, pd.DataFrame)):
         xmin, xmax = idx.index.min(), idx.index.max()
         ymin, ymax = idx.min(), idx.max()
@@ -99,6 +131,24 @@ def calc_minmax(idx, *rest):
     return xmin, xmax, ymin, ymax
 
 def avg_data(data, idx, what):
+    """
+    Calculate average data.
+
+    Parameters
+    ----------
+    data : dict[numpy.array]
+        container with PDF data
+    idx: numpy.array
+        input vector
+    what: str
+        flow feature from container
+
+    Returns
+    -------
+    (numpy.array, numpy.array)
+        avg_points, avg_line
+    """
+
     avg_points = data[what + '_sum'] / data['flows_sum']
     scale = data[what + '_sum'].sum() / data['flows_sum'].sum()
     xmin, xmax, _, _ = calc_minmax(avg_points)
@@ -108,12 +158,44 @@ def avg_data(data, idx, what):
     return avg_points, avg_line
 
 def pdf_from_cdf(data, idx, what):
+    """
+    Calculate a PDF by interpolating CDF.
+
+    Parameters
+    ----------
+    data : dict[numpy.array]
+        container with PDF data
+    idx: numpy.array
+        input vector
+    what: str
+        flow feature from container
+
+    Returns
+    -------
+    numpy.array
+        PDF vector
+    """
+
     cdf = data[what + '_sum'].cumsum() / data[what + '_sum'].sum()
     cdfi = scipy.interpolate.interp1d(cdf.index, cdf, 'linear', bounds_error=False)(idx)
     pdfi = np.hstack((cdfi[0], np.diff(cdfi) / np.diff(idx)))
     return pdfi
 
 def load_data(objects):
+    """
+    Loads mixtures or histograms into a structured dictionary.
+
+    Parameters
+    ----------
+    objects : list[pathlib.Path]
+        list of paths to load
+
+    Returns
+    -------
+    dict
+        container with loaded data
+    """
+
     data = {}
     for obj in objects:
         if isinstance(obj, (str, pathlib.Path)):

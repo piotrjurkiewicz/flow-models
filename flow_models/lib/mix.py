@@ -18,6 +18,26 @@ def mask_values(x, x_val):
     return mask, mu, pu, mui, nu, nui
 
 def rvs(mix, x_val, size=1, random_state=None):
+    """
+    Return a sample from a distribution mixture.
+
+    Parameters
+    ----------
+    mix : dict | list[list]
+        distribution mixture
+    x_val: str
+        flow feature being sampled
+    size : int, default 1
+        number of elements in sample
+    random_state : object, optional
+        random state to use
+
+    Returns
+    -------
+    numpy.array
+        sample
+    """
+
     if isinstance(mix, dict):
         mix = mix['mix']
     weights = np.array([mx[0] for mx in mix])
@@ -36,6 +56,22 @@ def rvs(mix, x_val, size=1, random_state=None):
     return sample
 
 def cdf(mix, x):
+    """
+    Return a CDF from a distribution mixture.
+
+    Parameters
+    ----------
+    mix : dict | list[list]
+        distribution mixture
+    x: numpy.array
+        input vector
+
+    Returns
+    -------
+    numpy.array
+        CDF vector
+    """
+
     if isinstance(mix, dict):
         mix = mix['mix']
     weights = np.array([mx[0] for mx in mix])
@@ -46,6 +82,24 @@ def cdf(mix, x):
     return data
 
 def pdf(mix, x, x_val):
+    """
+    Return a PDF from a distribution mixture.
+
+    Parameters
+    ----------
+    mix : dict | list[list]
+        distribution mixture
+    x: numpy.array
+        input vector
+    x_val: str
+        flow feature being sampled
+
+    Returns
+    -------
+    numpy.array
+        PDF vector
+    """
+
     if isinstance(mix, dict):
         mix = mix['mix']
     weights = np.array([mx[0] for mx in mix])
@@ -59,6 +113,22 @@ def pdf(mix, x, x_val):
     return data
 
 def cdf_comp(mix, x):
+    """
+    Return CDF components from a distribution mixture.
+
+    Parameters
+    ----------
+    mix : dict | list[list]
+        distribution mixture
+    x: numpy.array
+        input vector
+
+    Returns
+    -------
+    dict[str, numpy.array]
+        dict of named CDF components
+    """
+
     if isinstance(mix, dict):
         mix = mix['mix']
     weights = np.array([mx[0] for mx in mix])
@@ -69,6 +139,24 @@ def cdf_comp(mix, x):
     return data
 
 def pdf_comp(mix, x, x_val):
+    """
+    Return PDF components from a distribution mixture.
+
+    Parameters
+    ----------
+    mix : dict | list[list]
+        distribution mixture
+    x: numpy.array
+        input vector
+    x_val: str
+        flow feature being sampled
+
+    Returns
+    -------
+    dict[str, numpy.array]
+        dict of named PDF components
+    """
+
     if isinstance(mix, dict):
         mix = mix['mix']
     weights = np.array([mx[0] for mx in mix])
@@ -85,6 +173,26 @@ def pdf_comp(mix, x, x_val):
     return components
 
 def avg(data, x, x_val, what):
+    """
+    Calculate average value of a feature basing on distribution mixtures.
+
+    Parameters
+    ----------
+    data : dict[dict[list[list]]
+        container with all distribution mixtures
+    x: numpy.array
+        input vector
+    x_val: str
+        flow feature being sampled
+    what : str
+        average value to calculate
+
+    Returns
+    -------
+    numpy.array
+        vector of average values
+    """
+
     if what in ['packets', 'octets']:
         avg_mix = (data[what]['sum'] / data['flows']['sum']) * pdf(data[what], x, x_val) / pdf(data['flows'], x, x_val)
     elif what in ['packet_size', 'packet_iat']:
