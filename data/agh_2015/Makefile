@@ -127,3 +127,21 @@ plots/%: histograms/$$*/length.csv histograms/$$*/size.csv mixtures/$$*/length m
 summary/%: histograms/$$*/length_b0.csv histograms/$$*/size_b0.csv
 	python3 -m flow_models.summary histograms/$*/length_b0.csv
 	python3 -m flow_models.summary histograms/$*/size_b0.csv
+
+series/all: sorted
+	nice pypy3 -m flow_models.series -i binary -O series/all sorted
+
+series/tcp: sorted
+	nice pypy3 -m flow_models.series -i binary -O series/tcp --filter-expr "prot==6" sorted
+
+series/udp: sorted
+	nice pypy3 -m flow_models.series -i binary -O series/udp --filter-expr "prot==17" sorted
+
+mirror/all/%: sorted
+	nice pypy3 -m flow_models.first_mirror.simulate -i binary -O mirror/all/$* --mirror $* sorted
+
+mirror/tcp/%: sorted
+	nice pypy3 -m flow_models.first_mirror.simulate -i binary -O mirror/tcp/$* --mirror $* --filter-expr "prot==6" sorted
+
+mirror/udp/%: sorted
+	nice pypy3 -m flow_models.first_mirror.simulate -i binary -O mirror/udp/$* --mirror $* --filter-expr "prot==17" sorted
