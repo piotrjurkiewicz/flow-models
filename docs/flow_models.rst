@@ -1,5 +1,5 @@
-API reference
-====================
+Tools
+=====
 
 flow\_models.anonymize module
 ---------------------------
@@ -91,10 +91,3 @@ flow\_models.summary module
 .. automodule:: flow_models.summary
    :members:
    :show-inheritance:
-
-.. toctree::
-   :maxdepth: 4
-
-   flow_models.first_mirror
-   flow_models.elephants
-   flow_models.lib
