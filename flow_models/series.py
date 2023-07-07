@@ -3,6 +3,7 @@
 Generates packets and octets time series from flow records.
 """
 import collections
+import pathlib
 
 from .lib.io import IOArgumentParser, IN_FORMATS, FILTER_HELP
 from .lib.util import logmsg
@@ -30,7 +31,7 @@ def series(in_files, output, in_format='nfcapd', out_format='csv_series', skip_i
     ----------
     in_files : list[pathlib.Path]
         input files paths
-    output : os.PathLike | io.TextIOWrapper
+    output : os.PathLike
         directory path
     in_format : str, default 'nfcapd'
         input format
@@ -56,16 +57,18 @@ def series(in_files, output, in_format='nfcapd', out_format='csv_series', skip_i
     counters = {'skip_in': skip_in, 'count_in': count_in, 'skip_out': skip_out, 'count_out': count_out}
     written = 0
 
-    dd = collections.defaultdict(lambda: [[0, 0] for _ in range(86400)])
+    # [flows, packets, octets]
+    dd = collections.defaultdict(lambda: [[0, 0, 0] for _ in range(86400)])
 
     for file in in_files:
         for af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs in reader(file, counters=counters, filter_expr=filter_expr, fields=fields):
             day = first // 86400
             second_in_day = first % 86400
             d = dd[day]
+            d[second_in_day][0] += 1
             if packets == 1:
-                d[second_in_day][0] += 1
-                d[second_in_day][1] += octets
+                d[second_in_day][1] += 1
+                d[second_in_day][2] += octets
             else:
                 float_second_in_day = second_in_day + first_ms / 1000
                 duration = last - first + (last_ms - first_ms) / 1000
@@ -75,8 +78,8 @@ def series(in_files, output, in_format='nfcapd', out_format='csv_series', skip_i
                 for n in range(packets):
                     packet_size = int_packet_size + (octets - int_packet_size - avg_packet_size * (packets - 1 - n)).__trunc__()
                     ds = d[float_second_in_day.__trunc__()]
-                    ds[0] += 1
-                    ds[1] += packet_size
+                    ds[1] += 1
+                    ds[2] += packet_size
                     octets -= packet_size
                     float_second_in_day += piat
                     while float_second_in_day >= 86400.0:
@@ -87,11 +90,14 @@ def series(in_files, output, in_format='nfcapd', out_format='csv_series', skip_i
             written += 1
         logmsg(f'Finished: {file}. Written: {written}')
 
+    output = pathlib.Path(output)
+    output.mkdir(parents=True, exist_ok=True)
     for day in dd:
-        with open(output / f"{day}.packets", 'w') as p, open(output / f"{day}.octets", 'w') as o:
+        with open(output / f"{day}.flows", 'w') as f, open(output / f"{day}.packets", 'w') as p, open(output / f"{day}.octets", 'w') as o:
             for second_in_day in range(86400):
-                p.write("%d\n" % dd[day][second_in_day][0])
-                o.write("%d\n" % dd[day][second_in_day][1])
+                f.write("%d\n" % dd[day][second_in_day][0])
+                p.write("%d\n" % dd[day][second_in_day][1])
+                o.write("%d\n" % dd[day][second_in_day][2])
 
     logmsg(f'Finished all files. Written: {written}')
 
@@ -99,6 +105,7 @@ def parser():
     p = IOArgumentParser(description=__doc__, epilog=EPILOG)
     p._option_string_actions['-o'].choices = ['csv_series']
     p._option_string_actions['-o'].default = 'csv_series'
+    p._option_string_actions['-O'].help = 'directory for output'
     p._option_string_actions['-O'].default = '.'
     return p
 
