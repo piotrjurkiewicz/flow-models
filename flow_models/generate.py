@@ -5,17 +5,15 @@ Generates flow records from histograms or mixture models.
 
 import argparse
 import itertools
-import json
-import pathlib
 import random
 import sys
 
 import numpy as np
 import pandas as pd
 
+from flow_models.lib.data import load_data
 from .lib.io import OUT_FORMATS
 from .lib.mix import rvs, avg
-from .lib.util import logmsg
 
 EPILOG = \
 f"""
@@ -30,28 +28,8 @@ Example:
 
 X_VALUES = ['length', 'size', 'duration', 'rate']
 
-def load_data(obj):
-    # TODO: move to lib.io, deduplicate
-    if isinstance(obj, (str, pathlib.Path)):
-        file = pathlib.Path(obj)
-        logmsg(f'Loading file {file}')
-        if file.suffix == '.json':
-            raise ValueError
-        elif file.is_dir():
-            mixtures = {}
-            for ff in file.glob('*.json'):
-                mixtures[ff.stem] = json.load(open(str(ff)))
-            data = mixtures
-        else:
-            data = pd.read_csv(file, index_col=0, sep=',', low_memory=False,
-                               usecols=lambda col: not col.endswith('_ssq'))
-        logmsg(f'Loaded file {file}')
-    else:
-        data = obj
-    return data
-
 def generate_arrays(obj, size=1, x_val='length', random_state=None):
-    data = load_data(obj)
+    data = list(load_data([obj]).values())[0]
 
     if isinstance(data, pd.DataFrame):
         if size:
@@ -94,7 +72,7 @@ def iterate_arrays(packets, octets, number):
 
 def generate_flows(in_file, size=1, x_value='length', random_state=None):
     """
-    Generate flows from mixture or histogram file.
+    Yield flow tuples generated from mixture or histogram file.
 
     Parameters
     ----------
@@ -113,7 +91,7 @@ def generate_flows(in_file, size=1, x_value='length', random_state=None):
         af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
     """
 
-    data = load_data(in_file)
+    data = list(load_data([in_file]).values())[0]
 
     assert isinstance(size, int) and size >= 0
     rng = random.Random(random_state)
@@ -134,7 +112,7 @@ def generate_flows(in_file, size=1, x_value='length', random_state=None):
 
 def generate(in_file, output, out_format='csv_flow', size=1, x_value='length', random_state=None):
     """
-    Generate flows from mixture or histogram file.
+    Generate flows from mixture or histogram file to output.
 
     Parameters
     ----------
