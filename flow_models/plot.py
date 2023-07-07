@@ -96,8 +96,8 @@ def parser():
     p.add_argument('-P', action='append', default=[], choices=MODES_PDF, help='additional PDF plot modes (can be specified multiple times)')
     p.add_argument('-C', action='append', default=[], choices=MODES_CDF, help='additional CDF plot modes (can be specified multiple times)')
     p.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
-    p.add_argument('histogram', help='csv_hist file to plot')
-    p.add_argument('mixture', nargs='?', help='mixture directory to plot')
+    p.add_argument('histogram', type=str, help='csv_hist file to plot')
+    p.add_argument('mixture', nargs='?', type=str, help='mixture directory to plot')
     return p
 
 def main():
