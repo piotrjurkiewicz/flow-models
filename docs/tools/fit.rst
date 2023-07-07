@@ -3,7 +3,7 @@
 
 .. argparse::
    :ref: flow_models.fit.parser
-   :prog: flow-models-fit
+   :prog: python3 -m flow_models.fit
 
 The ``fit`` tool is the key component of the framework. Its purpose is to find a mixture of distributions (along with their parameters) matching accurately the selected flow feature. We have implemented the Expectation-Maximisation (EM) algorithm to estimate the parameters of a statistical model composed of mixture components.
 

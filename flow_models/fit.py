@@ -223,7 +223,7 @@ def gui(**kwargs):
     rv = [{}]
 
     root = tkinter.Tk()
-    root.wm_title("flow-models-fit")
+    root.wm_title("flow_models.fit")
 
     style = tkinter.ttk.Style()
     style.theme_use('default')

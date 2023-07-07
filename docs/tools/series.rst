@@ -3,4 +3,4 @@
 
 .. argparse::
    :ref: flow_models.series.parser
-   :prog: flow-models-series
+   :prog: python3 -m flow_models.series

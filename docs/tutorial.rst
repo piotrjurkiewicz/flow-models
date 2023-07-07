@@ -104,8 +104,8 @@ Firstly, we will use the `tools/summary` tool to get a grasp on the data. The to
 
 .. code-block:: shell-session
 
-    $ ../bin/flow-models-summary --help
-    usage: flow-models-summary [-h] [-x {length,size,duration,rate}] file
+    $ python3 -m flow_models.summary --help
+    usage: summary.py [-h] [-x {length,size,duration,rate}] file
 
     Produces TeX tables containing summary statistics of flow dataset (requires `scipy`).
 
@@ -117,11 +117,12 @@ Firstly, we will use the `tools/summary` tool to get a grasp on the data. The to
       -x {length,size,duration,rate}
                             x axis value
 
+
 Specifically, with the command below, a distribution table for flow length of all transport layer protocol flows will be created.
 
 .. code-block:: shell-session
 
-    $ ../bin/flow-models-summary -x length histograms/all/length.csv
+    $ python3 -m flow_models.summary -x length histograms/all/length.csv
     0.00 Loading file histograms/all/length.csv
     0.02 Loaded file histograms/all/length.csv
     \begin{tabular}{@{}lrr@{}}
@@ -180,7 +181,7 @@ Similarly, a distribution table for flows depending on their size can also be ge
 
 .. code-block:: shell-session
 
-    $ ../bin/flow-models-summary -x size histograms/all/size.csv
+    $ python3 -m flow_models.summary -x size histograms/all/size.csv
     0.00 Loading file histograms/all/size.csv
     0.03 Loaded file histograms/all/size.csv
     \begin{tabular}{@{}lrr@{}}
@@ -239,10 +240,10 @@ Now having the grasp on basic data properties, let's get an insight into the det
 
 .. code-block:: shell-session
 
-    $ ../bin/flow-models-plot --help
-    usage: flow-models-plot [-h] [--format {png,pdf}] [--single] [--no-normalize] [--fft] [-P {points,hist,kde,comp,comp_stack,comp_labels}]
-                            [-C {comp,comp_stack,comp_labels}] [-x {length,size,duration,rate}]
-                            histogram [mixture]
+    $ python3 -m flow_models.plot --help
+    usage: plot.py [-h] [--format {png,pdf}] [--single] [--no-normalize] [--fft] [-P {points,hist,kde,comp,comp_stack,comp_labels}] [-C {comp,comp_stack,comp_labels}]
+                   [-x {length,size,duration,rate}]
+                   histogram [mixture]
 
     Generates plots from flow records and fitted models (requires `pandas` and `scipy`).
 
@@ -267,7 +268,7 @@ The command below will generate plots of PDF and CDF of number of flows, packets
 
 .. code-block:: shell-session
 
-    $ ../bin/flow-models-plot histograms/all/length.csv
+    $ python3 -m flow_models.plot histograms/all/length.csv
     0.00 Loading file histograms/all/length.csv
     0.02 Loaded file histograms/all/length.csv
     0.04 Drawing CDF histograms/all/length.csv flows
@@ -336,10 +337,8 @@ Now let's move to the fitting process, which is the core operation of hte framew
 
 .. code-block:: shell-session
 
-    $ ../bin/flow-models-fit --help
-    usage: flow-models-fit [-h] [-y {flows,packets,octets}] [-i I] [-U U] [-P P] [-L L] [--mpw MPW] [--initial INITIAL] [--interactive]
-                           [--test] [--measure-memory]
-                           file
+    $ python3 -m flow_models.fit --help
+    usage: fit.py [-h] [-y {flows,packets,octets}] [-i I] [-U U] [-P P] [-L L] [--mpw MPW] [--initial INITIAL] [--interactive] [--test] [--measure-memory] file
 
     Creates General Mixture Models (GMM) fitted to flow records (requires `scipy`).
 
@@ -364,7 +363,7 @@ The `tools/fit` tools can operate in the batch and the interactive mode. Below w
 
 .. code-block:: shell-session
 
-    $ ../bin/flow-models-fit -i 400 -U 6 -L 4 -y flows histograms/all/length.csv
+    $ python3 -m flow_models.fit -i 400 -U 6 -L 4 -y flows histograms/all/length.csv
     0.00 Processing: histograms/all/length.csv
     0.05 Iteration: 0
     ...
@@ -394,7 +393,7 @@ Alternatively, a user can perform interactive fitting with the GUI. In such a ca
 
 .. code-block:: shell-session
 
-    $ ../bin/flow-models-fit -i 100 -L 1 -y packets --interactive histograms/all/length.csv
+    $ python3 -m flow_models.fit -i 100 -L 1 -y packets --interactive histograms/all/length.csv
 
 The figure below shows a screenshot of the interactive fitting tool. User can change parameters (number of iterations and number of distributions) on the right panel. After clicking the fit button, the process starts. Its progress can be monitored on the progress bar. Additionally, after checking the animate checkbox, current distribution mixture will be plotted after each iteration. This allows to observe the fitting process in real time. The window on the bottom-right shows the current distribution mixture in JSON format.
 
@@ -422,7 +421,7 @@ To get a complete model, we also fit octets distribution, this time in the batch
 
 .. code-block:: shell-session
 
-    $ ../bin/flow-models-fit -i 400 -U 6 -L 4 -y octets histograms/all/length.csv
+    $ python3 -m flow_models.fit -i 400 -U 6 -L 4 -y octets histograms/all/length.csv
     0.00 Processing: histograms/all/length.csv
     0.04 Iteration: 0
     ...
@@ -457,7 +456,7 @@ The `tools/plot` tool can be used not only to plot empirical distribution functi
 
 .. code-block:: shell-session
 
-    $ ../bin/flow-models-plot histograms/all/length.csv my_mixture/
+    $ python3 -m flow_models.plot histograms/all/length.csv my_mixture/
     0.00 Loading file histograms/all/length.csv
     0.02 Loaded file histograms/all/length.csv
     0.02 Loading file my_mixture
@@ -526,8 +525,8 @@ In the case presented below, the model from ``my_mixture`` directory is used to 
 
 .. code-block:: shell-session
 
-    $ ../bin/flow-models-generate --help
-    usage: flow-models-generate [-h] [-s S] [--seed SEED] [-x {length,size,duration,rate}] [-o {csv_flow,binary,none}] [-O O] file
+    $ python3 -m flow_models.generate --help
+    usage: generate.py [-h] [-s S] [--seed SEED] [-x {length,size,duration,rate}] [-o {csv_flow,binary,none}] [-O O] file
 
     Generates flow records from histograms or mixture models.
 
@@ -544,7 +543,7 @@ In the case presented below, the model from ``my_mixture`` directory is used to 
                             format of output
       -O O                  file or directory for output
 
-    $ ../bin/flow-models-generate -x length -s 20 --seed 0 my_mixture/
+    $ python3 -m flow_models.generate -x length -s 20 --seed 0 my_mixture/
     0.00 Loading file my_mixture
     0.00 Loaded file my_mixture
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1969, 0
@@ -570,7 +569,7 @@ In the case presented below, the model from ``my_mixture`` directory is used to 
 
 .. code-block:: shell-session
 
-    $ ../bin/flow-models-generate -x length -s 20 --seed 1 my_mixture/
+    $ python3 -m flow_models.generate -x length -s 20 --seed 1 my_mixture/
     0.00 Loading file my_mixture
     0.00 Loaded file my_mixture
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1522, 0

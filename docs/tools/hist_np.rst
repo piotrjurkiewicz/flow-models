@@ -3,7 +3,7 @@
 
 .. argparse::
    :ref: flow_models.hist_np.parser
-   :prog: flow-models-hist_np
+   :prog: python3 -m flow_models.hist_np
 
 Fitting of mixture models does not have to be performed on complete flow records. Instead, it can be performed on histograms, calculated by binning flow records into buckets according to the selected parameter (e.g. flow length or size). Histogram files can also be easily published as they are many orders of magnitude smaller and, unlike flow records, do not contain private information such as IP addresses.
 

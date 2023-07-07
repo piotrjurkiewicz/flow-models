@@ -50,14 +50,17 @@ Contents
 
    tutorial
    workflow
-   formats
    tools
    first_mirror
    elephants
 
+Reference
+=========
+
 .. toctree::
    :maxdepth: 3
 
+   formats
    api
 
 Indices and tables

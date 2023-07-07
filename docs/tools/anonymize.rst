@@ -3,4 +3,4 @@
 
 .. argparse::
    :ref: flow_models.anonymize.parser
-   :prog: flow-models-anonymize
+   :prog: python3 -m flow_models.anonymize

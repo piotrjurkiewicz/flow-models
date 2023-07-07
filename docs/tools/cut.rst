@@ -3,4 +3,4 @@
 
 .. argparse::
    :ref: flow_models.cut.parser
-   :prog: flow-models-cut
+   :prog: python3 -m flow_models.cut
