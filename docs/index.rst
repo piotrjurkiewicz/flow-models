@@ -50,10 +50,10 @@ Contents
 
    tutorial
    workflow
-   elephants
-   first_mirror
    formats
    tools
+   first_mirror
+   elephants
    flow_models
 
 Indices and tables
