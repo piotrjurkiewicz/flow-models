@@ -2,7 +2,7 @@
 ***************************
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
 .. argparse::
    :ref: flow_models.cut.parser
