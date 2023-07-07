@@ -46,7 +46,7 @@ Contents
    self
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    tutorial
    workflow
@@ -54,17 +54,7 @@ Contents
    tools
    first_mirror
    elephants
-
-API Reference
-=============
-
-.. toctree::
-   :maxdepth: 2
-
-   flow_models
-   flow_models.first_mirror
-   flow_models.elephants
-   flow_models.lib
+   api
 
 Indices and tables
 ==================
