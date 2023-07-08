@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.x', 'pypy3.8', 'pypy3.9', 'pypy3.10', 'pypy3.11', 'pypy3.x']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.x', 'pypy3.8', 'pypy3.9', 'pypy3.10']
 
     steps:
     - uses: actions/checkout@v3
@@ -24,6 +24,10 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Install libraries
+      if: ${{ startsWith(matrix.python-version, 'pypy') }}
+      run: sudo apt install -y libopenblas-dev
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
