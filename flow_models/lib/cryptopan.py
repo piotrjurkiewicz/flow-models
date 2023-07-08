@@ -17,14 +17,15 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from functools import reduce
-from Cryptodome.Cipher import AES
+
+from cryptography.hazmat.primitives.ciphers import Cipher, modes, algorithms
 
 class CryptoPan:
     def __init__(self, key):
         if len(key) != 32:
             raise Exception("Key must be a 32 byte long string")
-        self.aes = AES.new(key[0:16], AES.MODE_ECB)
-        self.pad = self.aes.encrypt(key[16:32])
+        self.aes = Cipher(algorithms.AES(key[0:16]), modes.ECB()).encryptor()
+        self.pad = self.aes.update(key[16:32])
         f4 = self.pad[0:4]
         f4bp = self.toint(f4)
         self.masks = [(mask, f4bp & (~ mask)) for mask in (0xFFFFFFFF >> (32 - p) << (32 - p) for p in range(0, 32))]
@@ -43,7 +44,7 @@ class CryptoPan:
             a_array = self.toarray(a)
             inp = bytes(a_array)
             inp += self.pad[4:]
-            rin_output = self.aes.encrypt(inp)
+            rin_output = self.aes.update(inp)
             out = rin_output[0]
             return out >> 7
 
