@@ -1,9 +1,9 @@
 First packets mirroring (new in 2.0)
 ************************************
 
-The framework can be also used to perform simulations and analytical calculations of flow's first packets mirroring feature. Such a mechanism can be implemented in a switch dataplane and mirror first N packets of a new flow to the switch's CPU or controller. By inspecting the beginning of new flows, the connection set-up procedure, and the size and gaps between the first packets of a flow, one can identify the application of a flow, even for encrypted connections. More advanced techniques can even single out malicious flows from benign flows by inspecting the same set of parameters.
+The first_mirror subpackage enables simulations and analytical calculations of the first N packets mirroring feature found in the latest generation of SDN switches. This feature involves the switch's CPU or SDN controller receiving copies of the initial packets from each new flow in the switch's dataplane. The controller can then perform packet inspection and flow identification. By analyzing various aspects of the new flows, including the connection setup procedure, packet size, and time gaps between the first packets, the controller can determine the associated application, even for encrypted connections.
 
-Such a feature can be also used to perform detection of elephant flow candidates in their early stages. Classification with the first packets would be the most beneficial, as it would allow avoiding rerouting it in the middle. Moreover, it means that fir almost whole of its lifetime flow would be covered by elephant-specific TE mechanisms, for example individual routing path.
+This capability is also valuable for early detection of elephant flows. By classifying flows based on their first packets, the need for mid-flow rerouting is eliminated. Furthermore, it ensures that for the majority of a flow's lifespan, it will be subject to traffic engineering mechanisms specifically designed for elephant flows, such as individual routing paths. Additionally, the controller can continuously learn and refine its detection models based on the stream of first packets from flows.
 
 Tools
 =====

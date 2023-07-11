@@ -1,5 +1,5 @@
-:program:`convert` (new in 2.0)
-*******************************
+:program:`convert`
+******************
 
 .. argparse::
    :ref: flow_models.convert.parser
