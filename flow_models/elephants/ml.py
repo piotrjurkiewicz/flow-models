@@ -31,47 +31,18 @@ def load_arrays(directory):
 
     return sa, da, sp, dp, prot, oc
 
-def make_slices(data, skip=0, count=None, train_pct=0.80):
+def make_slice(data, skip=0, count=None):
 
     sa, da, sp, dp, prot, oc = data
-
     if not count:
         count = len(sa)
-
     if isinstance(skip, float):
         skip = int(len(sa) * skip)
-
     if isinstance(count, float):
         count = int(len(sa) * count)
+    s = slice(skip, skip + count)
 
-    train_count = int(count * train_pct)
-    train_slice = slice(skip, skip + train_count)
-    test_slice = slice(skip + train_count, skip + count)
-
-    all_sa = sa[skip:skip + count]
-    all_da = da[skip:skip + count]
-    all_sp = sp[skip:skip + count]
-    all_dp = dp[skip:skip + count]
-    all_prot = prot[skip:skip + count]
-    all_oc = oc[skip:skip + count]
-
-    train_sa = sa[train_slice]
-    train_da = da[train_slice]
-    train_sp = sp[train_slice]
-    train_dp = dp[train_slice]
-    train_prot = prot[train_slice]
-    train_oc = oc[train_slice]
-
-    test_sa = sa[test_slice]
-    test_da = da[test_slice]
-    test_sp = sp[test_slice]
-    test_dp = dp[test_slice]
-    test_prot = prot[test_slice]
-    test_oc = oc[test_slice]
-
-    return (all_sa, all_da, all_sp, all_dp, all_prot, all_oc), \
-           (train_sa, train_da, train_sp, train_dp, train_prot, train_oc), \
-           (test_sa, test_da, test_sp, test_dp, test_prot, test_oc)
+    return sa[s], da[s], sp[s], dp[s], prot[s], oc[s]
 
 def prepare_input(data, shuffle=False, to_octets=False, bit_vector=False):
 
@@ -82,6 +53,8 @@ def prepare_input(data, shuffle=False, to_octets=False, bit_vector=False):
         da = da.view(np.uint8).reshape(da.shape + (da.dtype.itemsize,)).T
         sp = sp.view(np.uint8).reshape(sp.shape + (sp.dtype.itemsize,)).T
         dp = dp.view(np.uint8).reshape(dp.shape + (dp.dtype.itemsize,)).T
+        # sp = [sp]
+        # dp = [dp]
     else:
         sa = [sa]
         da = [da]
@@ -106,7 +79,6 @@ def prepare_input(data, shuffle=False, to_octets=False, bit_vector=False):
         inp = inp[idx]
         oc = oc[idx]
 
-    print(inp.shape, inp.dtype)
     return inp, oc
 
 def stats(oc, oc_predicted, thresholds=None):
@@ -118,10 +90,23 @@ def stats(oc, oc_predicted, thresholds=None):
         thresholds = thresholds * 64
 
     r = []
-    for threshold in thresholds:
-        decision = oc_predicted > threshold
-        r.append([threshold, len(oc) / decision.sum(), oc[decision].sum() / oc.sum()])
+    with np.errstate(divide='ignore'):
+        for threshold in thresholds:
+            decision = oc_predicted > threshold
+            r.append([threshold, len(oc) / decision.sum(), oc[decision].sum() / oc.sum()])
     return np.array(r).T
+
+def my_score(oc, oc_predicted):
+    r = stats(oc, oc_predicted)
+    red = interp_red([0.80], r[1], r[2])
+    return red[1].mean() if np.isfinite(red).all() else np.nan
+
+def interp_red(x, red, cov):
+    if len(x) == 1:
+        return cov, red
+    else:
+        y = np.interp(x, cov[::-1], red[::-1], left=np.nan, right=np.nan)
+        return x, y
 
 def plot(r, title=''):
     plt.figure(figsize=(10, 5))
@@ -133,7 +118,9 @@ def plot(r, title=''):
             plt.plot(cov * 100, red, label=name, lw=1, color='k')
             xlim = plt.xlim()
         else:
-            plt.plot(cov * 100, red, label=name, lw=1)
+            plt.plot(cov * 100, red, label=name, lw=1, alpha=0.5)
+            # x, y = interp_red(np.arange(0.8, 0.9, 0.01), red, cov)
+            # plt.plot(x * 100, y, marker='.', markersize=5, linestyle='none', color='k')
     plt.xlim(*xlim[::-1])
     plt.ylim(*ylim)
     plt.gca().get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
@@ -142,14 +129,12 @@ def plot(r, title=''):
     plt.xlabel('Traffic coverage [%]')
     plt.ylabel('Flow table occupancy reduction [x]')
 
-def calculate_from_mixture():
-    data = list(load_data(['/home/jurkiew/git/flow-models/data/agh_2015/mixtures/all/size/']).values())[0]
+def calculate_from_mixture(path):
+    data = list(load_data([path]).values())[0]
     index = 1 / np.logspace(0, 32, 1024, base=2)
     x = np.unique(np.rint(1 / np.array(index))).astype('u8')
     x *= 64
-
     reduction = 1 / (1 - mix.cdf(data['flows'], x))
     coverage = 1 - mix.cdf(data['octets'], x)
     mask = coverage > 0.5
-
     return x[mask], reduction[mask], coverage[mask]
