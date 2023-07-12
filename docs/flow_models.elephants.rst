@@ -13,7 +13,6 @@ flow\_models.elephants.calculate module
 
 .. automodule:: flow_models.elephants.calculate
    :members:
-   :undoc-members:
    :show-inheritance:
 
 flow\_models.elephants.simulate module
@@ -21,7 +20,6 @@ flow\_models.elephants.simulate module
 
 .. automodule:: flow_models.elephants.simulate
    :members:
-   :undoc-members:
    :show-inheritance:
 
 flow\_models.elephants.plot module
@@ -29,5 +27,4 @@ flow\_models.elephants.plot module
 
 .. automodule:: flow_models.elephants.plot
    :members:
-   :undoc-members:
    :show-inheritance:

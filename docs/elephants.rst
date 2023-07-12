@@ -5,4 +5,11 @@ Elephants detection (new in 2.0)
    :glob:
    :maxdepth: 2
 
+Tools
+=====
+
+.. toctree::
+   :glob:
+   :maxdepth: 1
+
    elephants/*
