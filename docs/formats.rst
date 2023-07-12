@@ -130,3 +130,5 @@ The framework user can specify a parameter *b*, which is a power-of-two defining
 
 ``csv_series``
 ==============
+
+The format consists of files that provide information about the number of flows, packets, and bytes transmitted on a specific link for each second since the beginning of the day. Each line in the file corresponds to a subsequent second, and the filenames are based on the number of days that have elapsed since the Unix epoch.
