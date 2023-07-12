@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+"""
+Plots flow reduction curves from mixture or histogram data for first, threshold and sampling methods.
+"""
+
 import argparse
 import collections
 import pathlib
@@ -178,6 +182,27 @@ def plot_all(calculated, simulated, one):
             save_figure(fig, out)
             plt.close(fig)
 
+def print_tables(simulated):
+    for x_val in X_VALUES:
+        dd = pd.concat({'first': simulated['first'][x_val], 'threshold': simulated['threshold'][x_val],
+                        'sampling': simulated['sampling'][x_val]})
+        df = dd.loc[['first', 'threshold']].unstack(0)
+        if x_val == 'length':
+            df = df.iloc[:22]
+        df = df[['octets_mean', 'operations_mean', 'occupancy_mean']]
+        df = df.swaplevel(axis=1).sort_index(axis=1).reindex(['octets_mean', 'operations_mean', 'occupancy_mean'],
+                                                             axis=1, level=1)
+        df.index = df.index.astype(np.int64)
+        print(df.to_latex(float_format='%.2f'))
+
+        df = dd.loc[['sampling']].unstack(0)
+        if x_val == 'length':
+            df = df.iloc[:22]
+        df = df[['octets_mean', 'operations_mean', 'occupancy_mean']]
+        df = df.swaplevel(axis=1).sort_index(axis=1).reindex(['octets_mean', 'operations_mean', 'occupancy_mean'],
+                                                             axis=1, level=1)
+        print(df.to_latex(float_format='%.2f'))
+
 def plot_probability():
     fig, ax = plt.subplots(1, 1, figsize=FIGSIZE)
     idx = np.geomspace(1, 1000, 512)
@@ -213,6 +238,7 @@ def plot(dirs, one=False):
     plot_usage(calculated, 'occupancy')
     plot_usage(calculated, 'operations')
     plot_traffic(calculated)
+    print_tables(simulated)
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)

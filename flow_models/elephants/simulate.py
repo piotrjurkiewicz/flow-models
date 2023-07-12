@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+"""
+Simulates first, threshold and sampling elephant detection methods on packet-level from mixture or histogram data.
+"""
+
 import argparse
 import collections
 import concurrent.futures
@@ -99,7 +103,7 @@ def simulate_chunk(data, x_val, seed, method, p, r):
     return method, p, r, result_u, result_f
 
 def simulate(obj, size=1, x_val='length', seed=None, methods=tuple(METHODS), rounds=5, affinity=False):
-    data = load_data(obj)
+    data = list(load_data([obj]).values())[0]
 
     x = 1 / np.power(2, range(25))
 

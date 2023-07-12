@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+"""
+Calculates flow reduction curves from mixture or histogram data for first, threshold and sampling methods.
+"""
+
 import argparse
 
 import numpy as np
@@ -142,7 +146,7 @@ def calculate_mix(data, x_probs, x_val, method):
     return pd.DataFrame(ad, x_probs if method == 'sampling' else x)
 
 def calculate(obj, index=None, x_val='length', methods=tuple(METHODS)):
-    data = load_data(obj)
+    data = list(load_data([obj]).values())[0]
 
     if index is None:
         index = 1 / np.power(2, range(25))
