@@ -25,6 +25,7 @@ matplotlib.rcParams['font.family'] = 'sans'
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('-O', '--output', default='sklearn', help='output directory and plot file name')
+    parser.add_argument('--seed', type=int, default=None, help='seed')
     parser.add_argument('--mixture', help='')
     parser.add_argument('--fork', action='store_true', help='')
     parser.add_argument('files', help='directory')
@@ -60,7 +61,7 @@ def main():
         # (sklearn.ensemble.RandomForestRegressor, {'n_estimators': 30, 'min_samples_leaf': 2, 'bootstrap': False}),
         # (sklearn.ensemble.RandomForestRegressor, {'n_estimators': 30, 'min_samples_leaf': 2, 'bootstrap': True}),
         # (sklearn.ensemble.ExtraTreesRegressor, {'n_estimators': 10, 'min_samples_leaf': 2, 'bootstrap': False}),
-        # (sklearn.ensemble.ExtraTreesRegressor, {'n_estimators': 10, 'min_samples_leaf': 2, 'bootstrap': True}),
+        (sklearn.ensemble.ExtraTreesRegressor, {'n_estimators': 10, 'min_samples_leaf': 2, 'bootstrap': True}),
         # (sklearn.ensemble.ExtraTreesRegressor, {'n_estimators': 20, 'min_samples_leaf': 2, 'bootstrap': False}),
         # (sklearn.ensemble.ExtraTreesRegressor, {'n_estimators': 20, 'min_samples_leaf': 2, 'bootstrap': True}),
         # (sklearn.ensemble.ExtraTreesRegressor, {'n_estimators': 30, 'min_samples_leaf': 2, 'bootstrap': False}),
@@ -104,7 +105,7 @@ def main():
                             if issubclass(clf_class, sklearn.base.ClassifierMixin):
                                 r = collections.defaultdict(list)
                                 for coverage in 1 - 1 / np.power(2, range(26))[1:]:
-                                    clf = clf_class(**clf_params)
+                                    clf = clf_class(**clf_params, random_state=app_args.seed)
                                     train_decision = prepare_decision(train_oc, coverage)
                                     clf.fit(train_inp, train_decision, sample_weight=train_oc)
                                     for mode in modes:
@@ -116,7 +117,7 @@ def main():
                                     results[f'{name} ({mode})'] = np.array(r[mode]).T
                                     print(results[f'{name} ({mode})'])
                             elif issubclass(clf_class, sklearn.base.RegressorMixin):
-                                clf = clf_class(**clf_params, random_state=0)
+                                clf = clf_class(**clf_params, random_state=app_args.seed)
                                 clf.fit(train_inp, train_oc)
                                 logmsg(f"Fitted {name}")
                                 for mode in modes:
