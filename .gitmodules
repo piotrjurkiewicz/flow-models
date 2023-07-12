@@ -1,0 +1,3 @@
+[submodule "data/agh_2015061019_IPv4_anon"]
+	path = data/agh_2015061019_IPv4_anon
+	url = ../../flow-models/agh_2015061019_IPv4_anon.git
