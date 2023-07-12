@@ -26,7 +26,7 @@ Example: (encrypts flow records in binary format and outputs as csv lines to sta
     flow_models.anonymize -i binary -O - --count-in 1000 --key boojahyoo3vaeToong0Eijee7Ahz3yee sorted
 """
 
-def anonymize(in_files, output, in_format='nfcapd', out_format='csv_flow', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, key=None):
+def anonymize(in_files, output, in_format='nfcapd', out_format='csv_flow', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, key=''):
     """
     Anonymizes IP addresses in IPv4 flows using Crypto-PAn algorithm.
 
@@ -50,10 +50,11 @@ def anonymize(in_files, output, in_format='nfcapd', out_format='csv_flow', skip_
         number of flows to output after filtering
     filter_expr : CodeType, optional
         filter expression
-    key : bytes
+    key : str
         encryption key (32 bytes)
     """
 
+    key = key.encode()
     if not key or len(key) != 32:
         ValueError("Please specify 32 bytes long encryption key")
 
@@ -91,7 +92,7 @@ def anonymize(in_files, output, in_format='nfcapd', out_format='csv_flow', skip_
 
 def parser():
     p = IOArgumentParser(description=__doc__, epilog=EPILOG)
-    p.add_argument('--key', type=bytes, default=None, help='32 bytes long encryption key')
+    p.add_argument('--key', type=str, default='', help='32 bytes long encryption key')
     return p
 
 def main():
