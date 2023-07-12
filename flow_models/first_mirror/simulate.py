@@ -23,9 +23,9 @@ Example: (simulates mirroring of first 3 packets of a flow to control plane)
     flow_models.first_mirror.simulate -i binary -O mirror_3 --mirror 3 sorted
 """
 
-def series(in_files, output, in_format='nfcapd', out_format='csv_series', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, mirror=0):
+def first_mirror(in_files, output, in_format='nfcapd', out_format='csv_series', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, mirror=0):
     """
-    Generate packets and octets time series from flow records.
+    Generate mirrored packets and octets time series from flow records.
 
     Parameters
     ----------
@@ -59,56 +59,45 @@ def series(in_files, output, in_format='nfcapd', out_format='csv_series', skip_i
     counters = {'skip_in': skip_in, 'count_in': count_in, 'skip_out': skip_out, 'count_out': count_out}
     written = 0
 
-    # [flows, packets, octets, packets_mirrored, octets_mirrored]
-    dd = collections.defaultdict(lambda: [[0, 0, 0, 0, 0] for _ in range(86400)])
+    # [packets_mirrored, octets_mirrored]
+    dd = collections.defaultdict(lambda: [[0, 0] for _ in range(86400)])
 
     for file in in_files:
         for af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs in reader(file, counters=counters, filter_expr=filter_expr, fields=fields):
             day = first // 86400
             second_in_day = first % 86400
             d = dd[day]
-            d[second_in_day][0] += 1
             if packets == 1:
-                d[second_in_day][1] += 1
-                d[second_in_day][2] += octets
                 if mirror > 0:
-                    d[second_in_day][3] += 1
-                    d[second_in_day][4] += octets
+                    d[second_in_day][0] += 1
+                    d[second_in_day][1] += octets
             else:
                 float_second_in_day = second_in_day + first_ms / 1000
                 duration = last - first + (last_ms - first_ms) / 1000
                 piat = duration / packets
                 avg_packet_size = octets / packets
                 int_packet_size = avg_packet_size.__trunc__()
-                for n in range(packets):
+                for n in range(min(packets, mirror)):
                     packet_size = int_packet_size + (octets - int_packet_size - avg_packet_size * (packets - 1 - n)).__trunc__()
                     ds = d[float_second_in_day.__trunc__()]
-                    ds[1] += 1
-                    ds[2] += packet_size
-                    if n < mirror:
-                        ds[3] += 1
-                        ds[4] += packet_size
+                    ds[0] += 1
+                    ds[1] += packet_size
                     octets -= packet_size
                     float_second_in_day += piat
                     while float_second_in_day >= 86400.0:
                         day += 1
                         float_second_in_day -= 86400.0
                         d = dd[day]
-                assert octets == 0
             written += 1
         logmsg(f'Finished: {file}. Written: {written}')
 
     output = pathlib.Path(output)
     output.mkdir(parents=True, exist_ok=True)
     for day in dd:
-        with open(output / f"{day}.flows", 'w') as f, open(output / f"{day}.packets", 'w') as p, open(output / f"{day}.octets", 'w') as o, \
-             open(output / f"{day}.packets_mirrored", 'w') as pm, open(output / f"{day}.octets_mirrored", 'w') as om:
+        with open(output / f"{day}.packets_mirrored", 'w') as pm, open(output / f"{day}.octets_mirrored", 'w') as om:
             for second_in_day in range(86400):
-                f.write("%d\n" % dd[day][second_in_day][0])
-                p.write("%d\n" % dd[day][second_in_day][1])
-                o.write("%d\n" % dd[day][second_in_day][2])
-                pm.write("%d\n" % dd[day][second_in_day][3])
-                om.write("%d\n" % dd[day][second_in_day][4])
+                pm.write("%d\n" % dd[day][second_in_day][0])
+                om.write("%d\n" % dd[day][second_in_day][1])
 
     logmsg(f'Finished all files. Written: {written}')
 
@@ -123,7 +112,7 @@ def parser():
 
 def main():
     app_args = parser().parse_args()
-    series(**vars(app_args))
+    first_mirror(**vars(app_args))
 
 
 if __name__ == '__main__':

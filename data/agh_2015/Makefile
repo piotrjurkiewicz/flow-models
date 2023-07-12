@@ -137,11 +137,14 @@ series/tcp: sorted
 series/udp: sorted
 	nice pypy3 -m flow_models.series -i binary -O series/udp --filter-expr "prot==17" sorted
 
-mirror/all/%: sorted
-	nice pypy3 -m flow_models.first_mirror.simulate -i binary -O mirror/all/$* --mirror $* sorted
+first_mirror/all/%: sorted
+	nice pypy3 -m flow_models.first_mirror.simulate -i binary -O first_mirror/all/$* --mirror $* sorted
 
-mirror/tcp/%: sorted
-	nice pypy3 -m flow_models.first_mirror.simulate -i binary -O mirror/tcp/$* --mirror $* --filter-expr "prot==6" sorted
+first_mirror/tcp/%: sorted
+	nice pypy3 -m flow_models.first_mirror.simulate -i binary -O first_mirror/tcp/$* --mirror $* --filter-expr "prot==6" sorted
 
-mirror/udp/%: sorted
-	nice pypy3 -m flow_models.first_mirror.simulate -i binary -O mirror/udp/$* --mirror $* --filter-expr "prot==17" sorted
+first_mirror/udp/%: sorted
+	nice pypy3 -m flow_models.first_mirror.simulate -i binary -O first_mirror/udp/$* --mirror $* --filter-expr "prot==17" sorted
+
+first_mirror/%: first_mirror/$$*/1 first_mirror/$$*/2 first_mirror/$$*/3 first_mirror/$$*/4 first_mirror/$$*/8
+	true
