@@ -13,3 +13,12 @@ Tools
    :maxdepth: 1
 
    elephants/*
+
+sklearn
+=======
+
+.. toctree::
+   :glob:
+   :maxdepth: 1
+
+   elephants/sklearn/*
