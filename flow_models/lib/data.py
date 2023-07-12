@@ -187,7 +187,7 @@ def load_data(objects):
 
     Parameters
     ----------
-    objects : list[pathlib.Path]
+    objects : list[os.PathLike]
         list of paths to load
 
     Returns
