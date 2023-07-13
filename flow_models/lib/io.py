@@ -2,6 +2,7 @@ import argparse
 import array
 import io
 import mmap
+import os
 import pathlib
 import subprocess
 import sys
@@ -79,6 +80,13 @@ def flow_append(flow, fields):
     fields.octets.append(flow[19])
     fields.aggs.append(flow[20])
 
+def flow_to_int(flow):
+    return int(flow[0]), int(flow[1]), int(flow[2]), int(flow[3]), \
+           int(flow[4]), int(flow[5]), int(flow[6]), int(flow[7]), \
+           int(flow[8]), int(flow[9]), int(flow[10]), int(flow[11]), \
+           int(flow[12]), int(flow[13]), int(flow[14]), int(flow[15]), int(flow[16]), int(flow[17]), \
+           int(flow[18]), int(flow[19]), int(flow[20])
+
 def read_flow_csv(in_file, counters=None, filter_expr=None, fields=None):
     """
     Read and yield all flows in a csv_flow file/stream.
@@ -128,7 +136,7 @@ def read_flow_csv(in_file, counters=None, filter_expr=None, fields=None):
             sa0, sa1, sa2, sa3, \
             da0, da1, da2, da3, \
             sp, dp, first, first_ms, last, last_ms, \
-            packets, octets, aggs = line.split(',')
+            packets, octets, aggs = flow_to_int(line.split(','))
             if filter_expr is None or eval(filter_expr):
                 if counters['skip_out'] > 0:
                     counters['skip_out'] -= 1
@@ -138,11 +146,11 @@ def read_flow_csv(in_file, counters=None, filter_expr=None, fields=None):
                             counters['count_out'] -= 1
                         else:
                             break
-                    yield int(af), int(prot), int(inif), int(outif), \
-                          int(sa0), int(sa1), int(sa2), int(sa3), \
-                          int(da0), int(da1), int(da2), int(da3), \
-                          int(sp), int(dp), \
-                          int(first), int(first_ms), int(last), int(last_ms), int(packets), int(octets), int(aggs)
+                    yield af, prot, inif, outif, \
+                          sa0, sa1, sa2, sa3, \
+                          da0, da1, da2, da3, \
+                          sp, dp, first, first_ms, last, last_ms, \
+                          packets, octets, aggs
 
     if not isinstance(in_file, io.IOBase):
         stream.close()
@@ -198,8 +206,16 @@ def read_pipe(in_file, counters=None, filter_expr=None, fields=None):
             sa0, sa1, sa2, sa3, sp, da0, da1, da2, da3, dp, \
             srcas, dstas, inif, outif, \
             tcp_flags, tos, packets, octets = line.split(b'|')
-            first, first_ms = first[:-3], first[-3:]
-            last, last_ms = last[:-3], last[-3:]
+            first, first_ms = int(first[:-3]), int(first[-3:])
+            last, last_ms = int(last[:-3]), int(last[-3:])
+            af, prot, inif, outif, \
+            sa0, sa1, sa2, sa3, \
+            da0, da1, da2, da3, \
+            sp, dp, packets, octets, aggs = int(af), int(prot), int(inif), int(outif), \
+                                            int(sa0), int(sa1), int(sa2), int(sa3), \
+                                            int(da0), int(da1), int(da2), int(da3), \
+                                            int(sp), int(dp), \
+                                            int(packets), int(octets), 0
             if filter_expr is None or eval(filter_expr):
                 if counters['skip_out'] > 0:
                     counters['skip_out'] -= 1
@@ -209,11 +225,11 @@ def read_pipe(in_file, counters=None, filter_expr=None, fields=None):
                             counters['count_out'] -= 1
                         else:
                             break
-                    yield int(af), int(prot), int(inif), int(outif), \
-                          int(sa0), int(sa1), int(sa2), int(sa3), \
-                          int(da0), int(da1), int(da2), int(da3), \
-                          int(sp), int(dp), \
-                          int(first), int(first_ms), int(last), int(last_ms), int(packets), int(octets), 0
+                    yield af, prot, inif, outif, \
+                          sa0, sa1, sa2, sa3, \
+                          da0, da1, da2, da3, \
+                          sp, dp, first, first_ms, last, last_ms, \
+                          packets, octets, aggs
 
     if not isinstance(in_file, io.IOBase):
         stream.close()
@@ -296,6 +312,8 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, fields=None):
     use_numpy = True
 
     arrays, filtered, size = load_arrays(path, fields_to_load, counters, filter_expr)
+    if not size:
+        return
     for name in flows.fields:
         if name in arrays:
             setattr(flows, name, arrays[name])
@@ -361,6 +379,16 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, fields=None):
 def write_none(_):
     while True:
         _ = yield
+
+def write_append(output, *_):
+    while True:
+        flow = yield
+        output.append(flow)
+
+def write_extend(output, *_):
+    while True:
+        flow = yield
+        output.extend(flow)
 
 def write_line(output, header_line=None):
     """
@@ -495,9 +523,12 @@ def load_array_mv(path, mode='r'):
     prot = mmap.PROT_READ
     if mode != 'r':
         prot |= mmap.PROT_WRITE
-    with open(str(path)) as f:
-        mm = mmap.mmap(f.fileno(), 0, flags=flags, prot=prot)
-    mv = memoryview(mm).cast(dtype)
+    if os.path.getsize(str(path)) > 0:
+        with open(str(path)) as f:
+            mm = mmap.mmap(f.fileno(), 0, flags=flags, prot=prot)
+        mv = memoryview(mm).cast(dtype)
+    else:
+        mv = memoryview(b'').cast(dtype)
     return name, dtype, mv
 
 def load_array_np(path, mode='r'):
@@ -571,8 +602,11 @@ def load_arrays(path, fields, counters, filter_expr, require_numpy=False):
                 assert len(ar) == size
             if counters['skip_in'] > 0:
                 ar = ar[counters['skip_in']:]
-            if counters['count_in'] is not None and counters['count_in'] > 0:
-                ar = ar[:counters['count_in']]
+            if counters['count_in'] is not None:
+                if counters['count_in'] > 0:
+                    ar = ar[:counters['count_in']]
+                else:
+                    ar = ar[0:0]
             ars[name] = ar
         except FileNotFoundError:
             warnings.warn(f"Array file for flow field '{name}' not found in directory {path}."
@@ -583,9 +617,12 @@ def load_arrays(path, fields, counters, filter_expr, require_numpy=False):
         if counters['skip_in'] > 0:
             size = max(size - counters['skip_in'], 0)
             counters['skip_in'] -= min(counters['skip_in'], size)
-        if counters['count_in'] is not None and counters['count_in'] > 0:
-            size = min(size, counters['count_in'])
-            counters['count_in'] -= min(counters['count_in'], size)
+        if counters['count_in'] is not None:
+            if counters['count_in'] > 0:
+                size = min(size, counters['count_in'])
+                counters['count_in'] -= min(counters['count_in'], size)
+            else:
+                size = 0
 
     for ar in ars.values():
         if not isinstance(ar, ZeroArray):
@@ -599,7 +636,7 @@ def load_arrays(path, fields, counters, filter_expr, require_numpy=False):
         logmsg(f"Starting filtering: {filter_expr.co_filename}")
         filtered = eval(filter_expr, ars)
         filtered_count = np.count_nonzero(filtered)
-        logmsg(f"Finished filtering: {filtered_count}/{size} ({100 * filtered_count/size} %)")
+        logmsg(f"Finished filtering: {filtered_count}/{size} ({100 * filtered_count/size if size else 0} %)")
 
     arrays = {}
     for name in (fields if use_numpy else fields_to_load):
@@ -673,4 +710,4 @@ class IOArgumentParser(argparse.ArgumentParser):
         return namespace
 
 IN_FORMATS = {'csv_flow': read_flow_csv, 'pipe': read_pipe, 'nfcapd': read_nfcapd, 'binary': read_flow_binary}
-OUT_FORMATS = {'csv_flow': write_flow_csv, 'binary': write_flow_binary, 'none': write_none}
+OUT_FORMATS = {'csv_flow': write_flow_csv, 'binary': write_flow_binary, 'append': write_append, 'extend': write_extend, 'none': write_none}

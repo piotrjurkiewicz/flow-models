@@ -3,7 +3,7 @@
 Calculates histograms of flows length, size, duration or rate.
 """
 
-from .lib.io import IOArgumentParser, IN_FORMATS, write_none, write_line, FILTER_HELP
+from .lib.io import IOArgumentParser, IN_FORMATS, write_none, write_line, FILTER_HELP, write_append
 from .lib.util import logmsg, bin_calc_one, bin_calc_log
 
 EPILOG = \
@@ -27,7 +27,7 @@ Example: (calculates logarithmically binned histogram of flow length from the so
 """
 
 X_VALUES = ['length', 'size', 'duration', 'rate']
-OUT_FORMATS = {'csv_hist': write_line, 'none': write_none}
+OUT_FORMATS = {'csv_hist': write_line, 'append': write_append, 'none': write_none}
 
 class FlowBin:
 
@@ -46,7 +46,7 @@ class FlowBin:
     def to_line(self, fields):
         return ','.join(str(int(getattr(self, c))) for c in fields)
 
-def hist(in_files, output, in_format='nfcapd', out_format='csv_hist', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, bin_exp=0, x_value='length', additional_columns=()):
+def hist(in_files, output, in_format='nfcapd', out_format='csv_hist', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, bin_exp=0, x_value='length', additional_columns=[]):
     """
     Calculates histograms of flows length, size, duration or rate.
 

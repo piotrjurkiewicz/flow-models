@@ -71,7 +71,7 @@ def anonymize(in_files, output, in_format='nfcapd', out_format='csv_flow', skip_
 
     for file in in_files:
         for af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs in reader(file, counters=counters, filter_expr=filter_expr):
-            if af == 2:
+            if not af or af == 2:
                 try:
                     sa3 = ip_cache[sa3]
                 except KeyError:

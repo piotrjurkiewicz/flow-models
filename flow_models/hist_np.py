@@ -10,7 +10,7 @@ import pathlib
 
 import numpy as np
 
-from .lib.io import write_line, write_none, IOArgumentParser, load_arrays, FILTER_HELP
+from .lib.io import write_line, write_none, IOArgumentParser, load_arrays, FILTER_HELP, write_append
 from .lib.util import logmsg, bin_calc_log, measure_memory
 
 EPILOG = \
@@ -38,7 +38,7 @@ MAX_MEM = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES') // 4
 N_JOBS = 4
 
 X_VALUES = ['length', 'size']
-OUT_FORMATS = {'csv_hist': write_line, 'none': write_none}
+OUT_FORMATS = {'csv_hist': write_line, 'append': write_append, 'none': write_none}
 
 def get_column_array(mm, column, start, stop):
     if column in mm:
@@ -152,7 +152,7 @@ def calc_dir(path, x_value, columns, counters=None, filter_expr=None):
 
     return results
 
-def hist(in_files, output, in_format='binary', out_format='csv_hist', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, bin_exp=0, x_value='length', additional_columns=()):
+def hist(in_files, output, in_format='binary', out_format='csv_hist', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, bin_exp=0, x_value='length', additional_columns=[]):
     """
     Calculates histograms of flows length, size, duration or rate.
 

@@ -72,6 +72,8 @@ def cut(in_files, output, in_format='binary', out_format='binary', skip_in=0, co
     if filter_expr is not None:
         raise NotImplementedError("Filter expressions are not supported")
 
+    in_files = prepare_file_list(in_files)
+
     if output != sys.stdout:
         output = pathlib.Path(output)
         if output.is_dir() or len(in_files) > 1:
@@ -79,22 +81,34 @@ def cut(in_files, output, in_format='binary', out_format='binary', skip_in=0, co
         else:
             output.parent.mkdir(parents=True, exist_ok=True)
 
-    for in_file in prepare_file_list(in_files):
+    for in_file in in_files:
         try:
             size = array.array(in_file.suffix[1:]).itemsize
-            skip_in = skip_in * size
-            if count_in is not None:
-                count_in = count_in * size
+            if skip_in > 0:
+                skip = skip_in * size
             else:
-                count_in = in_file.stat().st_size - skip_in
-            count_in = count_in - skip_out * size
-            count_in = min(count_in, count_out * size)
+                skip = 0
+            if count_in is not None:
+                if count_in > 0:
+                    count = count_in * size
+                else:
+                    count = 0
+            else:
+                count = in_file.stat().st_size - skip
+            if skip_out > 0:
+                count = count - skip_out * size
+                skip += skip_out * size
+            if count_out is not None:
+                if count_out > 0:
+                    count = min(count, count_out * size)
+                else:
+                    count = 0
         except TypeError:
             logmsg('Cut array:', in_file, 'Wrong type')
             return
 
         logmsg('Cut array:', in_file, size)
-        subprocess.run(['dd', f'if={in_file}', f'of={output}' if output != sys.stdout else 'status=none', f'count={count_in}', f'skip={skip_in}', 'iflag=count_bytes,skip_bytes'])
+        subprocess.run(['dd', f'if={in_file}', f'of={output / in_file.name}' if output != sys.stdout else 'status=none', f'count={count}', f'skip={skip}', 'iflag=count_bytes,skip_bytes'])
 
 
 def parser():
