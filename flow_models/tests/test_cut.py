@@ -4,7 +4,7 @@ import pathlib
 
 import flow_models.convert
 import flow_models.cut
-import test_convert
+import flow_models.tests.test_convert
 
 IN_FILES = 'data/agh_2015061019_IPv4_anon/sorted'
 
@@ -23,7 +23,7 @@ def test_cut():
         'count_out': [-1, 0, None, 1, 4097]
     }
 
-    for params in test_convert.product_dict(**matrix):
+    for params in flow_models.tests.test_convert.product_dict(**matrix):
         for f in pathlib.Path(IN_FILES + '_4096_cut_test').glob('*'):
             f.unlink()
         flow_models.cut.cut([IN_FILES + '_4096_cut'], IN_FILES + '_4096_cut_test', in_format='binary', out_format='binary', **params)
@@ -33,7 +33,7 @@ def test_cut():
             assert len(result) == 0
         else:
             ha = hashlib.md5(result).hexdigest()[:16]
-            assert params in test_convert.RESULTS['all'][ha]
+            assert params in flow_models.tests.test_convert.RESULTS['all'][ha]
 
 
 if __name__ == '__main__':
