@@ -240,11 +240,14 @@ def plot(dirs, one=False):
     plot_traffic(calculated)
     print_tables(simulated)
 
+def parser():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--one', action='store_true', help='plot in one file')
+    p.add_argument('files', nargs='+', help='csv_hist files to plot')
+    return p
+
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--one', action='store_true', help='plot in one file')
-    parser.add_argument('files', nargs='+', help='csv_hist files to plot')
-    app_args = parser.parse_args()
+    app_args = parser().parse_args()
 
     with matplotlib_config(latex=False):
         plot_probability()

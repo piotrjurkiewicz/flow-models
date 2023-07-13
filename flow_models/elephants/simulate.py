@@ -183,17 +183,20 @@ def simulate(obj, size=1, x_val='length', seed=None, methods=tuple(METHODS), rou
 
     return dd
 
+def parser():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('-n', type=int, default=1000000, help='number of generated flows')
+    p.add_argument('-r', type=int, default=10, help='rounds')
+    p.add_argument('--seed', type=int, default=None, help='seed')
+    p.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
+    p.add_argument('-m', default='all', choices=METHODS, help='method')
+    p.add_argument('--save', action='store_true', help='save to files')
+    p.add_argument('--affinity', action='store_true', help='set affinity')
+    p.add_argument('file', help='csv_hist file or mixture directory')
+    return p
+
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-n', type=int, default=1000000, help='number of generated flows')
-    parser.add_argument('-r', type=int, default=10, help='rounds')
-    parser.add_argument('--seed', type=int, default=None, help='seed')
-    parser.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
-    parser.add_argument('-m', default='all', choices=METHODS, help='method')
-    parser.add_argument('--save', action='store_true', help='save to files')
-    parser.add_argument('--affinity', action='store_true', help='set affinity')
-    parser.add_argument('file', help='csv_hist file or mixture directory')
-    app_args = parser.parse_args()
+    app_args = parser().parse_args()
 
     if app_args.m == 'all':
         methods = METHODS

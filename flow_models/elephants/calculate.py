@@ -165,14 +165,17 @@ def calculate(obj, index=None, x_val='length', methods=tuple(METHODS)):
 
     return dataframes
 
+def parser():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('-n', type=int, default=None, help='number of index points')
+    p.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
+    p.add_argument('-m', default='all', choices=METHODS, help='method')
+    p.add_argument('--save', action='store_true', help='save to files')
+    p.add_argument('file', help='csv_hist file or mixture directory')
+    return p
+
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-n', type=int, default=None, help='number of index points')
-    parser.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
-    parser.add_argument('-m', default='all', choices=METHODS, help='method')
-    parser.add_argument('--save', action='store_true', help='save to files')
-    parser.add_argument('file', help='csv_hist file or mixture directory')
-    app_args = parser.parse_args()
+    app_args = parser().parse_args()
 
     if app_args.m == 'all':
         methods = METHODS

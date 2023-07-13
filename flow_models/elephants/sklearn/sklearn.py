@@ -26,14 +26,17 @@ from flow_models.lib.util import logmsg
 matplotlib.rcParams['pdf.use14corefonts'] = True
 matplotlib.rcParams['font.family'] = 'sans'
 
+def parser():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('-O', '--output', default='sklearn', help='output directory and plot file name')
+    p.add_argument('--seed', type=int, default=None, help='seed')
+    p.add_argument('--mixture', help='')
+    p.add_argument('--fork', action='store_true', help='')
+    p.add_argument('files', help='directory')
+    return p
+
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-O', '--output', default='sklearn', help='output directory and plot file name')
-    parser.add_argument('--seed', type=int, default=None, help='seed')
-    parser.add_argument('--mixture', help='')
-    parser.add_argument('--fork', action='store_true', help='')
-    parser.add_argument('files', help='directory')
-    app_args = parser.parse_args()
+    app_args = parser().parse_args()
 
     data = load_arrays(app_args.files)
 

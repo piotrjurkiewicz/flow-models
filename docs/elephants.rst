@@ -14,8 +14,8 @@ Tools
 
    elephants/*
 
-ML-based detection with sklearn
-===============================
+Using scikit-learn
+==================
 
 .. toctree::
    :glob:

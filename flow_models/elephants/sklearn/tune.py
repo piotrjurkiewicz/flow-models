@@ -18,11 +18,14 @@ import sklearn.tree
 from flow_models.elephants.ml import prepare_decision, load_arrays, make_slice, prepare_input, score_reduction
 from flow_models.lib.util import logmsg
 
+def parser():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('-O', '--output', default='sklearn', help='output directory and plot file name')
+    p.add_argument('files', help='directory')
+    return p
+
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-O', '--output', default='sklearn', help='output directory and plot file name')
-    parser.add_argument('files', help='directory')
-    app_args = parser.parse_args()
+    app_args = parser().parse_args()
 
     data = load_arrays(app_args.files)
 

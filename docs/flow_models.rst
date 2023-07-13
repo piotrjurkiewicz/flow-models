@@ -2,7 +2,7 @@ flow\_models package
 ====================
 
 flow\_models.anonymize module
----------------------------
+-----------------------------
 
 .. automodule:: flow_models.anonymize
    :members:
@@ -16,7 +16,7 @@ flow\_models.convert module
    :show-inheritance:
 
 flow\_models.cut module
----------------------------
+-----------------------
 
 .. automodule:: flow_models.cut
    :members:
@@ -65,14 +65,14 @@ flow\_models.plot module
    :show-inheritance:
 
 flow\_models.series module
-------------------------
+--------------------------
 
 .. automodule:: flow_models.series
    :members:
    :show-inheritance:
 
 flow\_models.series\_plot module
-------------------------
+--------------------------------
 
 .. automodule:: flow_models.series_plot
    :members:
