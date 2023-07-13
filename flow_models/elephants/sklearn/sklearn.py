@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+"""
+Trains sklearn models to detect elephant flows and plots resulting flow table occupancy reduction curves.
+"""
+
 import argparse
 import collections
 import os
