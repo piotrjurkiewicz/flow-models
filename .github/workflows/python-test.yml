@@ -20,6 +20,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Checkout submodule
+      run: git submodule update --init data/agh_2015061019_IPv4_anon
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
