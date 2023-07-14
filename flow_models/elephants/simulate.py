@@ -103,6 +103,32 @@ def simulate_chunk(data, x_val, seed, method, p, r):
     return method, p, r, result_u, result_f
 
 def simulate(obj, size=1, x_val='length', seed=None, methods=tuple(METHODS), rounds=5, affinity=False):
+    """
+    Simulate flow table occupancy reduction curve for given traffic coverages.
+
+    Parameters
+    ----------
+    obj : os.PathLike
+        csv_hist histogram file or mixture directory
+    size : int, default 1
+        number of flows to generate
+    x_val : str, default 'length'
+        x axis value
+    seed : int, optional
+        seed for the random generator
+    methods : list, ['first', 'threshold', 'sampling']
+        methods to calculate
+    rounds : int, default 5
+        number of repetitions of simulation on generated flows
+    affinity: bool, default False
+        set per-cpu affinity for all processes
+
+    Returns
+    -------
+    dict[str, pd.DataFrame]
+        calculated DataFrame for each method
+    """
+
     data = list(load_data([obj]).values())[0]
 
     x = 1 / np.power(2, range(25))

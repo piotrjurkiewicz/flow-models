@@ -146,6 +146,26 @@ def calculate_mix(data, x_probs, x_val, method):
     return pd.DataFrame(ad, x_probs if method == 'sampling' else x)
 
 def calculate(obj, index=None, x_val='length', methods=tuple(METHODS)):
+    """
+    Calculate flow table occupancy reduction curve for given traffic coverages.
+
+    Parameters
+    ----------
+    obj : os.PathLike
+        csv_hist histogram file or mixture directory
+    index : int | numpy.array, optional
+        flow size thresholds to calculate upon or their number, default [2..2^24]
+    x_val : str, default 'length'
+        x axis value
+    methods : list, ['first', 'threshold', 'sampling']
+        methods to calculate
+
+    Returns
+    -------
+    dict[str, pd.DataFrame]
+        calculated DataFrame for each method
+    """
+
     data = list(load_data([obj]).values())[0]
 
     if index is None:
