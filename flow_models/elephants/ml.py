@@ -34,6 +34,36 @@ def prepare_decision(oc, coverage):
 
     return decision
 
+def top_idx(oc, ratio):
+    """
+    Get indices of the largest flows.
+
+    Parameters
+    ----------
+    oc : numpy.array
+        flow sizes (number of octets/bytes)
+    ratio : float
+        percentage of largest flows
+
+    Returns
+    -------
+    np.array[int]
+        indices of the largest flows
+    """
+
+    size = int(len(oc) * ratio / 2)
+    idx = np.flip(np.argsort(oc))
+    idx_rest = np.random.choice(idx[size:], size, replace=False)
+
+    return np.random.permutation(np.concatenate([idx[:size], idx_rest]))
+
+def top_split(all_inp, all_oc, n_splits, ratio):
+    import sklearn.model_selection
+    for train_index, test_index in sklearn.model_selection.KFold(n_splits).split(all_inp, all_oc):
+        train_oc = all_oc[train_index]
+        train_index = train_index[top_idx(train_oc, ratio)]
+        yield train_index, test_index
+
 def load_arrays(directory):
     """
     Load 5-tuple and flow sizes arrays from a directory.

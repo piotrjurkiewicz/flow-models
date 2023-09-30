@@ -19,7 +19,8 @@ import sklearn.preprocessing
 import sklearn.svm
 import sklearn.tree
 
-from flow_models.elephants.ml import prepare_decision, load_arrays, make_slice, prepare_input, calculate_reduction, plot, calculate_reduction_from_mixture, interp_reduction
+from flow_models.elephants.ml import prepare_decision, load_arrays, make_slice, prepare_input, calculate_reduction, \
+    plot, calculate_reduction_from_mixture, interp_reduction, top_idx
 from flow_models.lib.plot import PDF_NONE
 from flow_models.lib.util import logmsg
 
@@ -125,7 +126,8 @@ def main():
                                     print(results[f'{name} ({mode})'])
                             elif issubclass(clf_class, sklearn.base.RegressorMixin):
                                 clf = clf_class(**clf_params, random_state=app_args.seed)
-                                clf.fit(train_inp, train_oc)
+                                idx = top_idx(train_oc, 0.1)
+                                clf.fit(train_inp[idx], train_oc[idx])
                                 logmsg(f"Fitted {name}")
                                 for mode in modes:
                                     inp = locals()[f'{mode}_inp']
