@@ -15,7 +15,8 @@ import sklearn.preprocessing
 import sklearn.svm
 import sklearn.tree
 
-from flow_models.elephants.ml import prepare_decision, load_arrays, make_slice, prepare_input, score_reduction
+from flow_models.elephants.ml import prepare_decision, load_arrays, make_slice, prepare_input, score_reduction, \
+    dask_upload_package, top_split
 from flow_models.lib.util import logmsg
 
 def parser():
@@ -25,6 +26,16 @@ def parser():
     return p
 
 def main():
+
+    use_dask = True
+    if use_dask:
+        import joblib
+        import dask
+        import dask.distributed
+        # client = Client()
+        client = dask.distributed.Client('mach0.kt.agh.edu.pl:8786')
+        dask_upload_package(client, 'flow_models')
+
     app_args = parser().parse_args()
 
     data = load_arrays(app_args.files)
@@ -62,8 +73,13 @@ def main():
         gsc.fit(all_inp, all_decision)
     elif issubclass(clf_class, sklearn.base.RegressorMixin):
         clf = clf_class()
-        gsc = sklearn.model_selection.GridSearchCV(clf, hparams, scoring=scoring, cv=5, n_jobs=10, verbose=5)
-        gsc.fit(all_inp, all_oc)
+        gsc = sklearn.model_selection.GridSearchCV(clf, hparams, scoring=scoring, cv=top_split(all_inp, all_oc, 5, 0.1), n_jobs=-1, verbose=5)
+        if use_dask:
+            with joblib.parallel_backend('dask'):
+                with dask.annotate(resources={'GPU': 1}):
+                    gsc.fit(all_inp, all_oc)
+        else:
+            gsc.fit(all_inp, all_oc)
     else:
         raise NotImplementedError
 

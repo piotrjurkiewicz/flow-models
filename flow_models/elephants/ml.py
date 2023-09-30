@@ -311,3 +311,14 @@ def plot(r, title=None):
     plt.title(title)
     plt.xlabel('Traffic coverage [%]')
     plt.ylabel('Flow table occupancy reduction [x]')
+
+def dask_upload_package(client, name):
+    from importlib.util import find_spec
+    from shutil import make_archive
+    from tempfile import TemporaryDirectory
+    from pathlib import Path
+    spec = find_spec('flow_models')
+    path = Path(spec.origin).parent.parent
+    with TemporaryDirectory() as tmpdirname:
+        make_archive(f'{tmpdirname}/{name}', 'zip', path, name)
+        client.upload_file(f'{tmpdirname}/{name}.zip')
