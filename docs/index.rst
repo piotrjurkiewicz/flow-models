@@ -12,6 +12,21 @@ The `first_mirror` subpackage allows for the simulation of the first N packet mi
 
 The `elephants` subpackage provides functionalities for simulating and analyzing mechanisms related to elephant flows. Elephant flows (also called heavy-hitters) are flows which are responsible for the vast majority of traffic in the Internet. By focusing on these flows, advanced traffic engineering (TE) mechanisms can be leveraged in the network without the requirement of maintaining individual entries for every flow.
 
+You can cite the following paper if you use `flow-models` in your research:
+
+.. code-block::
+
+    @article{flow-models,
+        title = {flow-models: A framework for analysis and modeling of IP network flows},
+        journal = {SoftwareX},
+        volume = {17},
+        pages = {100929},
+        year = {2022},
+        issn = {2352-7110},
+        doi = {10.1016/j.softx.2021.100929},
+        author = {Piotr Jurkiewicz}
+    }
+
 Provided tools
 ==============
 

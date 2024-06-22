@@ -9,6 +9,19 @@ NetFlow/IPFIX flow records. It can be used to merge split records, calculate his
 General Mixture Models fitting them. Created models can be used both as an input in analytical calculations and to
 generate realistic traffic in simulations.
 
+You can cite the following paper if you use `flow-models` in your research:
+
+    @article{flow-models,
+        title = {flow-models: A framework for analysis and modeling of IP network flows},
+        journal = {SoftwareX},
+        volume = {17},
+        pages = {100929},
+        year = {2022},
+        issn = {2352-7110},
+        doi = {10.1016/j.softx.2021.100929},
+        author = {Piotr Jurkiewicz}
+    }
+
 The framework can be installed from [Python Package Index (PyPI)](https://pypi.org/project/flow-models/) using the
 following command:
 
