@@ -14,7 +14,7 @@ The `elephants` subpackage provides functionalities for simulating and analyzing
 
 You can cite the following paper if you use `flow-models` in your research:
 
-.. code-block::
+.. code-block:: bibtex
 
     @article{flow-models,
         title = {flow-models: A framework for analysis and modeling of IP network flows},
