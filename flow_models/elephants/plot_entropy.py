@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import scipy.stats
 
-from flow_models.elephants.ml import load_arrays, prepare_input
+from flow_models.lib.ml import load_arrays, prepare_input
 from flow_models.lib.plot import PDF_NONE
 
 matplotlib.rcParams['pdf.use14corefonts'] = True

@@ -19,8 +19,8 @@ import sklearn.preprocessing
 import sklearn.svm
 import sklearn.tree
 
-from flow_models.elephants.ml import load_arrays, make_slice, prepare_input
 from flow_models.elephants.simulate_data import simulate_data
+from flow_models.lib.ml import load_arrays, make_slice, prepare_input
 from flow_models.lib.util import logmsg
 
 PPS = None

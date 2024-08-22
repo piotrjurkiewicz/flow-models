@@ -15,7 +15,7 @@ import sklearn.preprocessing
 import sklearn.svm
 import sklearn.tree
 
-from flow_models.elephants.ml import prepare_decision, load_arrays, make_slice, prepare_input, score_reduction, \
+from flow_models.lib.ml import prepare_decision, load_arrays, make_slice, prepare_input, score_reduction, \
     dask_upload_package, top_split
 from flow_models.lib.util import logmsg
 
