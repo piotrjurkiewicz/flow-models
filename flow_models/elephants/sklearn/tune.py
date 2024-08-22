@@ -85,8 +85,11 @@ def main():
         raise NotImplementedError
 
     pd.DataFrame(gsc.cv_results_).drop('params', axis=1).to_html('sklearn.html')
-    name = f"{clf_class.__name__} {gsc.best_params_} {prep_par} {data_par}"
-    logmsg(f"Best: {gsc.best_score_} {name}")
+    try:
+        name = f"{clf_class.__name__} {gsc.best_params_} {prep_par} {data_par}"
+        logmsg(f"Best: {gsc.best_score_} {name}")
+    except AttributeError:
+        pass
     logmsg(f"Finished {name}")
 
 
