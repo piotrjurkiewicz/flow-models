@@ -27,7 +27,7 @@ def parser():
 
 def main():
 
-    use_dask = True
+    use_dask = False
     if use_dask:
         import joblib
         import dask
@@ -42,9 +42,9 @@ def main():
 
     clf_class = sklearn.ensemble.ExtraTreesRegressor
     hparams = {
-        'n_estimators': [10],
+        'n_estimators': [23],
         # 'criterion': ['mse', 'mae'],
-        # 'max_depth': [None],
+        'max_depth': [*range(20, 31)],
         # 'min_samples_split': [2, 4, 8, 16, 32],
         'min_samples_leaf': [1, 2, 3, 4],
         # 'oob_score': [True, False],
@@ -74,7 +74,8 @@ def main():
         gsc.fit(prepared_inp, all_decision)
     elif issubclass(clf_class, sklearn.base.RegressorMixin):
         clf = clf_class()
-        gsc = sklearn.model_selection.GridSearchCV(clf, hparams, scoring=scoring, cv=top_split(prepared_inp, all_octets, 5, 0.1), n_jobs=-1, verbose=5)
+        gsc = sklearn.model_selection.GridSearchCV(clf, hparams, scoring=scoring, cv=5, n_jobs=-1, verbose=5)
+        # gsc = sklearn.model_selection.GridSearchCV(clf, hparams, scoring=scoring, cv=top_split(prepared_inp, all_octets, 5, 0.1), n_jobs=-1, verbose=5)
         if use_dask:
             with joblib.parallel_backend('dask'):
                 with dask.annotate(resources={'GPU': 1}):
