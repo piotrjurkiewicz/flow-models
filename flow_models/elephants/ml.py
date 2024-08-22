@@ -180,7 +180,7 @@ def calculate_reduction(octets, octets_predicted, thresholds=None):
     Returns
     -------
     np.array[3]
-        [threshold, flow_table_reduction, traffic_coverage] array containing flow
+        [threshold, traffic_coverage, flow_table_reduction] array containing flow
         table size reduction and traffic coverage obtained for each flow size threshold
     """
 
@@ -192,11 +192,13 @@ def calculate_reduction(octets, octets_predicted, thresholds=None):
         thresholds = thresholds * 64
 
     res = []
-    with np.errstate(divide='ignore'):
-        for threshold in thresholds:
-            decision = oc_predicted > threshold
-            res.append([threshold, len(oc) / decision.sum(), oc[decision].sum() / oc.sum()])
-    return np.array(res).T
+    for threshold in thresholds:
+        decision = octets_predicted > threshold
+        if decision.sum() > 0:
+            res.append([threshold, octets[decision].sum() / octets.sum(), len(octets) / decision.sum()])
+    res = np.array(res).T
+    keys = np.argsort(res[1])
+    return res[:, keys]
 
 def calculate_reduction_from_mixture(path):
     """
@@ -221,9 +223,9 @@ def calculate_reduction_from_mixture(path):
     reduction = 1 / (1 - mix.cdf(data['flows'], x))
     coverage = 1 - mix.cdf(data['octets'], x)
     mask = coverage > 0.4
-    return np.array([x[mask], reduction[mask], coverage[mask]])
+    return np.array([x[mask][::-1], coverage[mask][::-1], reduction[mask][::-1]])
 
-def interp_reduction(x, flow_table_reduction, traffic_coverage):
+def interp_reduction(x, traffic_coverage, flow_table_reduction):
     """
     Interpolate flow reduction curve for given traffic coverages.
 
@@ -231,18 +233,18 @@ def interp_reduction(x, flow_table_reduction, traffic_coverage):
     ----------
     x : numpy.array
         traffic coverage point to interpolate upon
-    flow_table_reduction : numpy.array
-        calculated flow table size reduction
     traffic_coverage : numpy.array
-        traffic coverage corresponding to the flow table size reduction above
+        traffic coverages corresponding to the input flow table size reductions
+    flow_table_reduction : numpy.array
+        input flow table size reductions
 
     Returns
     -------
     (numpy.array, numpy.array)
-        x, traffic_coverage_for_x
+        x, flow_table_reduction_for_x
     """
 
-    y = np.interp(x, traffic_coverage[::-1], flow_table_reduction[::-1], left=np.nan, right=np.nan)
+    y = np.interp(x, traffic_coverage, flow_table_reduction, left=np.nan)
     return x, y
 
 def score_reduction(octets, octets_predicted):
@@ -262,8 +264,8 @@ def score_reduction(octets, octets_predicted):
         average flow table size reduction for 80% traffic coverage
     """
 
-    threshold, flow_table_reduction, traffic_coverage = calculate_reduction(oc, oc_predicted)
-    _, y = interp_reduction([0.80], flow_table_reduction, traffic_coverage)
+    threshold, traffic_coverage, flow_table_reduction = calculate_reduction(octets, octets_predicted)
+    _, y = interp_reduction([0.80], traffic_coverage, flow_table_reduction)
     return y.mean() if np.isfinite(y).all() else np.nan
 
 def plot_style():
