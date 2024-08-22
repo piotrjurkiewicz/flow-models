@@ -55,10 +55,11 @@ def main():
     }
 
     data_par = {}
-    prep_par = {'to_octets': True}
+    prep_par = {'octets': True}
 
     all_data = make_slice(data, **data_par)
-    all_inp, all_oc = prepare_input(all_data, **prep_par)
+    *all_inp, all_octets = all_data
+    prepared_inp = prepare_input(all_inp, **prep_par)
 
     scoring = sklearn.metrics.make_scorer(score_reduction)
 
@@ -66,20 +67,20 @@ def main():
     logmsg(f"Starting {name}")
 
     if issubclass(clf_class, sklearn.base.ClassifierMixin):
-        all_decision = prepare_decision(all_oc, 0.80)
+        all_decision = prepare_decision(all_octets, 0.80)
         clf = clf_class()
         # TODO: Fix scoring here
         gsc = sklearn.model_selection.GridSearchCV(clf, hparams, scoring=scoring, cv=5, n_jobs=4, verbose=5)
-        gsc.fit(all_inp, all_decision)
+        gsc.fit(prepared_inp, all_decision)
     elif issubclass(clf_class, sklearn.base.RegressorMixin):
         clf = clf_class()
-        gsc = sklearn.model_selection.GridSearchCV(clf, hparams, scoring=scoring, cv=top_split(all_inp, all_oc, 5, 0.1), n_jobs=-1, verbose=5)
+        gsc = sklearn.model_selection.GridSearchCV(clf, hparams, scoring=scoring, cv=top_split(prepared_inp, all_octets, 5, 0.1), n_jobs=-1, verbose=5)
         if use_dask:
             with joblib.parallel_backend('dask'):
                 with dask.annotate(resources={'GPU': 1}):
-                    gsc.fit(all_inp, all_oc)
+                    gsc.fit(prepared_inp, all_octets)
         else:
-            gsc.fit(all_inp, all_oc)
+            gsc.fit(prepared_inp, all_octets)
     else:
         raise NotImplementedError
 

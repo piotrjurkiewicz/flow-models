@@ -119,36 +119,32 @@ def make_slice(data, skip=0, count=None):
 
     return sa[s], da[s], sp[s], dp[s], prot[s], oc[s]
 
-def prepare_input(data, shuffle=False, to_octets=False, bit_vector=False):
+def prepare_input(data, octets=False, bits=False):
     """
     Prepare input features array and target (flow sizes) array.
 
     Parameters
     ----------
-    data : (np.array, np.array, np.array, np.array, np.array, np.array)
-        input data: (sa, da, sp, dp, prot, oc)
-    shuffle : bool, default False
-        shuffle order of flows randomly
-    to_octets : bool, default False
+    data : (np.array, np.array, np.array, np.array, np.array)
+        input data: (sa, da, sp, dp, prot)
+    octets : bool, default False
         split IP addresses to separate 1-byte octets
-    bit_vector : bool, default False
+    bits : bool, default False
         split all input fields to separate bits
 
     Returns
     -------
-    (np.array[5], np.array)
-        input features array, target value (flow sizes) array
+    np.array[5]
+        input features array
     """
 
-    sa, da, sp, dp, prot, oc = data
+    sa, da, sp, dp, prot = data
 
-    if to_octets:
+    if octets:
         sa = sa.view(np.uint8).reshape(sa.shape + (sa.dtype.itemsize,)).T
         da = da.view(np.uint8).reshape(da.shape + (da.dtype.itemsize,)).T
         sp = sp.view(np.uint8).reshape(sp.shape + (sp.dtype.itemsize,)).T
         dp = dp.view(np.uint8).reshape(dp.shape + (dp.dtype.itemsize,)).T
-        # sp = [sp]
-        # dp = [dp]
     else:
         sa = [sa]
         da = [da]
@@ -157,7 +153,7 @@ def prepare_input(data, shuffle=False, to_octets=False, bit_vector=False):
 
     columns = (*sp, *sa, *da, *dp, prot)
 
-    if bit_vector:
+    if bits:
         cols = []
         for col in columns:
             cols.append(col.view(np.uint8).reshape(col.shape + (col.dtype.itemsize,)))
@@ -166,14 +162,7 @@ def prepare_input(data, shuffle=False, to_octets=False, bit_vector=False):
     else:
         inp = np.column_stack(columns)
 
-    if shuffle:
-        idx = np.arange(len(oc))
-        rng = np.random.default_rng()
-        rng.shuffle(idx)
-        inp = inp[idx]
-        oc = oc[idx]
-
-    return inp, oc
+    return inp
 
 def calculate_reduction(octets, octets_predicted, thresholds=None):
     """
