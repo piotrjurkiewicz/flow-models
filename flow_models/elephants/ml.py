@@ -277,40 +277,13 @@ def score_reduction(octets, octets_predicted):
     _, y = interp_reduction([0.80], flow_table_reduction, traffic_coverage)
     return y.mean() if np.isfinite(y).all() else np.nan
 
-def plot(r, title=None):
-    """
-    Plot reduction all reduction curves in a dictionary.
-
-    Parameters
-    ----------
-    r : dict[name, numpy.array[threshold, flow_table_reduction, traffic_coverage]]
-        dictionary containing reduction curves and their names
-    title: str, optional
-        plot title
-    """
-
-    plt.figure(figsize=(10, 5))
+def plot_style():
     plt.yscale('log')
-    for name, (_, red, cov) in r.items():
-        color = 'k'
-        if name == 'Mixture':
-            plt.plot(cov * 100, red, label=name, lw=1, color=color)
-        else:
-            for w in name.split()[::-1]:
-                try:
-                    color = f'C{int(w)}'
-                    break
-                except ValueError:
-                    pass
-            plt.plot(cov * 100, red, label=name, lw=1, alpha=0.5, color=color, linestyle='-')
-            # x, y = interp_red(np.arange(0.8, 0.9, 0.01), red, cov)
-            # plt.plot(x * 100, y, marker='.', markersize=5, linestyle='none', color='k')
-    plt.xlim(100, 50)
+    plt.xlim(50, 100)
     plt.ylim(1, 10000)
     plt.gca().get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-    plt.title(title)
     plt.xlabel('Traffic coverage [%]')
-    plt.ylabel('Flow table occupancy reduction [x]')
+    plt.ylabel('Flow table operations reduction [x]')
 
 def dask_upload_package(client, name):
     from importlib.util import find_spec
