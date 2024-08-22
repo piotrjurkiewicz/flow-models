@@ -34,13 +34,13 @@ def prepare_decision(oc, coverage):
 
     return decision
 
-def top_idx(oc, ratio):
+def top_idx(octets, ratio):
     """
     Get indices of the largest flows.
 
     Parameters
     ----------
-    oc : numpy.array
+    octets : numpy.array
         flow sizes (number of octets/bytes)
     ratio : float
         percentage of largest flows
@@ -51,17 +51,17 @@ def top_idx(oc, ratio):
         indices of the largest flows
     """
 
-    size = int(len(oc) * ratio / 2)
-    idx = np.flip(np.argsort(oc))
+    size = int(len(octets) * ratio / 2)
+    idx = np.flip(np.argsort(octets))
     idx_rest = np.random.choice(idx[size:], size, replace=False)
 
     return np.random.permutation(np.concatenate([idx[:size], idx_rest]))
 
-def top_split(all_inp, all_oc, n_splits, ratio):
+def top_split(all_input, all_octets, n_splits, ratio):
     import sklearn.model_selection
-    for train_index, test_index in sklearn.model_selection.KFold(n_splits).split(all_inp, all_oc):
-        train_oc = all_oc[train_index]
-        train_index = train_index[top_idx(train_oc, ratio)]
+    for train_index, test_index in sklearn.model_selection.KFold(n_splits).split(all_input, all_octets):
+        train_octets = all_octets[train_index]
+        train_index = train_index[top_idx(train_octets, ratio)]
         yield train_index, test_index
 
 def load_arrays(directory):
@@ -175,15 +175,15 @@ def prepare_input(data, shuffle=False, to_octets=False, bit_vector=False):
 
     return inp, oc
 
-def calculate_reduction(oc, oc_predicted, thresholds=None):
+def calculate_reduction(octets, octets_predicted, thresholds=None):
     """
     Calculate flow reduction curve.
 
     Parameters
     ----------
-    oc : numpy.array
+    octets : numpy.array
         real flow sizes (number of octets/bytes)
-    oc_predicted : numpy.array
+    octets_predicted : numpy.array
         predicted flow sizes (number of octets/bytes)
     thresholds: int | numpy.array, optional
         flow size thresholds to calculate upon or their number, default [2..2^24]
@@ -256,15 +256,15 @@ def interp_reduction(x, flow_table_reduction, traffic_coverage):
     y = np.interp(x, traffic_coverage[::-1], flow_table_reduction[::-1], left=np.nan, right=np.nan)
     return x, y
 
-def score_reduction(oc, oc_predicted):
+def score_reduction(octets, octets_predicted):
     """
     Calculate average flow table size reduction for 80% traffic coverage.
 
     Parameters
     ----------
-    oc : numpy.array
+    octets : numpy.array
         real flow sizes (number of octets/bytes)
-    oc_predicted : numpy.array
+    octets_predicted : numpy.array
         predicted flow sizes (number of octets/bytes)
 
     Returns
