@@ -172,6 +172,7 @@ def load_data(app_args):
     return new_dfd, interp_dfd, res
 
 def heatmap(ax, val, cmap, vformat, norm, xticks=None, yticks=None, std=None, title=None, xlabel=None):
+    ax.pcolor(val, norm=norm, cmap=cmap)
     ax.set_frame_on(False)
 
     # put the major ticks at the middle of each cell
