@@ -414,7 +414,7 @@ def main():
         initial = app_args.initial
 
     with measure_memory(app_args.measure_memory):
-        args = dict(in_file=app_args.file, y_value=app_args.y, max_iter=app_args.i, initial=initial, max_pareto_w=app_args.mpw)
+        args = {'in_file': app_args.file, 'y_value': app_args.y, 'max_iter': app_args.i, 'initial': initial, 'max_pareto_w': app_args.mpw}
         if app_args.interactive:
             gui(**args)
         else:
