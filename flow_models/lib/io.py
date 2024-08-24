@@ -306,7 +306,8 @@ def read_flow_binary(in_dir, counters=None, filter_expr=None, fields=None):
         counters = {'skip_in': 0, 'count_in': None, 'skip_out': 0, 'count_out': None}
 
     path = pathlib.Path(in_dir)
-    assert path.exists() and path.is_dir()
+    assert path.exists()
+    assert path.is_dir()
     flows = Flows()
     fields_to_load = [name for name in flows.fields if fields is None or name in fields]
     use_numpy = True

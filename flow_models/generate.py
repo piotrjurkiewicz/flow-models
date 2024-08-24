@@ -91,7 +91,8 @@ def generate_flows(in_file, size=1, x_value='length', random_state=None):
 
     data = next(iter(load_data([in_file]).values()))
 
-    assert isinstance(size, int) and size >= 0
+    assert isinstance(size, int)
+    assert size >= 0
     rng = random.Random(random_state)
 
     packets, octets, number = generate_arrays(data, size, x_value, random_state)
