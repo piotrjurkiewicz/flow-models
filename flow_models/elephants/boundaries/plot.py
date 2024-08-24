@@ -75,7 +75,7 @@ def plot_usage(calculated, what):
     z = pd.concat({k: pd.concat(v) for k, v in interpolated.items()})
     z = z.unstack([0, 1]).swaplevel(1, 2, axis=1).sort_index(axis=1)[['occupancy_mean', 'operations_mean']]
     z = z.reindex(METHODS, axis=1, level=1)
-    z.loc[points][['occupancy_mean', 'operations_mean']].to_latex(f'selected.tex',
+    z.loc[points][['occupancy_mean', 'operations_mean']].to_latex('selected.tex',
                                                                   float_format='%.2f',
                                                                   multicolumn_format='c')
 
@@ -212,8 +212,8 @@ def plot_probability():
             label='p = 0.1$')
     ax.text(12, 0.6, '$p = 0.1$')
     ax.text(150, 0.6, '$p = 0.01$')
-    ax.set_xlabel(f'Flow length [packets]')
-    ax.set_ylabel(f'Total probability of being added to flow table')
+    ax.set_xlabel('Flow length [packets]')
+    ax.set_ylabel('Total probability of being added to flow table')
     ax.set_xscale('log')
     save_figure(fig, 'probability')
     plt.close(fig)

@@ -173,7 +173,7 @@ def main():
 
         ax2.set_ylim(bit_end, bit_start)
 
-    plt.savefig(f'entropy.pdf', bbox_inches='tight', metadata=PDF_NONE)
+    plt.savefig('entropy.pdf', bbox_inches='tight', metadata=PDF_NONE)
 
 
 if __name__ == '__main__':

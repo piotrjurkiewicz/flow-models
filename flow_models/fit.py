@@ -301,7 +301,7 @@ def gui(**kwargs):
             canvas.draw()
 
     def on_key_press(event):
-        print("you pressed {}".format(event.key))
+        print(f"you pressed {event.key}")
         key_press_handler(event, canvas, toolbar)
 
     canvas.mpl_connect("key_press_event", on_key_press)
