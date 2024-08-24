@@ -207,11 +207,11 @@ def avg(data, x, x_val, what):
 
     return avg_mix
 
-def to_json(mix, sum=None):
+def to_json(mix, suma=None):
     s = ''
-    if sum:
-        s += '{\n' + f'  "sum": {sum},\n' + '  "mix": '
+    if suma:
+        s += '{\n' + f'  "sum": {suma},\n' + '  "mix": '
     s += '[\n    ' + ',\n    '.join(json.dumps(c, default=lambda v: v.item()) for c in mix) + '\n  ]'
-    if sum:
+    if suma:
         s += '\n}'
     return s
