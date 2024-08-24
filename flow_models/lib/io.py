@@ -121,7 +121,7 @@ def read_flow_csv(in_file, counters=None, filter_expr=None, fields=None):
     if isinstance(in_file, io.IOBase):
         stream = in_file
     else:
-        stream = open(str(in_file), 'r')
+        stream = open(str(in_file))
 
     for line in stream:
         if counters['skip_in'] > 0:
@@ -191,7 +191,7 @@ def read_pipe(in_file, counters=None, filter_expr=None, fields=None):
     if isinstance(in_file, io.IOBase):
         stream = in_file
     else:
-        stream = open(str(in_file), 'r')
+        stream = open(str(in_file))
 
     for line in stream:
         if counters['skip_in'] > 0:
