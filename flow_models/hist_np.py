@@ -112,7 +112,7 @@ def calc_dir(path, x_value, columns, counters=None, filter_expr=None):
     key_column = key_columns[x_value]
 
     if 'duration' in columns or 'rate' in columns:
-        fields_to_load = columns + ['first', 'first_ms', 'last', 'last_ms']
+        fields_to_load = [*columns, 'first', 'first_ms', 'last', 'last_ms']
     else:
         fields_to_load = columns
 
@@ -196,7 +196,7 @@ def hist(in_files, output, in_format='binary', out_format='csv_hist', skip_in=0,
         bin_calc_fn = bin_calc_log
 
     writer = OUT_FORMATS[out_format]
-    columns = ['packets', 'octets'] + additional_columns
+    columns = ['packets', 'octets', *additional_columns]
 
     if isinstance(in_files, list):
         dirs = [pathlib.Path(f) for f in in_files]
@@ -210,7 +210,7 @@ def hist(in_files, output, in_format='binary', out_format='csv_hist', skip_in=0,
         results += calc_dir(d, x_value, columns, counters, filter_expr)
 
     bins = functools.reduce(np.union1d, (bins for bins, _ in results))
-    sums = {c: np.zeros(len(bins)) for c in ['flows'] + columns}
+    sums = {c: np.zeros(len(bins)) for c in ['flows', *columns]}
 
     for bn, data in results:
         indices = np.searchsorted(bins, bn)

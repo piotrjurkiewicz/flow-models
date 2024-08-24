@@ -14,7 +14,7 @@ from flow_models.lib.util import logmsg
 
 PDF_NONE = {'Creator': None, 'Producer': None, 'CreationDate': None}
 MODES_MIXTURE = ['comp', 'comp_stack', 'comp_labels']
-MODES_PDF = ['points', 'hist', 'kde'] + MODES_MIXTURE
+MODES_PDF = ['points', 'hist', 'kde', *MODES_MIXTURE]
 MODES_CDF = MODES_MIXTURE
 
 def save_figure(figure, fname, ext='pdf', **kwargs):

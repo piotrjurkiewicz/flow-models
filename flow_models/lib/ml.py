@@ -141,10 +141,10 @@ def prepare_input(data, octets=False, bits=False):
     sa, da, sp, dp, prot = data
 
     if octets:
-        sa = sa.view(np.uint8).reshape(sa.shape + (sa.dtype.itemsize,)).T
-        da = da.view(np.uint8).reshape(da.shape + (da.dtype.itemsize,)).T
-        sp = sp.view(np.uint8).reshape(sp.shape + (sp.dtype.itemsize,)).T
-        dp = dp.view(np.uint8).reshape(dp.shape + (dp.dtype.itemsize,)).T
+        sa = sa.view(np.uint8).reshape((*sa.shape, sa.dtype.itemsize)).T
+        da = da.view(np.uint8).reshape((*da.shape, da.dtype.itemsize)).T
+        sp = sp.view(np.uint8).reshape((*sp.shape, sp.dtype.itemsize)).T
+        dp = dp.view(np.uint8).reshape((*dp.shape, dp.dtype.itemsize)).T
     else:
         sa = [sa]
         da = [da]
@@ -156,7 +156,7 @@ def prepare_input(data, octets=False, bits=False):
     if bits:
         cols = []
         for col in columns:
-            cols.append(col.view(np.uint8).reshape(col.shape + (col.dtype.itemsize,)))
+            cols.append(col.view(np.uint8).reshape((*col.shape, col.dtype.itemsize)))
         inp = np.column_stack(cols)
         inp = np.unpackbits(inp, axis=1)
     else:

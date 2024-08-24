@@ -35,7 +35,7 @@ def plot_traffic(calculated):
             ddd = ddd[~ddd.index.duplicated()]
             ddd = ddd.reindex(ddd.index.union(nidx)).interpolate('slinear').reindex(nidx)
             interpolated.setdefault(method, {})[x_val] = ddd
-    for to in ['absolute'] + list(METHODS):
+    for to in ['absolute', *list(METHODS)]:
         to_label = '%'
         fig, axes = plt.subplots(1, 2, sharex='all', sharey='all', figsize=[FIGSIZE[0] * 2.132, FIGSIZE[1]])
         for n, x_val in enumerate(['length', 'size']):
@@ -79,7 +79,7 @@ def plot_usage(calculated, what):
                                                                   float_format='%.2f',
                                                                   multicolumn_format='c')
 
-    for to in ['absolute'] + list(METHODS):
+    for to in ['absolute', *list(METHODS)]:
         to_label = ' reduction [x]'
         fig, axes = plt.subplots(1, 2, sharex='all', sharey='all', figsize=[FIGSIZE[0] * 2.132, FIGSIZE[1]])
         for n, x_val in enumerate(['length', 'size']):
