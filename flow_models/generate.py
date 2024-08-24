@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Generates flow records from histograms or mixture models.
-"""
+"""Generates flow records from histograms or mixture models."""
 
 import argparse
 import itertools

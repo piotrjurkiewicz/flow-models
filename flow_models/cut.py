@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Cuts binary flow records with dd.
-"""
+"""Cuts binary flow records with dd."""
 
 import array
 import pathlib

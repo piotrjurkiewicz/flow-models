@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Generates packets and octets time series from flow records.
-"""
+"""Generates packets and octets time series from flow records."""
 import collections
 import pathlib
 

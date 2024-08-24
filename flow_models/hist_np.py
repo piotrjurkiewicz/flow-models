@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Calculates histograms using multiple threads (requires `numpy`, much faster, but uses more memory).
-"""
+"""Calculates histograms using multiple threads (requires `numpy`, much faster, but uses more memory)."""
 
 import concurrent.futures
 import functools

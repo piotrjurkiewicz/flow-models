@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Simulates flow table for elephant flow classification using flow records data directory.
-"""
+"""Simulates flow table for elephant flow classification using flow records data directory."""
 
 import argparse
 import pathlib

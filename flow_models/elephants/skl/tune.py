@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Tunes hyperparameters of sklearn models to detect elephant flows.
-"""
+"""Tunes hyperparameters of sklearn models to detect elephant flows."""
 
 import argparse
 

@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Simulates first N packets of new flow mirroring feature.
-"""
+"""Simulates first N packets of new flow mirroring feature."""
 import collections
 import pathlib
 

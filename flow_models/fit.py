@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Creates General Mixture Models (GMM) fitted to flow records (requires `scipy`).
-"""
+"""Creates General Mixture Models (GMM) fitted to flow records (requires `scipy`)."""
 
 import argparse
 import collections

@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Simulates first, threshold and sampling elephant detection methods on packet-level from mixture or histogram data.
-"""
+"""Simulates first, threshold and sampling elephant detection methods on packet-level from mixture or histogram data."""
 
 import argparse
 import collections

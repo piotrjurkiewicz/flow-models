@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Produces TeX tables containing summary statistics of flow dataset (requires `scipy`).
-"""
+"""Produces TeX tables containing summary statistics of flow dataset (requires `scipy`)."""
 
 import argparse
 import pathlib

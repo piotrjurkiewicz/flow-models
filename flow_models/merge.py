@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Merges flows which were split across multiple records due to *active timeout*.
-"""
+"""Merges flows which were split across multiple records due to *active timeout*."""
 
 import warnings
 

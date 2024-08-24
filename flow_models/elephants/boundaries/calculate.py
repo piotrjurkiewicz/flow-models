@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Calculates flow reduction curves from mixture or histogram data for first, threshold and sampling methods.
-"""
+"""Calculates flow reduction curves from mixture or histogram data for first, threshold and sampling methods."""
 
 import argparse
 

@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Calculates histograms of flows length, size, duration or rate.
-"""
+"""Calculates histograms of flows length, size, duration or rate."""
 
 from .lib.io import IOArgumentParser, IN_FORMATS, write_none, write_line, FILTER_HELP, write_append
 from .lib.util import logmsg, bin_calc_one, bin_calc_log

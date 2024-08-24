@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Sorts flow records according to specified key fields (requires `numpy`).
-"""
+"""Sorts flow records according to specified key fields (requires `numpy`)."""
 
 import pathlib
 

@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Generates plots from train_regressors results.
-"""
+"""Generates plots from train_regressors results."""
 
 import argparse
 import collections

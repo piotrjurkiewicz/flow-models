@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Plots flow reduction curves from mixture or histogram data for first, threshold and sampling methods.
-"""
+"""Plots flow reduction curves from mixture or histogram data for first, threshold and sampling methods."""
 
 import argparse
 import collections

@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Anonymizes IP addresses in IPv4 flows using Crypto-PAn algorithm.
-"""
+"""Anonymizes IP addresses in IPv4 flows using Crypto-PAn algorithm."""
 
 from .lib.cryptopan import CryptoPan
 from .lib.io import IOArgumentParser, IN_FORMATS, OUT_FORMATS, FILTER_HELP

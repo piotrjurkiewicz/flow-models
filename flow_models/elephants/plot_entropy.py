@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Generates plot of features entropy and (optionally) importance.
-"""
+"""Generates plot of features entropy and (optionally) importance."""
 
 import argparse
 import itertools

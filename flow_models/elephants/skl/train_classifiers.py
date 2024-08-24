@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Trains and evaluates sklearn classifier models to classify elephant flows.
-"""
+"""Trains and evaluates sklearn classifier models to classify elephant flows."""
 
 import argparse
 import collections

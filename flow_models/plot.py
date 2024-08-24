@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Generates plots from flow records and fitted models (requires `pandas` and `scipy`).
-"""
+"""Generates plots from flow records and fitted models (requires `pandas` and `scipy`)."""
 
 import argparse
 

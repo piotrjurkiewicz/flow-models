@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-"""
-Generates plots from train_classifier results.
-"""
+"""Generates plots from train_classifier results."""
 
 import argparse
 import collections
