@@ -34,7 +34,7 @@ def prepare_decision(oc, coverage):
 
     return decision
 
-def top_idx(octets, ratio):
+def top_idx(octets, ratio, seed=None):
     """
     Get indices of the largest flows.
 
@@ -44,6 +44,8 @@ def top_idx(octets, ratio):
         flow sizes (number of octets/bytes)
     ratio : float
         percentage of largest flows
+    seed: int, default None
+        seed for random generator
 
     Returns
     -------
@@ -51,11 +53,12 @@ def top_idx(octets, ratio):
         indices of the largest flows
     """
 
+    rng = np.random.default_rng(seed)
     size = int(len(octets) * ratio / 2)
     idx = np.flip(np.argsort(octets))
-    idx_rest = np.random.choice(idx[size:], size, replace=False)
+    idx_rest = rng.choice(idx[size:], size, replace=False)
 
-    return np.random.permutation(np.concatenate([idx[:size], idx_rest]))
+    return rng.permutation(np.concatenate([idx[:size], idx_rest]))
 
 def top_split(all_input, all_octets, n_splits, ratio):
     import sklearn.model_selection
