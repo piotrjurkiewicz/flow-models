@@ -195,7 +195,7 @@ def sort(in_files, output, key_fields, in_format='binary', out_format='binary', 
     ----------
     in_files : list[str]
         input files paths
-    output : os.PathLike
+    output : os.PathLike | None
         output directory path
     key_fields : list[str]
         ordered list of key fields
@@ -238,10 +238,11 @@ def sort(in_files, output, key_fields, in_format='binary', out_format='binary', 
             logmsg('Using existing index file...')
         except FileNotFoundError:
             logmsg('Index file not exists, will be created...')
-            index = create_index(in_files, key_fields, index_file, counters, reverse)
+            index = create_index(in_files[0], key_fields, index_file, counters, reverse)
 
-    for f in prepare_file_list(in_files):
-        sort_array(f, output, index, counters)
+    if output:
+        for f in prepare_file_list(in_files):
+            sort_array(f, output, index, counters)
 
 def parser():
     p = IOArgumentParser(description=__doc__, epilog=EPILOG)
