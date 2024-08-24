@@ -62,11 +62,11 @@ def iterate_arrays(packets, octets, number):
     if number is None:
         yield from zip(packets, octets)
     else:
-        for packets, octets, number in zip(packets, octets, number):
-            if number == 1:
-                yield packets, octets
+        for pa, oc, nu in zip(packets, octets, number):
+            if nu == 1:
+                yield pa, oc
             else:
-                yield from itertools.repeat((packets, octets), number)
+                yield from itertools.repeat((pa, oc), nu)
 
 def generate_flows(in_file, size=1, x_value='length', random_state=None):
     """
@@ -95,15 +95,15 @@ def generate_flows(in_file, size=1, x_value='length', random_state=None):
     rng = random.Random(random_state)
 
     packets, octets, number = generate_arrays(data, size, x_value, random_state)
-    for packets, octets in iterate_arrays(packets, octets, number):
+    for pa, oc in iterate_arrays(packets, octets, number):
         if x_value == 'length':
-            pks = int(packets)
-            ocs = int(octets)
-            ocs = ocs if rng.random() + ocs >= octets else ocs + 1
+            pks = int(pa)
+            ocs = int(oc)
+            ocs = ocs if rng.random() + ocs >= oc else ocs + 1
         elif x_value == 'size':
-            pks = int(packets)
-            pks = pks if rng.random() + pks >= packets else pks + 1
-            ocs = int(octets)
+            pks = int(pa)
+            pks = pks if rng.random() + pks >= pa else pks + 1
+            ocs = int(oc)
         else:
             raise NotImplementedError
         yield 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, pks, ocs, 0

@@ -670,9 +670,9 @@ def prepare_file_list(file_paths):
             if not path.exists():
                 raise ValueError(f'File {path} does not exist')
             if path.is_dir():
-                for path in sorted(path.glob('**/*')):
-                    if path.is_file():
-                        files.append(path)
+                for subpath in sorted(path.glob('**/*')):
+                    if subpath.is_file():
+                        files.append(subpath)
             else:
                 if path.is_file():
                     files.append(path)
