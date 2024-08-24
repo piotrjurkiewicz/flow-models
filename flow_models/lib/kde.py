@@ -12,17 +12,15 @@
 from __future__ import division, print_function, absolute_import
 
 # Standard library imports.
-import warnings
 
 # Scipy imports.
-from scipy import linalg, special
-from scipy.special import logsumexp
+from scipy import linalg
 from scipy.stats import norm, multivariate_normal
 from scipy.signal import fftconvolve
 from scipy.interpolate import interp1d, RegularGridInterpolator
 
 from numpy import atleast_2d, reshape, zeros, newaxis, dot, exp, pi, sqrt, \
-     ravel, power, atleast_1d, squeeze, sum, transpose
+     power, sum
 import numpy as np
 
 
