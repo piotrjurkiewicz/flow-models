@@ -55,7 +55,7 @@ def stats_summary(data):
             col = what + '_sum'
             if col in data:
                 tot = data[col].sum()
-                s.append('\\textbf{Number of %s} & ' % what + '{:,}'.format(tot).replace(',', ' ') + f' & {what} \\\\')
+                s.append(f'\\textbf{{Number of {what}}} & ' + f'{tot:,}'.replace(',', ' ') + f' & {what} \\\\')
         for what in X_VALUES:
             col = UNITS[what]
             if col not in Y_VALUES:
@@ -63,9 +63,9 @@ def stats_summary(data):
             col = col + '_sum'
             if col in data:
                 tot = data[col].sum() / data['flows_sum'].sum()
-                s.append('\\textbf{Average flow %s} & ' % what + '{:.6f}'.format(tot) + f' & {UNITS[what]} \\\\')
+                s.append(f'\\textbf{{Average flow {what}}} & ' + f'{tot:.6f}' + f' & {UNITS[what]} \\\\')
         tot = data['octets_sum'].sum() / data['packets_sum'].sum()
-        s.append('\\textbf{Average packet size} & ' + '{:.6f}'.format(tot) + ' & bytes \\\\')
+        s.append('\\textbf{Average packet size} & ' + f'{tot:.6f}' + ' & bytes \\\\')
         s += ['\\bottomrule',
               '\\end{tabular}']
         return '\n'.join(s)
@@ -89,9 +89,9 @@ def cdf_summary(data, x_val):
             vals[what] = cdfi * 100
         s = ['\\begin{tabular}{@{}lrrr@{}}',
              '\\toprule',
-             '\\textbf{Flows of %s up to} & ' % x_val + '\\multicolumn{3}{c}{\\textbf{Make up \\%}} \\\\',
+             f'\\textbf{{Flows of {x_val} up to}} & ' + '\\multicolumn{3}{c}{\\textbf{Make up \\%}} \\\\',
              '\\cmidrule(lr){2-4}',
-             '\\multicolumn{1}{c}{(%s)} & of ' % UNITS[x_val] + ' & of '.join(Y_VALUES) + ' \\\\',
+             f'\\multicolumn{{1}}{{c}}{{({UNITS[x_val]})}} & of ' + ' & of '.join(Y_VALUES) + ' \\\\',
              '\\midrule']
         for n in range(len(points)):
             s.append(f'{points[n]} & ' + ' & '.join(f'{vals[what][n]:.4f}' for what in Y_VALUES) + ' \\\\')
