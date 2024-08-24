@@ -16,7 +16,7 @@ from .lib.io import OUT_FORMATS
 from .lib.mix import rvs, avg
 
 EPILOG = \
-f"""
+"""
 This tool can be used to generate example flow tuples from mixture or histogram file.
 
 Generated flow stream will preserve distribution of flow features (length, size).

@@ -14,7 +14,7 @@ from .lib.data import UNITS, detect_x_value
 from .lib.util import logmsg
 
 EPILOG = \
-f"""
+"""
 This tool can be used to generate LaTeX summary of flow histogram statistics.
 
 Example:

@@ -12,7 +12,7 @@ from .lib.io import IOArgumentParser, prepare_file_list
 from .lib.util import logmsg
 
 EPILOG = \
-f"""
+"""
 This tool can be used to cut flow records when both input and output are in
 binary formats. It is more efficient to use cut than the convert tool in such case,
 because flow records are not being serialized during the operation.
