@@ -29,7 +29,7 @@ Example:
 X_VALUES = ['length', 'size', 'duration', 'rate']
 
 def generate_arrays(obj, size=1, x_val='length', random_state=None):
-    data = list(load_data([obj]).values())[0]
+    data = next(iter(load_data([obj]).values()))
 
     if isinstance(data, pd.DataFrame):
         if size:
@@ -91,7 +91,7 @@ def generate_flows(in_file, size=1, x_value='length', random_state=None):
         af, prot, inif, outif, sa0, sa1, sa2, sa3, da0, da1, da2, da3, sp, dp, first, first_ms, last, last_ms, packets, octets, aggs
     """
 
-    data = list(load_data([in_file]).values())[0]
+    data = next(iter(load_data([in_file]).values()))
 
     assert isinstance(size, int) and size >= 0
     rng = random.Random(random_state)

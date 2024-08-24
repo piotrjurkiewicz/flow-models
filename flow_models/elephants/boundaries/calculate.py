@@ -166,7 +166,7 @@ def calculate(obj, index=None, x_val='length', methods=tuple(METHODS)):
         calculated DataFrame for each method
     """
 
-    data = list(load_data([obj]).values())[0]
+    data = next(iter(load_data([obj]).values()))
 
     if index is None:
         index = 1 / np.power(2, range(25))

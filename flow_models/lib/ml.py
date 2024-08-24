@@ -216,7 +216,7 @@ def calculate_reduction_from_mixture(path):
         table size reduction and traffic coverage obtained for each flow size threshold
     """
 
-    data = list(load_data([path]).values())[0]
+    data = next(iter(load_data([path]).values()))
     index = 1 / np.logspace(0, 32, 1024, base=2)
     x = np.unique(np.rint(1 / np.array(index))).astype('u8')
     x *= 64
