@@ -201,7 +201,7 @@ def hist(in_files, output, in_format='binary', out_format='csv_hist', skip_in=0,
     if isinstance(in_files, list):
         dirs = [pathlib.Path(f) for f in in_files]
     else:
-        raise ValueError()
+        raise ValueError
 
     counters = {'skip_in': skip_in, 'count_in': count_in, 'skip_out': skip_out, 'count_out': count_out}
     results = []
