@@ -111,12 +111,12 @@ def plot_calc_sim(ax, calculated, simulated, method, x_val, w):
     sim_style = {
         'octets': 'bo',
         'flows': 'ro',
-        'fraction': 'ko'
+        'fraction': 'ko',
     }
     calc_style = {
         'octets': 'b-',
         'flows': 'r-',
-        'fraction': 'k-'
+        'fraction': 'k-',
     }
     if w == 'fraction':
         name = 'Occupancy'

@@ -279,7 +279,7 @@ def test_convert():
         'count_in': [-1, 0, None, 1, 4097],
         'skip_out': [-1, 0, 1, 4097],
         'count_out': [-1, 0, None, 1, 4097],
-        'filter_expr': [None, compile('prot==6', 'tcp', 'eval'), compile('prot==17', 'udp', 'eval')]
+        'filter_expr': [None, compile('prot==6', 'tcp', 'eval'), compile('prot==17', 'udp', 'eval')],
     }
 
     for suffix, in_format in [('_4096', 'binary'), ('_4096.csv', 'csv_flow')]:

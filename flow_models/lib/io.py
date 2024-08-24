@@ -48,7 +48,7 @@ class Flows:
         'last_ms': 'H',
         'packets': 'Q',
         'octets': 'Q',
-        'aggs': 'I'
+        'aggs': 'I',
     }
 
     __slots__ = ['af', 'prot', 'inif', 'outif', 'sa0', 'sa1', 'sa2', 'sa3', 'da0', 'da1', 'da2', 'da3', 'sp', 'dp',

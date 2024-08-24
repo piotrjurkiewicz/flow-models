@@ -20,7 +20,7 @@ def test_cut():
         'skip_in': [-1, 0, 1, 4097],
         'count_in': [-1, 0, None, 1, 4097],
         'skip_out': [-1, 0, 1, 4097],
-        'count_out': [-1, 0, None, 1, 4097]
+        'count_out': [-1, 0, None, 1, 4097],
     }
 
     for params in flow_models.tests.test_convert.product_dict(**matrix):

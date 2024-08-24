@@ -14,13 +14,13 @@ UNITS = {
     'length': 'packets',
     'size': 'bytes',
     'duration': 'milliseconds',
-    'rate': 'bps'
+    'rate': 'bps',
 }
 
 STYLE = {
     'flows': ('r', 'Reds'),
     'packets': ('g', 'Greens'),
-    'octets': ('b', 'Blues')
+    'octets': ('b', 'Blues'),
 }
 
 SEED = 0

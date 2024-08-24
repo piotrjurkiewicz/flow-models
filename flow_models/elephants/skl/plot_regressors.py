@@ -24,7 +24,7 @@ TSV_COLUMNS = [
     'min_coverage', 'mean_coverage', 'max_coverage',
     'min_occupancy', 'mean_occupancy', 'max_occupancy',
     'r2_score', 'r2_score_weighted', 'depth', 'leaves',
-    'true_negatives', 'false_positives', 'false_negatives', 'true_positives'
+    'true_negatives', 'false_positives', 'false_negatives', 'true_positives',
 ]
 
 COLUMN_NAMES = {
@@ -56,7 +56,7 @@ COLUMN_NAMES = {
     'npv': 'NPV',
     'markedness': 'MK\n(Marked-\nness)',
     'mcc': 'MCC',
-    'ts': 'TS'
+    'ts': 'TS',
 }
 
 class Normalize(matplotlib.colors.Normalize):

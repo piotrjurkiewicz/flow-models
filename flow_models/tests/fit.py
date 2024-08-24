@@ -18,7 +18,7 @@ def test(max_iter):
 
     mix = [
         [0.2, 'genpareto', (1.450289555235508, 16, 23.204632883768134)],
-        [0.8, 'lognorm', (5, 0, 20)]
+        [0.8, 'lognorm', (5, 0, 20)],
     ]
 
     mix = fit_mix(vec, mix, max_iter=max_iter)
@@ -32,7 +32,7 @@ def test(max_iter):
 
     mix = [
         [0.1, 'gamma', (2.0, 0, 2.0)],
-        [0.1, 'gamma', (6.0, 0, 1.0)]
+        [0.1, 'gamma', (6.0, 0, 1.0)],
     ]
 
     mix = fit_mix(vec, mix, max_iter=max_iter)
@@ -46,7 +46,7 @@ def test(max_iter):
 
     mix = [
         [0.1, 'weibull_min', (0.603166697701473, 0, 1.205880227867377e02)],
-        [0.1, 'weibull_min', (0.904428347376388, 0, 6.685081880588410e04)]
+        [0.1, 'weibull_min', (0.904428347376388, 0, 6.685081880588410e04)],
     ]
 
     mix = fit_mix(vec, mix, max_iter=max_iter)
