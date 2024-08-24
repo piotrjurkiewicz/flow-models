@@ -76,7 +76,7 @@ def main():
         normalized_df["bytes"] = normalized_df["bytes"] / 8
         normalized_df = normalized_df ** 2
 
-        heatmap0 = ax0.pcolor(pd.DataFrame([0.0] * 104), vmin=0.0, vmax=2.0, cmap='Oranges')
+        ax0.pcolor(pd.DataFrame([0.0] * 104), vmin=0.0, vmax=2.0, cmap='Oranges')
         ax0.set_frame_on(False)
 
         # put the major ticks at the middle of each cell
@@ -107,7 +107,7 @@ def main():
 
         ax0.set_ylim(bit_end, bit_start)
 
-        heatmap1 = ax1.pcolor(normalized_df.values, vmin=0.0, vmax=2.0, cmap='Oranges')
+        ax1.pcolor(normalized_df.values, vmin=0.0, vmax=2.0, cmap='Oranges')
         ax1.set_frame_on(False)
 
         # put the major ticks at the middle of each cell
@@ -142,7 +142,7 @@ def main():
         df = pd.DataFrame(importances)
         normalized_df = df
 
-        heatmap2 = ax2.pcolor(normalized_df.values, vmin=0.0, vmax=0.8, cmap='Blues')
+        ax2.pcolor(normalized_df.values, vmin=0.0, vmax=0.8, cmap='Blues')
         ax2.set_frame_on(False)
 
         # put the major ticks at the middle of each cell
