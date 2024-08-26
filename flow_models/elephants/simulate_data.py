@@ -30,11 +30,11 @@ def simulate_data(directory, index=Ellipsis, mask=None, pps=None, fps=None, time
         binary flow records directory
     index : np.array, default Ellipsis
         index array of flows to use for simulating data
-    mask : np.array[bool], default None
+    mask : np.array[bool], optional
         flows to add to flow table (elephants)
-    pps : float, default None
+    pps : float, optional
         packets per second, when None flow records times are used for calculation
-    fps : float, default None
+    fps : float, optional
         flows per second, when None flow records times are used for calculation
     timeout : float, default 15.0
         inactive flow table timeout in seconds
