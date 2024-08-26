@@ -54,7 +54,7 @@ def anonymize(in_files, output, in_format='nfcapd', out_format='csv_flow', skip_
 
     key = key.encode()
     if not key or len(key) != 32:
-        ValueError("Please specify 32 bytes long encryption key")
+        raise ValueError("Please specify 32 bytes long encryption key")
 
     cp = CryptoPan(key)
     ip_cache = {}
