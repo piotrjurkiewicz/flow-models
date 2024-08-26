@@ -29,12 +29,10 @@ def init_worker():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 def set_affinity(executor):
-    n = 0
     subprocess.check_call(['renice', '19'] + [str(p) for p in executor._processes], stdout=sys.stderr)
-    for pid in executor._processes:
+    for n, pid in enumerate(executor._processes):
         logmsg(f'Setting affinity {pid} to CPU{n}')
         os.sched_setaffinity(pid, [n])
-        n += 1
 
 def chunker(iterable):
     chunk = []
