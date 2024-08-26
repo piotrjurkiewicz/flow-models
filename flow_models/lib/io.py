@@ -520,11 +520,12 @@ def load_array_mv(path, mode='r'):
     """
 
     name, dtype, path = find_array_path(path)
+    path = pathlib.Path(path)
     flags = mmap.MAP_SHARED if mode == 'c' else mmap.MAP_SHARED
     prot = mmap.PROT_READ
     if mode != 'r':
         prot |= mmap.PROT_WRITE
-    if os.path.getsize(str(path)) > 0:
+    if path.stat().st_size > 0:
         with open(str(path)) as f:
             mm = mmap.mmap(f.fileno(), 0, flags=flags, prot=prot)
         mv = memoryview(mm).cast(dtype)
