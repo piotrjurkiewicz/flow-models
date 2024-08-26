@@ -121,7 +121,7 @@ def load_data(app_args):
                 if 'bit' in parts[-3]:
                     prep = 'bits'
             if params:
-                params = json.loads(params.replace("\'", "\""))
+                params = json.loads(params.replace('\'', '"'))
                 if 'n_estimators' in params:
                     algo += f"{params['n_estimators']}t"
                 if 'max_depth' in params:
