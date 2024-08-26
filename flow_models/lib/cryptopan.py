@@ -29,7 +29,7 @@ class CryptoPan:
         self.pad = self.aes.update(key[16:32])
         f4 = self.pad[0:4]
         f4bp = self.toint(f4)
-        self.masks = [(mask, f4bp & (~ mask)) for mask in (0xFFFFFFFF >> (32 - p) << (32 - p) for p in range(0, 32))]
+        self.masks = [(mask, f4bp & (~ mask)) for mask in (0xFFFFFFFF >> (32 - p) << (32 - p) for p in range(32))]
 
     def toint(self, array):
         return array[0] << 24 | array[1] << 16 | array[2] << 8 | array[3]

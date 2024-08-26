@@ -17,7 +17,7 @@ def _test_perf():
     c = CryptoPan(KEY)
     print("starting performance check")
     stime = time.time()
-    for i in range(0, nb_tests):
+    for i in range(nb_tests):
         c.anonymize(addr)
     dtime = time.time() - stime
     print("%d anonymizations in %s s" % (nb_tests, dtime))
