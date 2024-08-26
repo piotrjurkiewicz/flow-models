@@ -11,7 +11,7 @@ matplotlib.rcParams['pdf.use14corefonts'] = True
 matplotlib.rcParams['font.family'] = 'sans'
 
 for what in ['flows', 'packets', 'octets']:
-    for f in sorted(pathlib.Path('.').glob(f'*.{what}')):
+    for f in sorted(pathlib.Path().glob(f'*.{what}')):
         s = pd.read_csv(f, header=None)
         if what == 'octets':
             s *= 8
