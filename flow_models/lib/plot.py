@@ -229,7 +229,7 @@ def plot_avg(data, idx=None, x_val='length', what='packets', mode=frozenset(['mi
         try:
             avg_mix = avg(data, idx, x_val, what)
         except KeyError:
-            return
+            return plots
 
         plt.xscale('log')
         if what in ['packets', 'octets']:
