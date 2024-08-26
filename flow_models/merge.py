@@ -3,8 +3,8 @@
 
 import warnings
 
-from .lib.io import IOArgumentParser, IN_FORMATS, OUT_FORMATS, FILTER_HELP
-from .lib.util import logmsg
+from flow_models.lib.io import FILTER_HELP, IN_FORMATS, IOArgumentParser, OUT_FORMATS
+from flow_models.lib.util import logmsg
 
 EPILOG = \
 f"""

@@ -10,9 +10,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
-from .lib.data import UNITS, LINE_NBINS, load_data
-from .lib.plot import plot_pdf, plot_cdf, plot_avg, save_figure, matplotlib_config, MODES_PDF, MODES_CDF
-from .lib.util import logmsg
+from flow_models.lib.data import LINE_NBINS, UNITS, load_data
+from flow_models.lib.plot import MODES_CDF, MODES_PDF, matplotlib_config, plot_avg, plot_cdf, plot_pdf, save_figure
+from flow_models.lib.util import logmsg
 
 X_VALUES = ['length', 'size', 'duration', 'rate']
 

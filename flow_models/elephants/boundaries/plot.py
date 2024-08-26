@@ -10,9 +10,9 @@ import matplotlib.ticker
 import numpy as np
 import pandas as pd
 
-from flow_models.elephants.calculate import calculate
+from flow_models.elephants.boundaries.calculate import calculate
 from flow_models.lib.data import UNITS
-from flow_models.lib.plot import save_figure, matplotlib_config
+from flow_models.lib.plot import matplotlib_config, save_figure
 
 X_VALUES = ['length', 'size']
 

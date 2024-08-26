@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 """Anonymizes IP addresses in IPv4 flows using Crypto-PAn algorithm."""
 
-from .lib.cryptopan import CryptoPan
-from .lib.io import IOArgumentParser, IN_FORMATS, OUT_FORMATS, FILTER_HELP
-from .lib.util import logmsg
+from flow_models.lib.cryptopan import CryptoPan
+from flow_models.lib.io import FILTER_HELP, IN_FORMATS, IOArgumentParser, OUT_FORMATS
+from flow_models.lib.util import logmsg
 
 EPILOG = \
 f"""

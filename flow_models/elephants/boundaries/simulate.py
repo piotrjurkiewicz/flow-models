@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 import scipy.stats
 
-from flow_models.generate import generate_flows, X_VALUES, load_data
+from flow_models.generate import X_VALUES, generate_flows, load_data
 from flow_models.lib.util import logmsg
 
 METHODS = ['first', 'threshold', 'sampling']

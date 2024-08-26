@@ -16,10 +16,10 @@ import scipy.stats
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from .lib.mix import to_json
-from .lib.data import load_data, LINE_NBINS, detect_x_value
-from .lib.plot import plot_pdf, plot_cdf, plot_avg
-from .lib.util import logmsg, measure_memory
+from flow_models.lib.data import LINE_NBINS, detect_x_value, load_data
+from flow_models.lib.mix import to_json
+from flow_models.lib.plot import plot_avg, plot_cdf, plot_pdf
+from flow_models.lib.util import logmsg, measure_memory
 
 X_VALUES = ['length', 'size']
 Y_VALUES = ['flows', 'packets', 'octets']
@@ -209,9 +209,10 @@ def gui(**kwargs):
     import tkinter.filedialog
     import tkinter.scrolledtext
     import tkinter.ttk
-    from tkinter import N, E, S, W
-    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+    from tkinter import E, N, S, W
+
     from matplotlib.backend_bases import key_press_handler
+    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 
     mixtures = collections.defaultdict(dict)
 

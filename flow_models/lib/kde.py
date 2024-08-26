@@ -9,19 +9,18 @@
 # https://github.com/scipy/scipy/issues/6176
 # https://github.com/michaelhb/superplot/blob/master/superplot/statslib/kde.py
 
-from __future__ import division, print_function, absolute_import
+from __future__ import absolute_import, division, print_function
 
-# Standard library imports.
+import numpy as np
 
+from numpy import atleast_2d, dot, exp, newaxis, pi, power, reshape, sqrt, sum, zeros
 # Scipy imports.
 from scipy import linalg
-from scipy.stats import norm, multivariate_normal
+from scipy.interpolate import RegularGridInterpolator, interp1d
 from scipy.signal import fftconvolve
-from scipy.interpolate import interp1d, RegularGridInterpolator
+from scipy.stats import multivariate_normal, norm
 
-from numpy import atleast_2d, reshape, zeros, newaxis, dot, exp, pi, sqrt, \
-     power, sum
-import numpy as np
+# Standard library imports.
 
 
 __all__ = ['gaussian_kde']

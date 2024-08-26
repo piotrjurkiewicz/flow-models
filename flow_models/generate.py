@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 
 from flow_models.lib.data import load_data
-from .lib.io import OUT_FORMATS
-from .lib.mix import rvs, avg
+from flow_models.lib.io import OUT_FORMATS
+from flow_models.lib.mix import avg, rvs
 
 EPILOG = \
 """

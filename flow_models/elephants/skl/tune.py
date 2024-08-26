@@ -13,9 +13,10 @@ import sklearn.preprocessing
 import sklearn.svm
 import sklearn.tree
 
-from flow_models.lib.ml import prepare_decision, load_arrays, make_slice, prepare_input, score_reduction, \
-    dask_upload_package, top_split
+from flow_models.lib.ml import dask_upload_package, load_arrays, make_slice, prepare_decision, prepare_input, \
+    score_reduction, top_split
 from flow_models.lib.util import logmsg
+
 
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
@@ -27,9 +28,9 @@ def main():
 
     use_dask = False
     if use_dask:
-        import joblib
         import dask
         import dask.distributed
+        import joblib
         # client = Client()
         client = dask.distributed.Client('mach0.kt.agh.edu.pl:8786')
         dask_upload_package(client, 'flow_models')

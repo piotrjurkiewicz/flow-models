@@ -5,9 +5,10 @@ import argparse
 import numpy as np
 import scipy.stats
 
-from ..fit import fit_mix
-from ..lib.mix import to_json
-from ..lib.util import logmsg, measure_memory
+from flow_models.fit import fit_mix
+from flow_models.lib.mix import to_json
+from flow_models.lib.util import logmsg, measure_memory
+
 
 def test(max_iter):
     logmsg("genpareto lognorm")

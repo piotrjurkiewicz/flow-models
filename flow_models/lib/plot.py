@@ -5,12 +5,14 @@ import numpy as np
 import pandas as pd
 import scipy
 import scipy.interpolate
-from matplotlib import pyplot as plt, colors as colors
 
-from flow_models.lib.data import STYLE, LINE_NBINS, calc_minmax, normalize_data, HIST_NBINS, log_gaussian_kde, \
-    KDE_NBINS, avg_data, pdf_from_cdf
-from flow_models.lib.mix import cdf, pdf, cdf_comp, pdf_comp, avg
-from flow_models.lib.util import logmsg
+from matplotlib import colors
+from matplotlib import pyplot as plt
+
+from .data import HIST_NBINS, KDE_NBINS, LINE_NBINS, STYLE, avg_data, calc_minmax, log_gaussian_kde, normalize_data, \
+    pdf_from_cdf
+from .mix import avg, cdf, cdf_comp, pdf, pdf_comp
+from .util import logmsg
 
 PDF_NONE = {'Creator': None, 'Producer': None, 'CreationDate': None}
 MODES_MIXTURE = ['comp', 'comp_stack', 'comp_labels']

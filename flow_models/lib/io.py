@@ -1,14 +1,14 @@
 import argparse
 import array
 import io
-import mmap
-import os
 import pathlib
 import subprocess
 import sys
 import warnings
 
-from flow_models.lib.util import logmsg
+import mmap
+
+from .util import logmsg
 
 FILTER_HELP = \
 """

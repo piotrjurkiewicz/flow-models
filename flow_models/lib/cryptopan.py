@@ -18,7 +18,8 @@
 
 from functools import reduce
 
-from cryptography.hazmat.primitives.ciphers import Cipher, modes, algorithms
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+
 
 class CryptoPan:
     def __init__(self, key):

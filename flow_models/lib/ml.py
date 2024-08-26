@@ -2,11 +2,13 @@ import pathlib
 
 import matplotlib.ticker
 import numpy as np
+
 from matplotlib import pyplot as plt
 
-from flow_models.lib import mix
-from flow_models.lib.data import load_data
-from flow_models.lib.io import load_array_np
+from . import mix
+from .data import load_data
+from .io import load_array_np
+
 
 def prepare_decision(oc, coverage):
     """
@@ -281,9 +283,9 @@ def plot_style():
 
 def dask_upload_package(client, name):
     from importlib.util import find_spec
+    from pathlib import Path
     from shutil import make_archive
     from tempfile import TemporaryDirectory
-    from pathlib import Path
     spec = find_spec('flow_models')
     path = Path(spec.origin).parent.parent
     with TemporaryDirectory() as tmpdirname:

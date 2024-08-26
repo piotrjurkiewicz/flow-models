@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 """Converts flow records between supported formats. Can be used for filtering and cutting flow record files."""
 
-from .lib.io import IOArgumentParser, IN_FORMATS, OUT_FORMATS, FILTER_HELP
-from .lib.util import logmsg
+from flow_models.lib.io import FILTER_HELP, IN_FORMATS, IOArgumentParser, OUT_FORMATS
+from flow_models.lib.util import logmsg
 
 EPILOG = \
 f"""

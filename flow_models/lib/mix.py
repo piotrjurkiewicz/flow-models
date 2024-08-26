@@ -1,8 +1,9 @@
 import json
 
 import numpy as np
-import scipy.stats
 import scipy._lib._util
+import scipy.stats
+
 
 def mask_values(x, x_val):
     # Due to numerical constrains PDF for large x values needs to

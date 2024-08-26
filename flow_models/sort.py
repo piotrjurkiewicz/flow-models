@@ -5,8 +5,8 @@ import pathlib
 
 import numpy as np
 
-from .lib.io import load_array_np, prepare_file_list, load_arrays, IOArgumentParser, FILTER_HELP
-from .lib.util import logmsg, measure_memory
+from flow_models.lib.io import FILTER_HELP, IOArgumentParser, load_array_np, load_arrays, prepare_file_list
+from flow_models.lib.util import logmsg, measure_memory
 
 EPILOG = \
 f"""

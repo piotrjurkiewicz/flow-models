@@ -6,8 +6,8 @@ import pathlib
 import subprocess
 import sys
 
-from .lib.io import IOArgumentParser, prepare_file_list
-from .lib.util import logmsg
+from flow_models.lib.io import IOArgumentParser, prepare_file_list
+from flow_models.lib.util import logmsg
 
 EPILOG = \
 """

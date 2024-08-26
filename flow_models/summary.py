@@ -8,8 +8,8 @@ import numpy as np
 import pandas as pd
 import scipy.interpolate
 
-from .lib.data import UNITS, detect_x_value
-from .lib.util import logmsg
+from flow_models.lib.data import UNITS, detect_x_value
+from flow_models.lib.util import logmsg
 
 EPILOG = \
 """

@@ -3,8 +3,8 @@
 import collections
 import pathlib
 
-from ..lib.io import IOArgumentParser, IN_FORMATS, FILTER_HELP
-from ..lib.util import logmsg
+from flow_models.lib.io import FILTER_HELP, IN_FORMATS, IOArgumentParser
+from flow_models.lib.util import logmsg
 
 EPILOG = \
 f"""

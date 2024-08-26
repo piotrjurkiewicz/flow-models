@@ -8,7 +8,7 @@ import scipy.interpolate
 import scipy.stats
 
 from .kde import gaussian_kde
-from .util import bin_calc_one, bin_calc_log, logmsg
+from .util import bin_calc_log, bin_calc_one, logmsg
 
 UNITS = {
     'length': 'packets',
