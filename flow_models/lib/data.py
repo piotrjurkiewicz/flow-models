@@ -30,7 +30,7 @@ KDE_NBINS = 64
 
 def normalize_data(org_data, bin_exp=None):
     """
-    Normalizes data binned exponentially to present it on plot.
+    Normalize data binned exponentially to present it on plot.
 
     Parameters
     ----------
@@ -183,7 +183,7 @@ def pdf_from_cdf(data, idx, what):
 
 def load_data(objects):
     """
-    Loads mixtures or histograms into a structured dictionary.
+    Load mixtures or histograms into a structured dictionary.
 
     Parameters
     ----------

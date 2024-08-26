@@ -42,7 +42,7 @@ Converting, filtering and cutting can be done simultaneously in a single command
 
 def convert(in_files, output, in_format='nfcapd', out_format='csv_flow', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None):
     """
-    Converts flow records between supported formats. Can also be used for filtering and cutting flow record files.
+    Convert flow records between supported formats. Can also be used for filtering and cutting flow record files.
 
     Parameters
     ----------

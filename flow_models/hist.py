@@ -46,7 +46,7 @@ class FlowBin:
 
 def hist(in_files, output, in_format='nfcapd', out_format='csv_hist', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, bin_exp=0, x_value='length', additional_columns=[]):
     """
-    Calculates histograms of flows length, size, duration or rate.
+    Calculate histograms of flows length, size, duration or rate.
 
     Parameters
     ----------
