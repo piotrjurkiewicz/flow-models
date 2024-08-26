@@ -160,11 +160,11 @@ def old(directory, threshold=0, timeout=15, max_seconds=3600):
 def main():
     # app_args = parser().parse_args()
 
-    FPS = 1810
-    # PPS = 480
-    PPS = None
-    THRESHOLD = 10000000
-    TIMEOUT = 15
+    fps = 1810
+    # pps = 480
+    pps = None
+    threshold = 10000000
+    timeout = 15
 
     d = pathlib.Path('data/agh_2015061019_IPv4_anon/sorted')
     _, _, octets = load_array_np(d / 'octets')
@@ -175,8 +175,8 @@ def main():
     for fold, (train_index, test_index) in enumerate(sklearn.model_selection.KFold(5).split(octets)):
         logmsg(f"Fold {fold}")
 
-        all_fl, all_oc, fta, oca = simulate_data(d, index=test_index, mask=None, pps=PPS, fps=FPS, timeout=TIMEOUT)
-        cov_fl, cov_oc, ftr, ocr = simulate_data(d, index=test_index, mask=octets[test_index] > THRESHOLD, pps=PPS, fps=FPS, timeout=TIMEOUT)
+        all_fl, all_oc, fta, oca = simulate_data(d, index=test_index, mask=None, pps=pps, fps=fps, timeout=timeout)
+        cov_fl, cov_oc, ftr, ocr = simulate_data(d, index=test_index, mask=octets[test_index] > threshold, pps=pps, fps=fps, timeout=timeout)
 
         print(all_fl / cov_fl)
         print(cov_oc / all_oc)
