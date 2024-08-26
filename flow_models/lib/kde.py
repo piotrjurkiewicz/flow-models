@@ -1,3 +1,5 @@
+# ruff: noqa
+
 # Taken from SciPy
 # scipy/stats/kde.py at 79ed161bf603dc3af3986efe7064df79212c4dd4
 

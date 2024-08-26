@@ -1,5 +1,5 @@
 line-length = 220
-target-version = "py312"
+target-version = "py310"
 
 [lint]
 select = ["ALL"]
