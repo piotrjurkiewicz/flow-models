@@ -347,7 +347,7 @@ def main():
                 # plt.plot(100 * res['Data (all)'][1], res['Data (all)'][2], label='Data', lw=1, color='b', linestyle='-')
 
             for name, prep in agg.index:
-                if name == 'Data' or prep == chosen_prep or chosen_prep == 'all':
+                if name == 'Data' or chosen_prep in (prep, 'all'):
                     if name not in cs:
                         cs[name] = f'C{int(len(cs) - 1)}'
                     color = cs[name]
