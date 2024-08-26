@@ -165,13 +165,13 @@ def heatmap(ax, val, cmap, vformat, norm, xticks=None, yticks=None, std=None, ti
 
     # put the major ticks at the middle of each cell
     if xticks:
-        ax.set_xticks(np.arange(val.values.shape[1]) + 0.5, xticks, minor=False)
+        ax.set_xticks(np.arange(val.to_numpy().shape[1]) + 0.5, xticks, minor=False)
     elif xticks is None:
-        ax.set_xticks(np.arange(val.values.shape[1]) + 0.5, [COLUMN_NAMES.get(k, k) for k in val.columns], minor=False)
+        ax.set_xticks(np.arange(val.to_numpy().shape[1]) + 0.5, [COLUMN_NAMES.get(k, k) for k in val.columns], minor=False)
     else:
         ax.set_xticks([], minor=False)
     if yticks:
-        ax.set_yticks(np.arange(val.values.shape[0]) + 0.5, yticks, minor=False)
+        ax.set_yticks(np.arange(val.to_numpy().shape[0]) + 0.5, yticks, minor=False)
     else:
         ax.set_yticks([], minor=False)
 
@@ -188,12 +188,12 @@ def heatmap(ax, val, cmap, vformat, norm, xticks=None, yticks=None, std=None, ti
     if xlabel:
         ax.set_xlabel(xlabel, labelpad=8.0)
 
-    for i in range(val.values.shape[0]):
-        for j in range(val.values.shape[1]):
-            v = val.values[i, j]
+    for i in range(val.to_numpy().shape[0]):
+        for j in range(val.to_numpy().shape[1]):
+            v = val.to_numpy()[i, j]
             col = 'k' if norm(v) > 0.75 else 'k'
             if std is not None:
-                s = std.values[i, j]
+                s = std.to_numpy()[i, j]
                 ax.text(j + 0.5, i + 0.5, f"{format(v, vformat)}   ± {format(s, vformat)}", ha='center', va='center', color=col)
             else:
                 ax.text(j + 0.5, i + 0.5, format(v, vformat), ha='center', va='center', color=col)

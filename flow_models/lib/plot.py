@@ -121,7 +121,7 @@ def plot_pdf(data, idx=None, x_val='length', what='flows', mode=frozenset(['poin
                               label='infered from data points')
 
         values_sum = data[what + '_sum'].sum()
-        weights = data['flows_sum'].values
+        weights = data['flows_sum'].to_numpy()
 
         if normalize:
             logmsg('Normalizing data')

@@ -87,7 +87,7 @@ def plot_usage(calculated, what):
                 if to == 'absolute':
                     r = d.copy()
                     for col in r.columns:
-                        r[col].values[:] = 1
+                        r[col].to_numpy()[:] = 1
                     ax.plot(d.index, d[f'{what}_mean'] / r[f'{what}_mean'], 'k' + METHODS[method], lw=2,
                             label=method)
                 else:

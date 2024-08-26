@@ -35,10 +35,10 @@ def generate_arrays(obj, size=1, x_val='length', random_state=None):
             number = None
         else:
             sample = data.iloc[::-1]
-            number = sample['flows_sum'].values
+            number = sample['flows_sum'].to_numpy()
         packet_size = sample['octets_sum'] / sample['packets_sum']
-        sample = sample.index.values
-        packet_size = packet_size.values
+        sample = sample.index.to_numpy()
+        packet_size = packet_size.to_numpy()
     else:
         assert size
         sample = rvs(data['flows'], x_val, size, random_state=random_state)

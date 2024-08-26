@@ -109,7 +109,7 @@ def main():
         ax1.set_frame_on(False)
 
         # put the major ticks at the middle of each cell
-        ax1.set_xticks(np.arange(df.values.shape[1]) + 0.5, ["Octets\n[bits]", "Bit vector\n[bits]"], minor=False)
+        ax1.set_xticks(np.arange(df.to_numpy().shape[1]) + 0.5, ["Octets\n[bits]", "Bit vector\n[bits]"], minor=False)
         ax1.set_yticks([], minor=False)
 
         # want a more natural, table-like display
@@ -121,10 +121,10 @@ def main():
 
         ax1.set_title("Entropy", fontsize='medium', pad=8.0)
 
-        for i in range(df.values.shape[0]):
-            for j in range(df.values.shape[1]):
+        for i in range(df.to_numpy().shape[0]):
+            for j in range(df.to_numpy().shape[1]):
                 if bit_start <= i < bit_end:
-                    val = df.values[i, j]
+                    val = df.to_numpy()[i, j]
                     ax1.text(j + 0.5, i + 0.58, f"{val:7.2f}", ha='center', va='center', color='w' if val > 100 else 'k')
 
         ax1.hlines(y=0, xmin=0, xmax=2, colors='k', lw=2)
@@ -144,7 +144,7 @@ def main():
         ax2.set_frame_on(False)
 
         # put the major ticks at the middle of each cell
-        ax2.set_xticks(np.arange(df.values.shape[1]) + 0.5, df.columns, minor=False)
+        ax2.set_xticks(np.arange(df.to_numpy().shape[1]) + 0.5, df.columns, minor=False)
         ax2.set_yticks([], minor=False)
 
         # want a more natural, table-like display
@@ -156,10 +156,10 @@ def main():
 
         ax2.set_title("Feature importance", fontsize='medium', pad=8.0)
 
-        for i in range(df.values.shape[0]):
-            for j in range(df.values.shape[1]):
+        for i in range(df.to_numpy().shape[0]):
+            for j in range(df.to_numpy().shape[1]):
                 if bit_start <= i < bit_end:
-                    val = df.values[i, j]
+                    val = df.to_numpy()[i, j]
                     ax2.text(j + 0.5, i + 0.58, f"{val:7.2f}", ha='center', va='center', color='w' if val > 100 else 'k')
 
         ax2.hlines(y=0, xmin=0, xmax=6, colors='k', lw=2)

@@ -20,7 +20,7 @@ def calculate_data(data, x_probs, x_val, method):
     x = np.unique(np.rint(1 / x_probs)).astype('u8')
     if x_val == 'size':
         x *= 64
-    idx = data.index.values
+    idx = data.index.to_numpy()
     idx_diff = np.concatenate([idx[:1], np.diff(idx)])
 
     if method == 'first':

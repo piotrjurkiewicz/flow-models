@@ -193,8 +193,8 @@ def fit(in_file, y_value, max_iter=100, initial=None, max_pareto_w=None, cb=None
     logmsg(f'Processing: {in_file}')
 
     data = pd.read_csv(in_file, index_col=0, sep=',', low_memory=False, usecols=lambda n: not n.endswith('_ssq'))
-    x = data.index.values
-    weights = data[f'{y_value}_sum'].values
+    x = data.index.to_numpy()
+    weights = data[f'{y_value}_sum'].to_numpy()
 
     if isinstance(initial, dict):
         mix = initial_mix(initial, x)

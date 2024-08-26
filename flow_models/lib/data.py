@@ -45,7 +45,7 @@ def normalize_data(org_data, bin_exp=None):
         normalized histogram
     """
 
-    bin_widths = org_data['bin_hi'] - org_data.index.values
+    bin_widths = org_data['bin_hi'] - org_data.index.to_numpy()
     if bin_widths.min() == bin_widths.max() == 1:
         bin_calc = bin_calc_one
         logmsg('Using bin_calc_one')
@@ -57,7 +57,7 @@ def normalize_data(org_data, bin_exp=None):
 
     data = org_data
     bna = np.diff(data.index.values)
-    bin_next = np.append(bna, bna[-1]) + data.index.values
+    bin_next = np.append(bna, bna[-1]) + data.index.to_numpy()
     bin_next[-1] = bin_calc(bin_next[-1], bin_exp)[0]
 
     bh = data['bin_hi']
