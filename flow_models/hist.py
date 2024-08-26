@@ -44,7 +44,7 @@ class FlowBin:
     def to_line(self, fields):
         return ','.join(str(int(getattr(self, c))) for c in fields)
 
-def hist(in_files, output, in_format='nfcapd', out_format='csv_hist', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, bin_exp=0, x_value='length', additional_columns=[]):
+def hist(in_files, output, in_format='nfcapd', out_format='csv_hist', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, bin_exp=0, x_value='length', additional_columns=None):
     """
     Calculate histograms of flows length, size, duration or rate.
 
@@ -95,6 +95,8 @@ def hist(in_files, output, in_format='nfcapd', out_format='csv_hist', skip_in=0,
     written = 0
 
     fields = ['packets', 'octets']
+    if additional_columns is None:
+        additional_columns = []
     if 'duration' in additional_columns or 'rate' in additional_columns:
         fields += ['first', 'first_ms', 'last', 'last_ms']
     if 'aggs' in additional_columns:

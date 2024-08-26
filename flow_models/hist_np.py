@@ -150,7 +150,7 @@ def calc_dir(path, x_value, columns, counters=None, filter_expr=None):
 
     return results
 
-def hist(in_files, output, in_format='binary', out_format='csv_hist', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, bin_exp=0, x_value='length', additional_columns=[]):
+def hist(in_files, output, in_format='binary', out_format='csv_hist', skip_in=0, count_in=None, skip_out=0, count_out=None, filter_expr=None, bin_exp=0, x_value='length', additional_columns=None):
     """
     Calculate histograms of flows length, size, duration or rate.
 
@@ -194,6 +194,8 @@ def hist(in_files, output, in_format='binary', out_format='csv_hist', skip_in=0,
         bin_calc_fn = bin_calc_log
 
     writer = OUT_FORMATS[out_format]
+    if additional_columns is None:
+        additional_columns = []
     columns = ['packets', 'octets', *additional_columns]
 
     if isinstance(in_files, list):
