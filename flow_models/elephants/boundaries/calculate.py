@@ -170,8 +170,6 @@ def calculate(obj, index=None, x_val='length', methods=tuple(METHODS)):
         index = 1 / np.power(2, range(25))
     elif isinstance(index, int):
         index = 1 / np.logspace(0, 32, index, base=2)
-    else:
-        index = index
 
     dataframes = {}
     for method in methods:

@@ -56,9 +56,7 @@ def conf(d):
 def simulate_chunk(data, x_val, seed, method, p, r):
     data = pickle.loads(data)
     rng = random.Random(seed)
-    if method == 'sampling':
-        p = p
-    else:
+    if method != 'sampling':
         p = int(round(1 / p))
         if x_val == 'size':
             p *= 64
