@@ -24,7 +24,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 class CryptoPan:
     def __init__(self, key):
         if len(key) != 32:
-            raise Exception("Key must be a 32 byte long string")
+            raise ValueError("Key must be a 32 byte long string")
         self.aes = Cipher(algorithms.AES(key[0:16]), modes.ECB()).encryptor()
         self.pad = self.aes.update(key[16:32])
         f4 = self.pad[0:4]
