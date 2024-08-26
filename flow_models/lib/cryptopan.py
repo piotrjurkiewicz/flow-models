@@ -25,7 +25,7 @@ class CryptoPan:
     def __init__(self, key):
         if len(key) != 32:
             raise ValueError("Key must be a 32 byte long string")
-        self.aes = Cipher(algorithms.AES(key[0:16]), modes.ECB()).encryptor()
+        self.aes = Cipher(algorithms.AES(key[0:16]), modes.ECB()).encryptor()  # noqa: S305
         self.pad = self.aes.update(key[16:32])
         f4 = self.pad[0:4]
         f4bp = self.toint(f4)

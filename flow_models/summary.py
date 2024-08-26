@@ -68,6 +68,8 @@ def stats_summary(data):
               '\\end{tabular}']
         return '\n'.join(s)
 
+    return None
+
 def cdf_summary(data, x_val):
     if isinstance(data, pd.DataFrame):
         if not x_val:
@@ -96,6 +98,8 @@ def cdf_summary(data, x_val):
         s += ['\\bottomrule',
               '\\end{tabular}']
         return '\n'.join(s)
+
+    return None
 
 def parser():
     p = argparse.ArgumentParser(description=__doc__, epilog=EPILOG)

@@ -87,7 +87,7 @@ def flow_to_int(flow):
            int(flow[12]), int(flow[13]), int(flow[14]), int(flow[15]), int(flow[16]), int(flow[17]), \
            int(flow[18]), int(flow[19]), int(flow[20])
 
-def read_flow_csv(in_file, counters=None, filter_expr=None, fields=None):
+def read_flow_csv(in_file, counters=None, filter_expr=None, fields=None):  # noqa: ARG001
     """
     Read and yield all flows in a csv_flow file/stream.
 
@@ -155,7 +155,7 @@ def read_flow_csv(in_file, counters=None, filter_expr=None, fields=None):
     if not isinstance(in_file, io.IOBase):
         stream.close()
 
-def read_pipe(in_file, counters=None, filter_expr=None, fields=None):
+def read_pipe(in_file, counters=None, filter_expr=None, fields=None):  # noqa: ARG001
     """
     Read and yield all flows in a nfdump pipe file/stream.
 
@@ -610,7 +610,7 @@ def load_arrays(path, fields, counters, filter_expr, require_numpy=False):
                 else:
                     ar = ar[0:0]
             ars[name] = ar
-        except FileNotFoundError:
+        except FileNotFoundError:  # noqa: PERF203
             warnings.warn(f"Array file for flow field '{name}' not found in directory {path}."
                           " Assuming zero as value of this field")
             ars[name] = ZeroArray()

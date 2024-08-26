@@ -196,7 +196,7 @@ def simulate(obj, size=1, x_val='length', seed=None, methods=tuple(METHODS), rou
     for k, df in dd.items():
         df = df.droplevel(0, 0)
         if k == 'sampling':
-            df.sort_index(ascending=False, inplace=True)
+            df.sort_index(ascending=False, inplace=True)  # noqa: PD002
         else:
             df.index = df.index.astype('uint64')
         dd[k] = df

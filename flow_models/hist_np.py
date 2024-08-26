@@ -51,7 +51,7 @@ def get_column_array(mm, column, start, stop):
             dur[mm['packets'][start:stop] == 1] = 0
         if column == 'duration':
             return dur
-        if column == 'rate':
+        else:  # column == 'rate'
             rate = np.zeros_like(dur, dtype=np.float64)
             np.divide(8000 * mm['octets'][start:stop], dur, out=rate, where=dur != 0)
             return rate

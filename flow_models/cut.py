@@ -5,7 +5,6 @@ import array
 import pathlib
 import subprocess
 import sys
-from subprocess import CalledProcessError
 
 from flow_models.lib.io import IOArgumentParser, prepare_file_list
 from flow_models.lib.util import logmsg
@@ -102,17 +101,13 @@ def cut(in_files, output, in_format='binary', out_format='binary', skip_in=0, co
                     count = min(count, count_out * size)
                 else:
                     count = 0
-            if count < 0:
-                count = 0
+            count = max(count, 0)
         except TypeError:
             logmsg('Cut array:', in_file, 'Wrong type')
             return
 
         logmsg('Cut array:', in_file, size)
-        try:
-            subprocess.run(['dd', f'if={in_file}', f'of={output / in_file.name}' if output != sys.stdout else 'status=none', f'count={count}', f'skip={skip}', 'iflag=count_bytes,skip_bytes'], check=True)
-        except CalledProcessError:
-            raise
+        subprocess.run(['dd', f'if={in_file}', f'of={output / in_file.name}' if output != sys.stdout else 'status=none', f'count={count}', f'skip={skip}', 'iflag=count_bytes,skip_bytes'], check=True)
 
 
 def parser():
