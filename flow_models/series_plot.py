@@ -17,7 +17,7 @@ for what in ['flows', 'packets', 'octets']:
             s *= 8
             what = 'bits'
         try:
-            title = f"{datetime.datetime.utcfromtimestamp(int(f.stem) * 86400).strftime('%Y-%m-%d-%a')} (Day {f.stem})"
+            title = f"{datetime.datetime.fromtimestamp(int(f.stem) * 86400, datetime.UTC).strftime('%Y-%m-%d-%a')} (Day {f.stem})"
         except ValueError:
             title = f"Day {f.stem}"
         print(title, what, sum(s[0]))
