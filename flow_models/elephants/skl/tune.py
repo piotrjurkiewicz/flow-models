@@ -73,8 +73,8 @@ def main():
         gsc.fit(prepared_inp, all_decision)
     elif issubclass(clf_class, sklearn.base.RegressorMixin):
         clf = clf_class()
-        gsc = sklearn.model_selection.GridSearchCV(clf, hparams, scoring=scoring, cv=5, n_jobs=-1, verbose=5)
-        # gsc = sklearn.model_selection.GridSearchCV(clf, hparams, scoring=scoring, cv=top_split(prepared_inp, all_octets, 5, 0.1), n_jobs=-1, verbose=5)
+        # gsc = sklearn.model_selection.GridSearchCV(clf, hparams, scoring=scoring, cv=5, n_jobs=-1, verbose=5)
+        gsc = sklearn.model_selection.GridSearchCV(clf, hparams, scoring=scoring, cv=top_split(prepared_inp, all_octets, 5, 0.1), n_jobs=-1, verbose=5)
         if use_dask:
             with joblib.parallel_backend('dask'), dask.annotate(resources={'GPU': 1}):
                 gsc.fit(prepared_inp, all_octets)
