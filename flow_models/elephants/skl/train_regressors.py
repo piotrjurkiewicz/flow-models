@@ -7,6 +7,7 @@ import itertools
 import multiprocessing
 import os
 import pathlib
+import sys
 
 import numpy as np
 import sklearn.ensemble
@@ -179,7 +180,7 @@ def main():
                     for key, val in decisions_predicted.items():
                         np.savez_compressed(f'{output}/{key}.dp.npz', *val)
                     if pid == 0:
-                        exit()
+                        sys.exit()
 
     if app_args.fork:
         try:
