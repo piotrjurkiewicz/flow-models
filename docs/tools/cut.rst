@@ -1,5 +1,5 @@
-:program:`cut` (new in 2.0)
-***************************
+:program:`cut`
+**************
 
 .. argparse::
    :ref: flow_models.cut.parser

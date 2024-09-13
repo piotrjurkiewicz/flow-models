@@ -49,6 +49,12 @@ The framework currently includes the following tools:
 Following the Unix philosophy, each tool is a separate Python program aimed at a single purpose. Features provided
 by the tools are orthogonal and they are tailored to be used sequentially in data-processing pipelines.
 
+Models library
+==============
+
+The GitHub repository contains a library of flow models. They consist of histogram CSV files, fitted mixture JSON
+files and plots. Full flow records are also included in smaller models. Available models can be explored here: https://github.com/piotrjurkiewicz/flow-models/tree/master/data
+
 Contents
 ========
 
@@ -60,8 +66,8 @@ Contents
 .. toctree::
    :maxdepth: 2
 
-   tutorial
    workflow
+   tutorial
    tools
    first_mirror
    elephants

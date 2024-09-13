@@ -1,5 +1,5 @@
-First packets mirroring (new in 2.0)
-************************************
+First packets mirroring
+***********************
 
 The first_mirror subpackage enables simulations and analytical calculations of the first N packets mirroring feature found in the latest generation of SDN switches. This feature involves the switch's CPU or SDN controller receiving copies of the initial packets from each new flow in the switch's dataplane. The controller can then perform packet inspection and flow identification. By analyzing various aspects of the new flows, including the connection setup procedure, packet size, and time gaps between the first packets, the controller can determine the associated application, even for encrypted connections.
 

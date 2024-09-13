@@ -1,30 +1,16 @@
 flow\_models.elephants package
 ==============================
 
-flow\_models.elephants.ml module
----------------------------------------
+flow\_models.elephants.plot\_entropy module
+-------------------------------------------
 
-.. automodule:: flow_models.elephants.ml
+.. automodule:: flow_models.elephants.plot_entropy
    :members:
    :show-inheritance:
 
-flow\_models.elephants.calculate module
----------------------------------------
-
-.. automodule:: flow_models.elephants.calculate
-   :members:
-   :show-inheritance:
-
-flow\_models.elephants.simulate module
+flow\_models.elephants.simulate\_data module
 --------------------------------------
 
-.. automodule:: flow_models.elephants.simulate
-   :members:
-   :show-inheritance:
-
-flow\_models.elephants.plot module
-----------------------------------
-
-.. automodule:: flow_models.elephants.plot
+.. automodule:: flow_models.elephants.simulate_data
    :members:
    :show-inheritance:

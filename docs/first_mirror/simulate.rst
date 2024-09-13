@@ -1,5 +1,5 @@
-:program:`simulate` (new in 2.0)
-********************************
+:program:`simulate`
+*******************
 
 .. argparse::
    :ref: flow_models.first_mirror.simulate.parser

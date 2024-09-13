@@ -1,5 +1,5 @@
-Tutorial
-********
+Distribution fitting tutorial
+*****************************
 
 .. toctree::
    :maxdepth: 2

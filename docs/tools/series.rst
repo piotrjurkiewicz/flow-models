@@ -1,5 +1,5 @@
-:program:`series` (new in 2.0)
-******************************
+:program:`series`
+*****************
 
 .. argparse::
    :ref: flow_models.series.parser

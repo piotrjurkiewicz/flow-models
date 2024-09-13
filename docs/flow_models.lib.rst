@@ -23,6 +23,13 @@ flow\_models.lib.mix module
    :members:
    :show-inheritance:
 
+flow\_models.lib.ml module
+---------------------------
+
+.. automodule:: flow_models.lib.ml
+   :members:
+   :show-inheritance:
+
 flow\_models.lib.util module
 ----------------------------
 

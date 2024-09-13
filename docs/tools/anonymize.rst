@@ -1,5 +1,5 @@
-:program:`anonymize` (new in 2.0)
-*********************************
+:program:`anonymize`
+********************
 
 .. argparse::
    :ref: flow_models.anonymize.parser
