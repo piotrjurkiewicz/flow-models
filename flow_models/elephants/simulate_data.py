@@ -44,8 +44,14 @@ def simulate_data(directory, index=Ellipsis, mask=None, pps=None, fps=None, time
 
     Returns
     -------
-    int, int, np.array, np.array
-        flows_sum, octets_sum, flows_slots, octets_slots
+    flows_sum : int
+        sum of flows added to flow table
+    octets_sum : int
+        sum of octets transmitted by flows while being in flow table
+    flows_slots : np.array
+        number of flows present in flow table in each second
+    octets_slots : np.array
+        amount of octets trasmitted by flows in flow table in each second
     """
 
     d = pathlib.Path(directory)

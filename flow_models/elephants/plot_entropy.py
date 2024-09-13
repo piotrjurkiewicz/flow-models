@@ -32,7 +32,7 @@ def calculate_entropy(directory):
 
     Returns
     -------
-    {"bytes": [], "bits": []}
+    dict
         entropy for subsequent bytes and bits of (sa, da, sp, dp, prot) fields
     """
 

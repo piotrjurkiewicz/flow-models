@@ -33,17 +33,17 @@ class Data:
 
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('-O', '--output', default='sklearn', help='output directory')
+    p.add_argument('-O', '--output', default='sklearn', help='results output directory')
     p.add_argument('--seed', type=int, default=None, help='seed')
-    p.add_argument('--fork', action='store_true', help='')
-    p.add_argument('--jobs', type=int, default=1, help='')
-    p.add_argument('files', help='directory')
+    p.add_argument('--fork', action='store_true', help='fork to subprocess for each simulation')
+    p.add_argument('--jobs', type=int, default=1, help='maximum number of simultaneous subprocesses')
+    p.add_argument('directory', help='binary flow records directory')
     return p
 
 def main():
     app_args = parser().parse_args()
     jobs = set()
-    data = load_arrays(app_args.files)
+    data = load_arrays(app_args.directory)
     results = collections.defaultdict(lambda: collections.defaultdict(list))
     predictions = {}
     decisions_true = collections.defaultdict(list)
@@ -74,8 +74,8 @@ def main():
     for n, (train_index, test_index) in enumerate(sklearn.model_selection.KFold(data_par.get('folds', 5)).split(all_octets)):
         logmsg(f"Folding {n}")
         train_octets, test_octets = all_octets[train_index], all_octets[test_index]
-        train_flows_sum, train_octets_sum, train_flows_slots, train_octets_slots = simulate_data(app_args.files, index=train_index, mask=None, pps=PPS, fps=FPS, timeout=TIMEOUT)
-        test_flows_sum, test_octets_sum, test_flows_slots, test_octets_slots = simulate_data(app_args.files, index=test_index, mask=None, pps=PPS, fps=FPS, timeout=TIMEOUT)
+        train_flows_sum, train_octets_sum, train_flows_slots, train_octets_slots = simulate_data(app_args.directory, index=train_index, mask=None, pps=PPS, fps=FPS, timeout=TIMEOUT)
+        test_flows_sum, test_octets_sum, test_flows_slots, test_octets_slots = simulate_data(app_args.directory, index=test_index, mask=None, pps=PPS, fps=FPS, timeout=TIMEOUT)
         for prep_par in prep_params:
             logmsg(f"Preparing {prep_par} {n}")
             prepared_inp = prepare_input(all_inp, **prep_par)
@@ -136,7 +136,7 @@ def main():
                             thresholds = np.logspace(0, 24, 64, base=2) * 64
                             for threshold in thresholds:
                                 decision_predicted = octets_predicted > threshold
-                                sim_results.append(pool.apply_async(simulate_data, (app_args.files, index, decision_predicted, PPS, FPS, TIMEOUT)))
+                                sim_results.append(pool.apply_async(simulate_data, (app_args.directory, index, decision_predicted, PPS, FPS, TIMEOUT)))
                             for i, threshold in enumerate(thresholds):
                                 logmsg(f"Evaluating {name} mode: {mode} threshold: {threshold}")
                                 decision_true = octets > threshold
