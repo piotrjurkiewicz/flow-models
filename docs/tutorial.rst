@@ -1,5 +1,5 @@
-Tutorial: Distribution fitting
-******************************
+Tutorial: Model creation and distribution fitting
+*************************************************
 
 .. toctree::
    :maxdepth: 2

@@ -5,8 +5,8 @@ The first_mirror subpackage enables simulations and analytical calculations of t
 
 This capability is also valuable for early detection of elephant flows. By classifying flows based on their first packets, the need for mid-flow rerouting is eliminated. Furthermore, it ensures that for the majority of a flow's lifespan, it will be subject to traffic engineering mechanisms specifically designed for elephant flows, such as individual routing paths. Additionally, the controller can continuously learn and refine its detection models based on the stream of first packets from flows.
 
-Tools
-=====
+Programs
+========
 
 .. toctree::
    :glob:

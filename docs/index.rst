@@ -68,9 +68,9 @@ Contents
 
    workflow
    tools
-   tutorial
    first_mirror
    elephants
+   tutorial
    elephants_tutorial
 
 Reference
