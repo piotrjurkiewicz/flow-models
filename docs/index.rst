@@ -8,9 +8,9 @@ Welcome to flow-models's documentation!
 
 `flow-models`_ is a software framework for creating precise and reproducible statistical flow models from NetFlow/IPFIX flow records. It offers features such as merging split records, calculating histograms of flow features, and creating General Mixture Models to fit the data. These models can be used for analytical calculations and simulations to generate realistic traffic.
 
-The `first_mirror` subpackage allows for the simulation of the first N packet mirroring feature in switches. This feature involves sending copies of the initial packets of a new flow to the switch's CPU or controller for inspection and flow identification.
+`first_mirror` subpackage allows for the simulation of the first N packet mirroring feature in switches. This feature involves sending copies of the initial packets of a new flow to the switch's CPU or controller for inspection and flow identification.
 
-The `elephants` subpackage provides functionalities for simulating and analyzing mechanisms related to elephant flows. Elephant flows (also called heavy-hitters) are flows which are responsible for the vast majority of traffic in the Internet. By focusing on these flows, advanced traffic engineering (TE) mechanisms can be leveraged in the network without the requirement of maintaining individual entries for every flow.
+`elephants` subpackage provides functionalities for simulating and analyzing mechanisms related to elephant flows. Elephant flows (also called heavy-hitters) are flows which are responsible for the vast majority of traffic in the Internet. By focusing on these flows, advanced traffic engineering (TE) mechanisms can be leveraged in the network without the requirement of maintaining individual entries for every flow.
 
 You can cite the following paper if you use `flow-models` in your research:
 
@@ -67,10 +67,11 @@ Contents
    :maxdepth: 2
 
    workflow
-   tutorial
    tools
+   tutorial
    first_mirror
    elephants
+   elephants_tutorial
 
 Reference
 =========

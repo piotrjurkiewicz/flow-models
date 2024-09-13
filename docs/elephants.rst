@@ -18,8 +18,8 @@ Tools
 
    elephants/*
 
-Using scikit-learn
-==================
+Examples for scikit-learn
+=========================
 
 Additionally, we provide the `elephants.skl` subpackage, which offers examples on how to use the scikit-learn library to train machine learning algorithms for detecting elephant flows based on the first packet. None of previous works analyze metrics such as flow table reduction or the amount of traffic transmitted after flow classification, which we believe are crucial from the perspective of traffic engineering and QoS. These studies primarily focus on classification accuracy, measured by parameters like true positive rate, true negative rate, and accuracy of flow size and duration prediction. They provide limited insight into the effectiveness of the analyzed algorithms in our specific application. For example, misclassifying the largest flow in the network has a much greater impact on the change in traffic coverage than misclassifying a small flow. The metrics presented so far do not account for this difference. Our proposal is to use novel metrics for evaluating ML algorithms in the context of elephant flow detection, specifically flow table occupancy reduction and fraction of traffic covered. There is a tradeoff between these two metrics: increasing the elephant detection threshold leads to greater flow table reduction but decreases the fraction of covered traffic.
 

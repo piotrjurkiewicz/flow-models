@@ -1,5 +1,5 @@
-Tutorial: Distribution fitting
-******************************
+Tutorial: Elephant flow classification with scikit-learn
+********************************************************
 
 .. toctree::
    :maxdepth: 2
