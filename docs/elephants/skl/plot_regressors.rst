@@ -2,5 +2,5 @@
 **************************
 
 .. argparse::
-   :ref: flow_models.elephants.skl.ploy_regressors.parser
+   :ref: flow_models.elephants.skl.plot_regressors.parser
    :prog: python3 -m flow_models.elephants.skl.plot_regressors

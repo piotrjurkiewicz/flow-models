@@ -70,9 +70,9 @@ class LogNorm(matplotlib.colors.LogNorm):
 
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('-O', '--output', default='sklearn', help='output directory and plot file name')
-    p.add_argument('--mixture', help='')
-    p.add_argument('files', help='directory')
+    p.add_argument('-O', '--output', default='sklearn', help='results directory/filenames prefix')
+    p.add_argument('--mixture', help='additionally plots mixture from that directory')
+    p.add_argument('files', help='results directory with .tsv files')
     return p
 
 def load_data(app_args):
