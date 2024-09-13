@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Generates plot of features entropy and (optionally) importance."""
+"""Generates plot of features entropy and (optionally) importances."""
 
 import argparse
 import itertools
@@ -18,10 +18,24 @@ matplotlib.rcParams['font.family'] = 'sans'
 
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('files', help='directory')
+    p.add_argument('directory', help='binary flow records directory')
     return p
 
 def calculate_entropy(directory):
+    """
+    Calculate entropy of 5-tuple features for given flow records directory.
+
+    Parameters
+    ----------
+    directory : os.PathLike
+        binary flow records directory
+
+    Returns
+    -------
+    {"bytes": [], "bits": []}
+        entropy for subsequent bytes and bits of (sa, da, sp, dp, prot) fields
+    """
+
     sa, da, sp, dp, prot, oc = load_arrays(directory)
     inp = prepare_input((sa, da, sp, dp, prot), octets=True)
 
@@ -50,7 +64,7 @@ def calculate_entropy(directory):
 def main():
     app_args = parser().parse_args()
 
-    entropy = calculate_entropy(app_args.files)
+    entropy = calculate_entropy(app_args.directory)
     importances = {}
 
     entropy["bytes"] = [y for x in entropy["bytes"] for y in itertools.repeat(x, 8)]

@@ -13,16 +13,17 @@ from flow_models.lib.util import logmsg
 
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('-O', '--output', default='sklearn', help='output directory and plot file name')
-    p.add_argument('--seed', type=int, default=None, help='seed')
-    p.add_argument('--mixture', help='')
-    p.add_argument('--fork', action='store_true', help='')
-    p.add_argument('files', help='directory')
+    p.add_argument('--pps', type=float, default=None, help='packets per second, when absent flow records times are used for calculation')
+    p.add_argument('--fps', type=float, default=None, help='flows per second, when absent flow records times are used for calculation')
+    p.add_argument('--timeout', type=float, default=15.0, help='inactive flow table timeout in seconds')
+    p.add_argument('--max-seconds', type=int, default=3600, help='total seconds number of simulation')
+    p.add_argument('--threshold', type=int, default=10000000, help='elephant flow size threshold')
+    p.add_argument('directory', help='binary flow records directory')
     return p
 
 def simulate_data(directory, index=Ellipsis, mask=None, pps=None, fps=None, timeout=15, max_seconds=3600):
     """
-    Simulate flow table occupancy reduction curve for given traffic coverages.
+    Simulate flow table occupancy reduction curve for given flow records.
 
     Parameters
     ----------
@@ -104,79 +105,23 @@ def simulate_data(directory, index=Ellipsis, mask=None, pps=None, fps=None, time
 
     return flows_sum, octets_sum, flows_slots, octets_slots
 
-def old(directory, threshold=0, timeout=15, max_seconds=3600):
-    d = pathlib.Path(directory)
-    _, _, first = load_array_np(d / 'first')
-    _, _, last = load_array_np(d / 'last')
-    _, _, packets = load_array_np(d / 'packets')
-    _, _, octets = load_array_np(d / 'octets')
-    # first = first[FPS * 3600 * 2:FPS * 3600 * 22]
-    # last = last[FPS * 3600 * 2:FPS * 3600 * 22]
-    # packets = packets[FPS * 3600 * 2:FPS * 3600 * 22]
-    # octets = octets[FPS * 3600 * 2:FPS * 3600 * 22]
-    avg_packet_size = octets / packets
-    # elapsed = np.floor_divide(packets, PPS)
-    elapsed = last - first + 1
-    avg_pps = packets / elapsed
-    avg_bps = avg_packet_size * avg_pps
-
-    assert first[0] == first.min()
-    assert (last >= first[0]).all()
-
-    start = first - first[0]
-    end = start + elapsed
-
-    max_seconds = end.max() + timeout
-
-    fta = np.zeros(max_seconds, dtype=np.uint64)
-    ftr = np.zeros(max_seconds, dtype=np.uint64)
-    oca = np.zeros(max_seconds, dtype=np.float64)
-    ocr = np.zeros(max_seconds, dtype=np.float64)
-    all_fl = 0
-    cov_fl = 0
-    all_oc = 0
-    cov_oc = 0
-
-    for n in range(len(packets)):
-        flow_size = octets[n]
-        # flow_avg_packet_size = avg_packet_size[n]
-        # flow_avg_pps = avg_pps[n]
-        all_fl += 1
-        all_oc += flow_size
-        # start = n // FPS
-        # end = start + int(elapsed[n]) + 1
-        flow_start = start[n]
-        flow_end = end[n]
-        fta[flow_start:flow_end + timeout] += 1
-        oca[flow_start:flow_end] += avg_bps[n]
-        if flow_size > threshold:
-            cov_fl += 1
-            cov_oc += flow_size
-            ftr[flow_start:flow_end + timeout] += 1
-            ocr[flow_start:flow_end] += avg_bps[n]
-
-    return all_fl, all_oc, fta, oca, cov_fl, cov_oc, ftr, ocr
-
 def main():
-    # app_args = parser().parse_args()
+    app_args = parser().parse_args()
 
-    fps = 1810
-    # pps = 480
-    pps = None
-    threshold = 10000000
-    timeout = 15
+    pps = app_args.pps
+    fps = app_args.fps
+    timeout = app_args.timeout
+    max_seconds = app_args.max_seconds
+    threshold = app_args.threshold
 
-    d = pathlib.Path('data/agh_2015061019_IPv4_anon/sorted')
-    _, _, octets = load_array_np(d / 'octets')
-    # d = pathlib.Path('data/agh_2015/sorted')
-
-    # all_fl, all_oc, fta, oca, cov_fl, cov_oc, ftr, ocr = old(d, threshold=THRESHOLD, timeout=TIMEOUT)
+    directory = pathlib.Path(app_args.directory)
+    _, _, octets = load_array_np(directory / 'octets')
 
     for fold, (train_index, test_index) in enumerate(sklearn.model_selection.KFold(5).split(octets)):
         logmsg(f"Fold {fold}")
 
-        all_fl, all_oc, fta, oca = simulate_data(d, index=test_index, mask=None, pps=pps, fps=fps, timeout=timeout)
-        cov_fl, cov_oc, ftr, ocr = simulate_data(d, index=test_index, mask=octets[test_index] > threshold, pps=pps, fps=fps, timeout=timeout)
+        all_fl, all_oc, fta, oca = simulate_data(directory, index=test_index, mask=None, pps=pps, fps=fps, timeout=timeout, max_seconds=max_seconds)
+        cov_fl, cov_oc, ftr, ocr = simulate_data(directory, index=test_index, mask=octets[test_index] > threshold, pps=pps, fps=fps, timeout=timeout, max_seconds=max_seconds)
 
         print(all_fl / cov_fl)
         print(cov_oc / all_oc)
