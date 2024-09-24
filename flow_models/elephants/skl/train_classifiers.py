@@ -66,7 +66,8 @@ def main():
     data_par = {}
     # prep_params = [{'octets': True}]
     prep_params = [{}, {'bits': True}, {'octets': True}]
-    modes = ['train', 'test']
+    # modes = ['train', 'test']
+    modes = ['test']
 
     all_data = make_slice(data, **data_par)
     *all_inp, all_octets = all_data
