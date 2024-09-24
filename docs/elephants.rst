@@ -9,7 +9,7 @@ The ``elephants`` subpackage provides functionalities related to elephant flows 
 
 The `plot_entropy` tool read flow records in binary format and generates plots of features entropy and importances. These information can be useful for determining packet header portions to be used for training machine learning models.
 
-The `simulate_data` tool performs simulations at the flow level. It reads flow records in binary format and simulate flow table behavior according to given mouse/elephant classification mask array.
+The `simulate_data` tool performs simulations at the flow level. It reads flow records in binary format and simulate flow table behavior according to given mouse/elephant size threshold or classification mask array.
 
 Programs
 ========
