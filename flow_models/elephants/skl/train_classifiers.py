@@ -18,7 +18,7 @@ import sklearn.svm
 import sklearn.tree
 
 from flow_models.elephants.simulate_data import simulate_data
-from flow_models.lib.ml import load_arrays, make_slice, prepare_decision, prepare_input
+from flow_models.lib.ml import load_arrays, make_slice, prepare_decision, prepare_input, top_idx
 from flow_models.lib.util import logmsg
 
 PPS = None
@@ -48,14 +48,14 @@ def main():
     decisions_predicted = collections.defaultdict(list)
 
     algos = [
-        (sklearn.tree.DecisionTreeClassifier, {}),
-        # (sklearn.ensemble.RandomForestClassifier, {'n_jobs': -1, 'max_depth': 20}),
-        # (sklearn.ensemble.ExtraTreesClassifier, {'n_jobs': -1, 'max_depth': 25}),
+        # (sklearn.tree.DecisionTreeClassifier, {}),
+        (sklearn.ensemble.RandomForestClassifier, {'n_jobs': -1, 'max_depth': 20}),
+        (sklearn.ensemble.ExtraTreesClassifier, {'n_jobs': -1, 'max_depth': 25}),
         # (sklearn.ensemble.AdaBoostClassifier, {}),
         # (sklearn.ensemble.GradientBoostingClassifier, {}),
         # (sklearn.neighbors.KNeighborsClassifier, {'n_jobs': -1}),
-        # (sklearn.ensemble.HistGradientBoostingClassifier, {}),
-        # (Data, {}),
+        (sklearn.ensemble.HistGradientBoostingClassifier, {}),
+        (Data, {}),
     ]
 
     # hostname = os.uname().nodename
@@ -109,8 +109,8 @@ def main():
                             clf = clf_class(**clf_params, **clf_kwargs)
                             train_decision = prepare_decision(train_octets, training_coverage)
                             # train_decision = train_octets > 8388608
-                            idx = Ellipsis
-                            # idx = top_idx(train_octets, 0.1)
+                            # idx = Ellipsis
+                            idx = top_idx(train_octets, 0.1)
                             # Balanced sample weights
                             # sample_weight = np.ones(len(train_decision))
                             # sample_weight[train_decision] *= len(train_octets[~train_decision]) / len(train_octets[train_decision])
