@@ -6,7 +6,7 @@ URL = 'https://github.com/piotrjurkiewicz/flow-models'
 with open('README.md') as f:
     README = f.read()
     README = README[0:README.find('## Models library') + 18] + '\n'
-    README += f"The repository of flow models, containing histogram CSV files, fitted mixture models and plots, is available at: {URL}"
+    README += f"The repository of flow models, containing histogram CSV files, fitted mixture models, plots, and full flow records in case of smaller models is available at: {URL}#models-library"
 
 setup(
     name='flow_models',
