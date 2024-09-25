@@ -234,6 +234,64 @@ For the purpose of this tutorial, we will run the experiment with the following 
 
 To speed up the process, we will use the following setting: ``idx = top_idx(train_octets, 0.1)``
 
-On a server equipped with 2x Intel Xeon Silver 4114 CPUs running at 2.20GHz (40 logical cores), completing the training and evaluation with the selected models takes approximately 5 hours when running in single-process mode (without the ``--fork`` option). During this time, the peak memory usage by the process is about 8 GB.
+On a server equipped with 2x Intel Xeon Silver 4114 CPUs running at 2.20GHz (40 logical cores), completing the training and evaluation with the selected models takes 5 hours 12 minutes when running in single-process mode (without the ``--fork`` option). During this time, the peak memory usage by the process is about 9 GB.
 
 If you are running this on a machine with fewer cores, the memory requirements might be slightly lower, though execution time may increase.
+
+.. code-block:: shell-session
+
+    (venv) user@host:~/flow-models$ ls results/classifiers
+    ...
+    'ExtraTreesClassifier {'\''n_jobs'\'': -1, '\''max_depth'\'': 25} {'\''bits'\'': True} 0 (test).dp.npz'
+    'ExtraTreesClassifier {'\''n_jobs'\'': -1, '\''max_depth'\'': 25} {'\''bits'\'': True} 0 (test).dt.npz'
+    'ExtraTreesClassifier {'\''n_jobs'\'': -1, '\''max_depth'\'': 25} {'\''bits'\'': True} 0 (test).tsv'
+    ...
+
+After the training script finishes, the results are stored in the ``results/classifiers`` directory. This directory contains ``.npz`` and ``.tsv`` files:
+
+- ``.npz`` files - These are compressed arrays storing the true and predicted decisions for each run.
+- ``.tsv`` files - These contain the calculated results.
+
+Parsing and plotting results
+============================
+
+Reading and parsing the result files is implemented in the `skl.plot_classifiers` module. The column order in the TSV files is defined by the ``TSV_COLUMNS`` list:
+
+.. code-block:: python
+
+    TSV_COLUMNS = [
+        'training_coverage', 'coverage', 'reduction',
+        'min_coverage', 'avg_coverage', 'max_coverage',
+        'min_occupancy', 'avg_occupancy', 'max_occupancy',
+        'true_negatives', 'false_positives', 'false_negatives', 'true_positives',
+    ]
+
+These columns are common to all classifier models. For models that support feature importances, additional columns with feature importance values will follow. The number of these columns varies depending on the input data format (raw, octets, bits).
+
+In tree-based models, there will also be additional columns detailing:
+
+- Minimum, average, and maximum depths of trees in the model.
+- Minimum, average, and maximum numbers of leaves in the trees.
+
+To generate plots and save them in the ``plots`` directory in files with ``classifers`` prefix, use the following commands:
+
+.. code-block:: shell-session
+
+    (venv) user@host:~/flow-models$ mkdir plots
+    (venv) user@host:~/flow-models$ python3 flow_models/elephants/skl/plot_classifiers.py -O plots/classifiers results/classifiers
+
+This will create several PDF files containing graphs and tables:
+
+.. code-block:: shell-session
+
+    (venv) user@host:~/flow-models$ ls plots/
+    classifiers-avg_occupancy-all.pdf     classifiers-full-bits-99.2.pdf    classifiers-reduction-all.pdf                          classifiers-res-HistGradientBoostingClassifier-80.pdf
+    classifiers-avg_occupancy-bits.pdf    classifiers-full-octets-80.pdf    classifiers-reduction-bits.pdf                         classifiers-res-HistGradientBoostingClassifier-90.pdf
+    classifiers-avg_occupancy-octets.pdf  classifiers-full-octets-96.pdf    classifiers-reduction-octets.pdf                       classifiers-res-RandomForestClassifier20d-70.pdf
+    classifiers-avg_occupancy-raw.pdf     classifiers-full-octets-99.2.pdf  classifiers-reduction-raw.pdf                          classifiers-res-RandomForestClassifier20d-80.pdf
+    classifiers-combo2.pdf                classifiers-full-raw-80.pdf       classifiers-res-ExtraTreesClassifier25d-70.pdf         classifiers-res-RandomForestClassifier20d-90.pdf
+    classifiers-combo.pdf                 classifiers-full-raw-96.pdf       classifiers-res-ExtraTreesClassifier25d-80.pdf
+    classifiers-full-bits-80.pdf          classifiers-full-raw-99.2.pdf     classifiers-res-ExtraTreesClassifier25d-90.pdf
+    classifiers-full-bits-96.pdf          classifiers-leaves.pdf            classifiers-res-HistGradientBoostingClassifier-70.pdf
+
+Feel free to modify the `plot_classifiers` module to adjust the plot styles, order, or model selections as needed.
