@@ -6,15 +6,11 @@ import collections
 import json
 import pathlib
 
-import matplotlib
 import numpy as np
 import pandas as pd
 import scipy.optimize
 import scipy.special
 import scipy.stats
-
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 
 from flow_models.lib.data import LINE_NBINS, detect_x_value, load_data
 from flow_models.lib.mix import to_json
@@ -211,6 +207,10 @@ def gui(**kwargs):
     import tkinter.ttk
     from tkinter import E, N, S, W
 
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+
     from matplotlib.backend_bases import key_press_handler
     from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 
@@ -240,7 +240,7 @@ def gui(**kwargs):
     toolbar = NavigationToolbar2Tk(canvas, toolbar)
     toolbar.update()
 
-    dd = load_data([kwargs['path']])
+    dd = load_data([kwargs['in_file']])
     df = next(iter(dd.values()))
     idx = np.unique(np.rint(np.geomspace(df.index.min(), df.index.max(), LINE_NBINS)).astype(np.int64))
 

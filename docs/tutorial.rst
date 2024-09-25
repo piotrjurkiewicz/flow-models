@@ -11,12 +11,6 @@ First, it must be ensured that the required Python's standard library modules ar
 .. code-block:: shell-session
 
     $ sudo apt-get install python3-venv python3-tk
-    Reading package lists... Done
-    Building dependency tree
-    Reading state information... Done
-    python3-venv is already the newest version (3.8.2-0ubuntu2).
-    python3-tk is already the newest version (3.8.5-1~20.04.1).
-    0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
 
 We will conduct our experiments in a virtual environment. Alternatively, the ``flow-models`` package can be installed systemwide with the ``pip`` command, in which case the `numpy`, `scipy`, `pandas` and `matplotlib` should be present on the system.
 
@@ -26,42 +20,8 @@ The listing below shows the process of virtual environment preparation. The user
 
     $ python3 -m venv test
     $ cd test
-    $ bin/pip install flow-models numpy scipy pandas matplotlib
-    Collecting flow-models
-      Downloading flow_models-1.1-py3-none-any.whl (34 kB)
-    Collecting numpy
-      Downloading numpy-1.19.5-cp38-cp38-manylinux2010_x86_64.whl (14.9 MB)
-         |████████████████████████████████| 14.9 MB 5.9 MB/s
-    Collecting scipy
-      Downloading scipy-1.6.0-cp38-cp38-manylinux1_x86_64.whl (27.2 MB)
-         |████████████████████████████████| 27.2 MB 6.8 MB/s
-    Collecting pandas
-      Downloading pandas-1.2.0-cp38-cp38-manylinux1_x86_64.whl (9.7 MB)
-         |████████████████████████████████| 9.7 MB 6.6 MB/s
-    Collecting matplotlib
-      Downloading matplotlib-3.3.3-cp38-cp38-manylinux1_x86_64.whl (11.6 MB)
-         |████████████████████████████████| 11.6 MB 998 kB/s
-    Collecting pytz>=2017.3
-      Downloading pytz-2020.5-py2.py3-none-any.whl (510 kB)
-         |████████████████████████████████| 510 kB 4.2 MB/s
-    Collecting python-dateutil>=2.7.3
-      Downloading python_dateutil-2.8.1-py2.py3-none-any.whl (227 kB)
-         |████████████████████████████████| 227 kB 7.1 MB/s
-    Collecting cycler>=0.10
-      Downloading cycler-0.10.0-py2.py3-none-any.whl (6.5 kB)
-    Collecting pyparsing!=2.0.4,!=2.1.2,!=2.1.6,>=2.0.3
-      Downloading pyparsing-2.4.7-py2.py3-none-any.whl (67 kB)
-         |████████████████████████████████| 67 kB 7.6 MB/s
-    Collecting pillow>=6.2.0
-      Downloading Pillow-8.1.0-cp38-cp38-manylinux1_x86_64.whl (2.2 MB)
-         |████████████████████████████████| 2.2 MB 6.3 MB/s
-    Collecting kiwisolver>=1.0.1
-      Downloading kiwisolver-1.3.1-cp38-cp38-manylinux1_x86_64.whl (1.2 MB)
-         |████████████████████████████████| 1.2 MB 5.9 MB/s
-    Collecting six>=1.5
-      Downloading six-1.15.0-py2.py3-none-any.whl (10 kB)
-    Installing collected packages: flow-models, numpy, scipy, pytz, six, python-dateutil, pandas, cycler, pyparsing, pillow, kiwisolver, matplotlib
-    Successfully installed cycler-0.10.0 flow-models-1.1 kiwisolver-1.3.1 matplotlib-3.3.3 numpy-1.19.5 pandas-1.2.0 pillow-8.1.0 pyparsing-2.4.7 python-dateutil-2.8.1 pytz-2020.5 scipy-1.6.0 six-1.15.0
+    $ source bin/activate
+    $ pip install flow-models numpy scipy pandas matplotlib
 
 In this tutorial, we will use the dataset ``agh_2015``, which is provided in the project's Git repository. The provided dataset does not contain flow records due to privacy and size concerns. Therefore, we will start the fitting process with the histogram file, which was previously created from flow records with the `tools/hist` command.
 
@@ -69,31 +29,14 @@ Using the commands below, the archive of project's Git repository can be downloa
 
 .. code-block:: shell-session
 
-    $ wget https://github.com/piotrjurkiewicz/flow-models/archive/master.tar.gz
-    --2021-01-16 00:26:08--  https://github.com/piotrjurkiewicz/flow-models/archive/master.tar.gz
-    Resolving github.com (github.com)... 140.82.121.3
-    Connecting to github.com (github.com)|140.82.121.3|:443... connected.
-    HTTP request sent, awaiting response... 302 Found
-    Location: https://codeload.github.com/piotrjurkiewicz/flow-models/tar.gz/master [following]
-    --2021-01-16 00:26:09--  https://codeload.github.com/piotrjurkiewicz/flow-models/tar.gz/master
-    Resolving codeload.github.com (codeload.github.com)... 140.82.121.10
-    Connecting to codeload.github.com (codeload.github.com)|140.82.121.10|:443... connected.
-    HTTP request sent, awaiting response... 200 OK
-    Length: unspecified [application/x-gzip]
-    Saving to: ‘master.tar.gz’
-
-    master.tar.gz                          [           <=>                                                   ]   5,19M  2,32MB/s    in 2,2s
-
-    2021-01-16 00:26:11 (2,32 MB/s) - ‘master.tar.gz’ saved [5442386]
-
-    $ tar -zxf master.tar.gz --strip-components=2 flow-models-master/data/agh_2015/
-    $ cd agh_2015
+    $ wget https://github.com/flow-models/agh_2015/archive/master.tar.gz
+    $ tar -zxf master.tar.gz
+    $ cd agh_2015-master
     $ ls -la
     total 48
     drwxrwxr-x 6 jurkiew jurkiew 4096 sty 16 00:20 .
     drwxrwxr-x 7 jurkiew jurkiew 4096 sty 16 00:26 ..
     drwxrwxr-x 6 jurkiew jurkiew 4096 sty 16 00:20 elephants
-    -rw-rw-r-- 1 jurkiew jurkiew   45 sty 16 00:20 .gitignore
     drwxrwxr-x 5 jurkiew jurkiew 4096 sty 16 00:20 histograms
     -rw-rw-r-- 1 jurkiew jurkiew 4337 sty 16 00:20 Makefile
     drwxrwxr-x 5 jurkiew jurkiew 4096 sty 16 00:20 mixtures
