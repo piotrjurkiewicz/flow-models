@@ -86,7 +86,7 @@ def load_data(app_args):
         columns = []
         columns.extend(np.loadtxt(str(f), delimiter='\t', max_rows=len(TSV_COLUMNS) - 4))
         columns.extend(np.loadtxt(str(f), delimiter='\t', skiprows=len(TSV_COLUMNS) - 4, max_rows=4, dtype=np.uint64))
-        if not any(a in str(f) for a in ['Data', 'KNeighborsClassifier',  'HistGradientBoostingClassifier']):
+        if not any(a in str(f) for a in ['Data', 'KNeighborsClassifier', 'HistGradientBoostingClassifier']):
             columns.extend(np.loadtxt(str(f), delimiter='\t', skiprows=len(TSV_COLUMNS)))
         results[f.stem] = columns
 
@@ -100,7 +100,7 @@ def load_data(app_args):
     #     decisions_predicted[f.stem[:-3]] = np.load(str(f))
 
     res = {}
-    for part in ['Mixture', 'Data', 'DecisionTree', 'RandomForest', 'ExtraTrees']:
+    for part in ['Mixture', 'Data', 'DecisionTree', 'RandomForest', 'ExtraTrees', 'HistGradient']:
         for name in results:
             if part in name:
                 res[name] = results[name]
@@ -224,7 +224,7 @@ def main():
             z = z.reindex([prep], level='prep')
             # z = z.reindex(['DecisionTreeClassifier', 'RandomForestClassifier', 'ExtraTreesClassifier'], level='algo')
             fig, ax = plt.subplots(ncols=21, width_ratios=[*(21 * [1])])
-            fig.set_size_inches(17, 22)
+            fig.set_size_inches(17, 10)
             fig.tight_layout(w_pad=0.0)
             fig.subplots_adjust(wspace=0)
             iax = iter(ax)
@@ -265,12 +265,12 @@ def main():
     agg = df.xs('(test)', 1, level='tt').T.groupby(level=[0, 1, 2], sort=False).agg(['mean', 'min', 'max', 'std']).unstack(0)
     agg = agg.reindex(['raw', 'octets', 'bits'], level=1)
 
-    for what in ['DecisionTreeClassifier', 'RandomForestClassifier', 'ExtraTreesClassifier']:
+    for what in ['RandomForestClassifier20d', 'ExtraTreesClassifier25d', 'HistGradientBoostingClassifier']:
         z = agg.drop(agg.index.levels[0][~agg.index.levels[0].str.contains(what)])
         for cov in [70.00000000000028, 80.00000000000043, 90.00000000000057]:
             fig, ax = plt.subplots(nrows=1, ncols=14, width_ratios=[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
             ax = ax.ravel()
-            fig.set_size_inches(17, 6)
+            fig.set_size_inches(17, 3)
             fig.tight_layout(w_pad=0.0)
             fig.subplots_adjust(wspace=0, hspace=0.05)
             iax = iter(ax)
@@ -303,7 +303,7 @@ def main():
     z = agg.loc(axis=1)[[70.00000000000028, 80.00000000000043, 90.00000000000057]]
     z = z.drop('Data', errors='ignore')
     fig, ax = plt.subplots(ncols=1, nrows=1, width_ratios=[1])
-    fig.set_size_inches(4, 15)
+    fig.set_size_inches(4, 7)
     fig.tight_layout(w_pad=0.0)
     heatmap(ax, z.loc(axis=1)[:, 'mean', 'avg_leaves'], 'Greens', '.0f', LogNorm(), xticks=['70%', '80%', '90%'], yticks=[f"{a}, {b}" for (a, b) in z.index], xlabel="Average Number of Tree Leaves (mean)", title="Resulting Average Traffic Coverage")
     fig.savefig(f'{output}-leaves.pdf', bbox_inches='tight', metadata=PDF_NONE, pad_inches=0.02)
@@ -312,7 +312,7 @@ def main():
     z = agg.loc(axis=1)[[70.00000000000028, 80.00000000000043, 90.00000000000057]]
     fig, ax = plt.subplots(ncols=2, nrows=1, width_ratios=[1, 1])
     ax = ax.ravel()
-    fig.set_size_inches(10, 14.5)
+    fig.set_size_inches(10, 6)
     fig.tight_layout(w_pad=0.0)
     iax = iter(ax)
     heatmap(next(iax), z.loc(axis=1)[:, 'mean', 'reduction'], 'YlGn', '7.2f', LogNorm(), xticks=['70%', '80%', '90%'], yticks=[f"{a}, {b}" for (a, b) in z.index], std=z.loc(axis=1)[:, 'std', 'reduction'], xlabel="Flow Operations Reduction (mean ± std) [x]", title="Resulting Average Traffic Coverage")
@@ -323,7 +323,7 @@ def main():
     z = agg.loc(axis=1)[[70.00000000000028, 80.00000000000043, 90.00000000000057]]
     fig, ax = plt.subplots(ncols=2, nrows=1, width_ratios=[1, 1])
     ax = ax.ravel()
-    fig.set_size_inches(10, 14.5)
+    fig.set_size_inches(10, 6)
     fig.tight_layout(w_pad=0.0)
     iax = iter(ax)
     z = z.drop('Data', errors='ignore')
@@ -332,7 +332,7 @@ def main():
     fig.savefig(f'{output}-combo2.pdf', bbox_inches='tight', metadata=PDF_NONE, pad_inches=0.02)
     plt.close(fig)
 
-    agg = agg.reindex(['Data', 'DecisionTreeClassifier', 'DecisionTreeClassifier15d', 'DecisionTreeClassifier20d', 'RandomForestClassifier', 'RandomForestClassifier23t15d', 'RandomForestClassifier23t20d', 'ExtraTreesClassifier', 'ExtraTreesClassifier23t20d', 'ExtraTreesClassifier23t25d'], level='algo')
+    agg = agg.reindex(['Data', 'RandomForestClassifier20d', 'ExtraTreesClassifier25d', 'HistGradientBoostingClassifier'], level='algo')
     zoom = False
     for chosen_prep in ['all', 'bits', 'octets', 'raw']:
         for what in ['reduction', 'avg_occupancy']:
