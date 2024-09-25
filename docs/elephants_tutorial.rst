@@ -236,7 +236,7 @@ To speed up the process, we will use the following setting: ``idx = top_idx(trai
 
 On a server equipped with 2x Intel Xeon Silver 4114 CPUs running at 2.20GHz (40 logical cores), completing the training and evaluation with the selected models takes 5 hours 12 minutes when running in single-process mode (without the ``--fork`` option). During this time, the peak memory usage by the process is about 9 GB.
 
-If you are running this on a machine with fewer cores, the memory requirements might be slightly lower, though execution time may increase.
+If you are running this on a machine with fewer cores, the memory requirements might be slightly lower, though execution time will increase.
 
 .. code-block:: shell-session
 
@@ -273,7 +273,7 @@ In tree-based models, there will also be additional columns detailing:
 - Minimum, average, and maximum depths of trees in the model.
 - Minimum, average, and maximum numbers of leaves in the trees.
 
-To generate plots and save them in the ``plots`` directory in files with ``classifers`` prefix, use the following commands:
+To generate plots and save them in the ``plots`` directory in files with ``classifiers`` prefix, use the following commands:
 
 .. code-block:: shell-session
 
