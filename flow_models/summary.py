@@ -2,6 +2,7 @@
 """Produces TeX tables containing summary statistics of flow dataset (requires `scipy`)."""
 
 import argparse
+import json
 import pathlib
 
 import numpy as np
@@ -23,7 +24,7 @@ Example:
 X_VALUES = ['length', 'size', 'duration', 'rate']
 Y_VALUES = ['flows', 'packets', 'octets']
 
-def summary(obj, x_val=None):
+def summary(obj, x_val=None, out_format='tex'):
     if isinstance(obj, (str, pathlib.Path)):
         file = pathlib.Path(obj)
         logmsg(f'Loading file {file}')
@@ -33,10 +34,48 @@ def summary(obj, x_val=None):
     else:
         data = obj
 
-    print(stats_summary(data))
-    print('\n')
-    print(cdf_summary(data, x_val))
-    print('\n')
+    if out_format == 'json':
+        print(json.dumps({'stats': stats_dict(data), 'cdf': cdf_dict(data, x_val)}, indent=2))
+    else:
+        print(stats_summary(data))
+        print('\n')
+        print(cdf_summary(data, x_val))
+        print('\n')
+
+def stats_dict(data):
+    result = {}
+    for what in Y_VALUES:
+        col = what + '_sum'
+        if col in data:
+            result[f'number_of_{what}'] = int(data[col].sum())
+    for what in X_VALUES:
+        col = UNITS[what]
+        if col not in Y_VALUES:
+            col = what
+        col = col + '_sum'
+        if col in data:
+            result[f'avg_flow_{what}'] = float(data[col].sum() / data['flows_sum'].sum())
+    result['avg_packet_size'] = float(data['octets_sum'].sum() / data['packets_sum'].sum())
+    return result
+
+def cdf_dict(data, x_val):
+    if not x_val:
+        x_val = detect_x_value(data.index)
+    points = np.power(2, range(25))
+    if x_val == 'length':
+        pass
+    elif x_val == 'size':
+        points *= 64
+    else:
+        raise NotImplementedError
+
+    vals = {}
+    for what in Y_VALUES:
+        cdf = data[what + '_sum'].cumsum() / data[what + '_sum'].sum()
+        cdfi = scipy.interpolate.interp1d(cdf.index, cdf, 'linear', bounds_error=False)(np.array(points))
+        vals[what] = cdfi * 100
+    return {x_val: {int(points[n]): {what: float(vals[what][n]) for what in Y_VALUES}
+                    for n in range(len(points)) if not np.isnan(vals['flows'][n])}}
 
 def stats_summary(data):
     if isinstance(data, pd.DataFrame):
@@ -104,13 +143,14 @@ def cdf_summary(data, x_val):
 def parser():
     p = argparse.ArgumentParser(description=__doc__, epilog=EPILOG)
     p.add_argument('-x', choices=X_VALUES, help='x axis value')
+    p.add_argument('-f', '--out-format', choices=['tex', 'json'], default='tex', help='output format')
     p.add_argument('file', help='csv_hist file to summarize')
     return p
 
 def main():
     app_args = parser().parse_args()
 
-    summary(app_args.file, app_args.x)
+    summary(app_args.file, app_args.x, app_args.out_format)
 
 
 if __name__ == '__main__':
