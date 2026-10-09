@@ -80,6 +80,7 @@ Reference
    :maxdepth: 3
 
    formats
+   datasets
    api
 
 Indices and tables
