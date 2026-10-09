@@ -443,7 +443,8 @@ def write_flow_csv(output):
 
 def write_flow_binary(output_dir):
     """
-    Write flow tuples to binary flow files.
+    Write flow tuples to binary flow files. Field files containing only
+    zero values are not stored.
 
     Parameters
     ----------
@@ -456,9 +457,11 @@ def write_flow_binary(output_dir):
     assert d.is_dir()
     fields = Flows()
     files = {}
+    nonzero = {}
     for name, typecode in fields.fields.items():
         setattr(fields, name, array.array(typecode))
         files[name] = open(str(d / f'{name}.{typecode}'), 'wb')
+        nonzero[name] = False
     n = 0
     try:
         while True:
@@ -466,17 +469,21 @@ def write_flow_binary(output_dir):
             flow_append(flow, fields)
             n += 1
             if n == 32768:
-                dump_binary(fields, files)
+                dump_binary(fields, files, nonzero)
                 n = 0
     except GeneratorExit:
         pass
-    dump_binary(fields, files)
-    for f in files.values():
+    dump_binary(fields, files, nonzero)
+    for name, f in files.items():
         f.close()
+        if not nonzero[name]:
+            pathlib.Path(f.name).unlink()
 
-def dump_binary(fields, files):
+def dump_binary(fields, files, nonzero):
     for name in fields.fields:
         arr = getattr(fields, name)
+        if not nonzero[name] and arr.count(0) != len(arr):
+            nonzero[name] = True
         arr.tofile(files[name])
         del arr[:]
 
