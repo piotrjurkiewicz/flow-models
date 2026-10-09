@@ -87,7 +87,7 @@ def plot(objects, x_val='length', ext='png', single=False, normalize=True, fft=F
 
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--format', default='png', choices=['png', 'pdf'], help='plot file format')
+    p.add_argument('--format', default='png', choices=['png', 'pdf', 'svg'], help='plot file format')
     p.add_argument('--single', action='store_true', help='plot PDF and CDF in single file')
     p.add_argument('--no-normalize', action='store_false', help='do not normalize PDF datapoints')
     p.add_argument('--fft', action='store_true', help='use FFT for calculating KDE')

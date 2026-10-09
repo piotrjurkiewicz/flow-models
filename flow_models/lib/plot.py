@@ -20,7 +20,9 @@ MODES_PDF = ['points', 'hist', 'kde', *MODES_MIXTURE]
 MODES_CDF = MODES_MIXTURE
 
 def save_figure(figure, fname, ext='pdf', **kwargs):
-    figure.savefig(f'{fname}.{ext}', bbox_inches='tight', metadata=PDF_NONE, **kwargs)
+    if ext == 'pdf':
+        kwargs['metadata'] = PDF_NONE
+    figure.savefig(f'{fname}.{ext}', bbox_inches='tight', **kwargs)
 
 @contextlib.contextmanager
 def matplotlib_config(latex=False):
