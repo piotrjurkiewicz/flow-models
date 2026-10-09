@@ -381,7 +381,7 @@ def gui(**kwargs):
 
 def save(path, mix, args):
     logmsg(f'Saving: {path}')
-    pathlib.Path(str(path) + '.json').write_text(to_json(**mix) + '\n')
+    pathlib.Path(str(path) + '.json').write_text(to_json(mix['mix'], mix['sum']) + '\n')
     pathlib.Path(str(path) + '.mode').write_text(json.dumps({k: v for k, v in args.items() if k != 'path'}) + '\n')
 
 def parser():
