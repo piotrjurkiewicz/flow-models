@@ -1,5 +1,6 @@
 #!/usr/bin/python3
-"""Plots flow reduction curves from mixture or histogram data for first, threshold and sampling methods.
+"""
+Plots flow reduction curves from mixture or histogram data for first, threshold and sampling methods.
 
 Produces the publication figures (``--format pdf``) and, when ``--out`` is
 given, a set of single-axes SVG figures with embedded curve metadata for the
@@ -224,7 +225,8 @@ SRC_LINES = {'mix': '-', 'data': '--', 'real': '-'}
 SRC_COLORS = {'mix': 'C0', 'data': 'C1', 'real': 'C2'}
 
 def plot_web_results(calc, sim, method, x_val, out, real=None):
-    """Coverage figure for one method: simulation vs calculation.
+    """
+    Coverage figure for one method: simulation vs calculation.
 
     One axes, every curve distinguished in two ways: color per metric (blue
     traffic / red operations / green occupancy share, with a light/dark shade
@@ -278,7 +280,8 @@ def plot_web_results(calc, sim, method, x_val, out, real=None):
         save_fig(fig, str(out / f'results_{method}'), 'svg')
 
 def _skl_figure():
-    """Context manager yielding a figure styled like the sklearn plots.
+    """
+    Context manager yielding a figure styled like the sklearn plots.
 
     The sklearn scripts run on near-default rcParams (outward ticks, framed
     legend, default margins/fonts, ``figsize=(10, 5)``), unlike the repo's
@@ -294,7 +297,7 @@ def _skl_figure():
     return cm()
 
 
-def plot_web_operations(calc, sim, x_val, out):
+def plot_web_operations(calc, sim, out):
     """Flow table operations reduction vs traffic coverage — skl convention."""
     with _skl_figure() as (fig, ax):
         nidx = np.linspace(50, 100, 5001, endpoint=True)
@@ -331,7 +334,7 @@ def plot_web_operations(calc, sim, x_val, out):
         save_fig(fig, str(out / 'operations'), 'svg')
         plt.close(fig)
 
-def plot_web_occupancy(calc, sim, real, x_val, out):
+def plot_web_occupancy(calc, sim, real, out):
     """Occupancy reduction: analytical/simulated curves plus real-times curves."""
     with _skl_figure() as (fig, ax):
         nidx = np.linspace(50, 100, 5001, endpoint=True)
@@ -394,8 +397,8 @@ def plot_web(x_vals, calculated, simulated, real, out):
                              {s: sdf[method] for s, sdf in sim.items()
                               if method in sdf},
                              method, x_val, outdir, reald.get(method))
-        plot_web_operations(calc, sim, x_val, outdir)
-        plot_web_occupancy(calc, sim, reald, x_val, outdir)
+        plot_web_operations(calc, sim, outdir)
+        plot_web_occupancy(calc, sim, reald, outdir)
 
 def plot(dirs, one=False, fmt='pdf', out=None):
     simulated = collections.defaultdict(lambda: collections.defaultdict(dict))

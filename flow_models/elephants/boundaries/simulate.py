@@ -1,5 +1,6 @@
 #!/usr/bin/python3
-"""Simulates first, threshold and sampling elephant detection methods on packet-level from mixture or histogram data.
+"""
+Simulates first, threshold and sampling elephant detection methods on packet-level from mixture or histogram data.
 
 Flows are generated with :func:`flow_models.generate.generate_flows` and each
 flow is processed packet by packet.  Every (method, x grid point) pair is
@@ -196,6 +197,10 @@ def simulate(obj, size=1, x_val='length', seed=None, methods=tuple(METHODS), rou
     timeout : float, default 15
         inactive flow table timeout in seconds for the residency-based
         ``occupancy`` metric
+    max_x : float, optional
+        truncate the generated x quantity at this value by resampling
+        out-of-range flows (see
+        :func:`flow_models.generate.generate_flows`)
 
     Returns
     -------

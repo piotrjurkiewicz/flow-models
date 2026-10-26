@@ -140,6 +140,9 @@ def generate(in_file, output, out_format='csv_flow', size=1, x_value='length', r
         x axis value
     random_state : object, optional
         initial random state
+    max_x : float, optional
+        truncate the generated x quantity at this value by resampling
+        out-of-range flows (applies to the unbounded mixture tails)
     """
 
     writer = OUT_FORMATS[out_format]

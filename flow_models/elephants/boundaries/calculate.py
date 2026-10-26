@@ -1,5 +1,6 @@
 #!/usr/bin/python3
-"""Calculates flow reduction curves from mixture or histogram data for first, threshold and sampling methods.
+"""
+Calculates flow reduction curves from mixture or histogram data for first, threshold and sampling methods.
 
 The results are analytical expectations over the input flow size
 distribution.  ``first`` assumes an above-threshold flow is added to the

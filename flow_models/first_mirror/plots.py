@@ -1,5 +1,6 @@
 #!/usr/bin/python3
-"""Plots first-N-packets mirroring simulation results.
+"""
+Plots first-N-packets mirroring simulation results.
 
 Reads ``{day}.packets_mirrored``/``{day}.octets_mirrored`` per-second counter
 series written by ``flow_models.first_mirror.simulate`` from mirror directories

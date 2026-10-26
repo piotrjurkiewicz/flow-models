@@ -443,8 +443,9 @@ def write_flow_csv(output):
 
 def write_flow_binary(output_dir):
     """
-    Write flow tuples to binary flow files. Field files containing only
-    zero values are not stored.
+    Write flow tuples to binary flow files.
+
+    Field files containing only zero values are not stored.
 
     Parameters
     ----------

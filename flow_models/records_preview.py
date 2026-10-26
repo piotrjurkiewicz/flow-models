@@ -1,4 +1,5 @@
-"""Write first N records of a binary flow trace directory as preview.json.
+"""
+Write first N records of a binary flow trace directory as preview.json.
 
 Run in a directory containing {field}.{dtype} files (see docs/formats.rst).
 """

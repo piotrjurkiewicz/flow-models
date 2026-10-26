@@ -96,7 +96,7 @@ def _fm_slim(text):
         rules += f'font-family: {fam}; '
     if sizes:
         size = sizes.most_common(1)[0][0]
-        text = re.sub(r'font-size: %spx;? ?' % re.escape(size), '', text)
+        text = re.sub(rf'font-size: {re.escape(size)}px;? ?', '', text)
         rules += f'font-size: {size}px; '
     if rules:
         text = text.replace(' style=""', '').replace('; "', '"')
