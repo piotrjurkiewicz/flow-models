@@ -9,6 +9,8 @@ import sys
 import numpy as np
 import pandas as pd
 
+from scipy._lib._util import check_random_state
+
 from flow_models.lib.data import load_data
 from flow_models.lib.io import OUT_FORMATS
 from flow_models.lib.mix import avg, rvs
@@ -26,7 +28,7 @@ Example:
 
 X_VALUES = ['length', 'size', 'duration', 'rate']
 
-def generate_arrays(obj, size=1, x_val='length', random_state=None):
+def generate_arrays(obj, size=1, x_val='length', random_state=None, max_x=None):
     data = next(iter(load_data([obj]).values()))
 
     if isinstance(data, pd.DataFrame):
@@ -41,7 +43,14 @@ def generate_arrays(obj, size=1, x_val='length', random_state=None):
         packet_size = packet_size.to_numpy()
     else:
         assert size
-        sample = rvs(data['flows'], x_val, size, random_state=random_state)
+        rs = check_random_state(random_state)
+        sample = rvs(data['flows'], x_val, size, random_state=rs)
+        if max_x is not None:
+            # unbounded mixture tails can exceed the data support; resample them
+            over = sample > max_x
+            while np.count_nonzero(over):
+                sample[over] = rvs(data['flows'], x_val, np.count_nonzero(over), random_state=rs)
+                over = sample > max_x
         number = None
         packet_size = avg(data, sample, x_val, 'packet_size')
     if x_val == 'length':
@@ -68,7 +77,7 @@ def iterate_arrays(packets, octets, number):
             else:
                 yield from itertools.repeat((pa, oc), nu)
 
-def generate_flows(in_file, size=1, x_value='length', random_state=None):
+def generate_flows(in_file, size=1, x_value='length', random_state=None, max_x=None):
     """
     Yield flow tuples generated from mixture or histogram file.
 
@@ -82,6 +91,9 @@ def generate_flows(in_file, size=1, x_value='length', random_state=None):
         x axis value
     random_state : object, optional
         initial random state
+    max_x : float, optional
+        truncate the generated x quantity at this value by resampling
+        out-of-range flows (applies to the unbounded mixture tails)
 
     Yields
     ------
@@ -95,7 +107,7 @@ def generate_flows(in_file, size=1, x_value='length', random_state=None):
     assert size >= 0
     rng = random.Random(random_state)
 
-    packets, octets, number = generate_arrays(data, size, x_value, random_state)
+    packets, octets, number = generate_arrays(data, size, x_value, random_state, max_x)
     for pa, oc in iterate_arrays(packets, octets, number):
         if x_value == 'length':
             pks = int(pa)
@@ -109,7 +121,8 @@ def generate_flows(in_file, size=1, x_value='length', random_state=None):
             raise NotImplementedError
         yield 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, pks, ocs, 0
 
-def generate(in_file, output, out_format='csv_flow', size=1, x_value='length', random_state=None):
+def generate(in_file, output, out_format='csv_flow', size=1, x_value='length', random_state=None,
+             max_x=None):
     """
     Generate flows from mixture or histogram file to output.
 
@@ -133,7 +146,7 @@ def generate(in_file, output, out_format='csv_flow', size=1, x_value='length', r
     writer = writer(output)
     next(writer)
 
-    for flow in generate_flows(in_file, size, x_value, random_state):
+    for flow in generate_flows(in_file, size, x_value, random_state, max_x):
         writer.send(flow)
 
     writer.close()
@@ -143,6 +156,8 @@ def parser():
     p.add_argument('-s', type=int, default=1, help='number of generated flows')
     p.add_argument('--seed', type=int, default=None, help='seed')
     p.add_argument('-x', default='length', choices=X_VALUES, help='x axis value')
+    p.add_argument('--max-x', type=float, default=None,
+                   help='truncate generated x quantity at this value')
     p.add_argument('-o', default='csv_flow', choices=OUT_FORMATS, help='format of output')
     p.add_argument('-O', default=sys.stdout, help='file or directory for output')
     p.add_argument('file', help='csv_hist file or mixture directory')
@@ -151,7 +166,8 @@ def parser():
 def main():
     app_args = parser().parse_args()
 
-    generate(app_args.file, app_args.O, app_args.o, app_args.s, app_args.x, app_args.seed)
+    generate(app_args.file, app_args.O, app_args.o, app_args.s, app_args.x, app_args.seed,
+             app_args.max_x)
 
 
 if __name__ == '__main__':

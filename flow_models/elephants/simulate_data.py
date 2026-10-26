@@ -21,26 +21,40 @@ def parser():
     p.add_argument('directory', help='binary flow records directory')
     return p
 
-def simulate_data(directory, index=Ellipsis, mask=None, pps=None, fps=None, timeout=15, max_seconds=3600):
+def simulate_data(directory, index=Ellipsis, mask=None, pps=None, fps=None, timeout=15, max_seconds=3600, delay=None):
     """
     Simulate flow table occupancy reduction curve for given flow records.
 
     Parameters
     ----------
-    directory : os.PathLike
-        binary flow records directory
+    directory : os.PathLike or dict
+        binary flow records directory, or a dict of already-loaded
+        ``{'packets', 'octets', 'first', 'last'}`` arrays (used to avoid
+        reloading large records per call)
     index : np.array, default Ellipsis
         index array of flows to use for simulating data
     mask : np.array[bool], optional
         flows to add to flow table (elephants)
     pps : float, optional
-        packets per second, when None flow records times are used for calculation
+        packets per second, when None flow records times are used for
+        calculation; with ``pps`` each flow is assumed to last
+        ``floor(packets / pps) + 1`` seconds
     fps : float, optional
         flows per second, when None flow records times are used for calculation
     timeout : float, default 15.0
-        inactive flow table timeout in seconds
+        inactive flow table timeout in seconds; each inserted flow occupies
+        table slots from its start second until ``timeout`` seconds after
+        its last active second
     max_seconds: int, default 3600
-        total seconds number of simulation
+        total seconds number of simulation; occupancy of flows residing
+        past this window is truncated, increase it when comparing with the
+        residency-based ``occupancy`` metric of the ``elephants.boundaries`` tools
+    delay : np.array or scalar, optional
+        per-flow detection delay in seconds, aligned to the flow arrays
+        after ``index`` slicing; a masked flow then occupies the table
+        from ``start + delay`` (the moment its detection condition is met)
+        until ``end + timeout`` — flows whose delay falls past
+        ``end + timeout`` are never inserted
 
     Returns
     -------
@@ -54,25 +68,27 @@ def simulate_data(directory, index=Ellipsis, mask=None, pps=None, fps=None, time
         amount of octets trasmitted by flows in flow table in each second
     """
 
-    d = pathlib.Path(directory)
-    _, _, packets = load_array_np(d / 'packets')
-    _, _, octets = load_array_np(d / 'octets')
-    packets = packets[index]
-    octets = octets[index]
+    if isinstance(directory, dict):
+        arrays = directory
+    else:
+        d = pathlib.Path(directory)
+        arrays = {n: load_array_np(d / n)[2]
+                  for n in ('packets', 'octets', 'first', 'last')}
+
+    packets = arrays['packets'][index]
+    octets = arrays['octets'][index]
 
     if fps is None or pps is None:
-        _, _, first = load_array_np(d / 'first')
-        _, _, last = load_array_np(d / 'last')
-        first = first[index]
-        last = last[index]
+        first = arrays['first'][index]
+        last = arrays['last'][index]
     else:
         first, last = None, None
 
     if pps is None:
-        assert (last >= first[0]).all()
-        elapsed = last - first + 1
+        assert (last >= first).all()
+        elapsed = last.astype(np.int64) - first + 1
     else:
-        elapsed = np.floor_divide(packets, pps, dtype=np.int64) + 1
+        elapsed = np.floor_divide(packets, pps).astype(np.int64) + 1
 
     if fps is None:
         assert first[0] == first.min()
@@ -80,7 +96,7 @@ def simulate_data(directory, index=Ellipsis, mask=None, pps=None, fps=None, time
         end = start + elapsed
     else:
         flow_numbers = np.arange(len(packets))
-        start = np.floor_divide(flow_numbers, fps)
+        start = np.floor_divide(flow_numbers, fps).astype(np.int64)
         end = start + elapsed
 
     avg_packet_size = octets / packets
@@ -99,9 +115,12 @@ def simulate_data(directory, index=Ellipsis, mask=None, pps=None, fps=None, time
         flows_sum = mask.sum()
         octets_sum = octets[mask].sum()
 
+    timeout = int(timeout)
+
     # max_flow_start = 0
     for n in iterator:
-        flow_start = start[n]
+        flow_start = int(start[n] + (delay[n] if isinstance(delay, np.ndarray)
+                                     else delay or 0))
         flow_end = end[n]
         flows_slots[flow_start:flow_end + timeout] += 1
         octets_slots[flow_start:flow_end] += avg_bps[n]

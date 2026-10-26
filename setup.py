@@ -11,7 +11,8 @@ with open('README.md') as f:
 setup(
     name='flow_models',
     version=flow_models.__version__,
-    packages=['flow_models', 'flow_models.lib', 'flow_models.first_mirror', 'flow_models.elephants'],
+    packages=['flow_models', 'flow_models.lib', 'flow_models.first_mirror',
+              'flow_models.elephants', 'flow_models.elephants.boundaries', 'flow_models.elephants.skl'],
     url=URL,
     license='MIT',
     author='Piotr Jurkiewicz',

@@ -11,6 +11,8 @@ The `plot_entropy` tool read flow records in binary format and generates plots o
 
 The `simulate_data` tool performs simulations at the flow level. It reads flow records in binary format and simulate flow table behavior according to given mouse/elephant size threshold or classification mask array.
 
+The ``elephants.boundaries`` subpackage complements it with packet-level evaluation of elephant detection methods on generated (histogram- or mixture-based) traffic: :program:`simulate` performs a Monte-Carlo simulation, :program:`calculate` computes the same metrics analytically, and :program:`plot` compares both. Available methods are first-packet classification, counter threshold, and packet sampling; the reported metrics include traffic coverage, mean per-flow covered fraction, operation and occupancy reductions, and a ``--pps`` residency model and a ``--real`` real-times mode which approximate the flow table occupancy simulated by :program:`simulate_data`.
+
 Programs
 ========
 
@@ -19,6 +21,7 @@ Programs
    :maxdepth: 1
 
    elephants/*
+   elephants/boundaries/*
 
 Examples of scikit-learn scripts
 ================================
