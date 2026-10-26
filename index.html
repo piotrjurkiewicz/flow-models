@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="favicon.svg" sizes="any" type="image/svg+xml">
-    <title>Flow models</title>
+    <title>Flow-models</title>
     <style>
         :root {
             --background-muted: #f6f8fa;
@@ -652,7 +652,7 @@
     <header>
         <div>
             <img src="favicon.svg" alt="" />
-            <h1>Flow models</h1>
+            <h1>Flow-models</h1>
         </div>
         <a class="button" href="https://flow-models.readthedocs.io/" target="_blank" rel="noopener noreferrer">
             <span>📄</span>
@@ -726,9 +726,11 @@
 
         const PLOT_NAMES = {
             'cdf': 'CDF', 'pdf-flows': 'PDF of flows', 'pdf-packets': 'PDF of packets', 'pdf-octets': 'PDF of octets',
-            'avg-flow-length': 'Avg flow length', 'avg-flow-size': 'Avg flow size', 'avg-packet-size': 'Avg packet size', 'single': 'Single figure'
+            'avg-flow-length': 'Avg flow length', 'avg-flow-size': 'Avg flow size', 'avg-packet-size': 'Avg packet size', 'single': 'Single figure',
+            'operations': 'Flow operations reduction', 'occupancy': 'Occupancy reduction',
+            'results_first': 'First packet', 'results_threshold': 'Counter threshold', 'results_sampling': 'Packet sampling'
         };
-        const PLOT_ORDER = ['single', ...Object.keys(PLOT_NAMES).filter(name => name !== 'single')];
+        const PLOT_ORDER = [...Object.keys(PLOT_NAMES).filter(name => name !== 'single'), 'single'];
 
         let currentDataset = null;
         let currentFilter = null;
@@ -801,7 +803,7 @@
                     artifact: params.get('artifact')
                 } : null;
                 const plot = params.get('plot');
-                currentPlot = plot && plot in PLOT_NAMES ? plot : 'single';
+                currentPlot = plot && plot in PLOT_NAMES ? plot : 'cdf';
                 datasetDropdown.value = dataset;
                 datasetDropdown.dispatchEvent(new Event('change'));
             }
@@ -843,8 +845,7 @@
 
             function artifactKeys(path, kind) {
                 if (kind === 'plot-group') {
-                    const logical = `plots/${path}`;
-                    return { key: artifactPath(logical), logical };
+                    return { key: artifactPath(path), logical: path };
                 }
                 const repositoryBase = `${RAW}/${DATASETS[currentDataset].repo}/`;
                 const artifactPrefix = `${artifactBase()}/`;
@@ -983,55 +984,50 @@
                 if (listDir(currentFilter).includes('Makefile'))
                     addItem('Makefile', `${nodeBase}/Makefile`, 'text');
 
-                const plotGroups = ['length', 'size'].filter(x =>
-                    listDir(artifactPath(`plots/${x}`)).some(file => file.endsWith('.svg')));
-                if (plotGroups.length) {
-                    addCategory('Plots');
-                    for (const group of plotGroups)
-                        addItem(group[0].toUpperCase() + group.slice(1), group, 'plot-group');
-                }
-
-                if (listDir(artifactPath('summary')).length || listDir(artifactPath('histograms')).length) {
-                    addCategory('Summary');
-                    addItem('Statistics & histograms', 'summary', 'summary');
-                }
-
                 const mixtures = ['length', 'size'].flatMap(x => listDir(artifactPath(`mixtures/${x}`))
                     .map(file => [x, file]));
-                if (mixtures.length) {
-                    addCategory('Mixtures');
-                    addItem('Mixture models', 'mixtures', 'mixtures');
+                const hasSummary = listDir(artifactPath('summary')).length || listDir(artifactPath('histograms')).length;
+                const hasSeries = listDir(artifactPath('series')).length || listDir(artifactPath('series/dorms')).length;
+                if (hasSummary || hasSeries || DATASETS[currentDataset].records) {
+                    addCategory('Analysis');
+                    if (hasSeries)
+                        addItem('Time series', 'series', 'series');
+                    if (hasSummary)
+                        addItem('Histograms', 'summary', 'summary');
+                    if (DATASETS[currentDataset].records)
+                        addItem('Flow records', 'records', 'records');
                 }
 
-                if (listDir(artifactPath('series')).length || listDir(artifactPath('series/dorms')).length) {
-                    addCategory('Time series');
-                    addItem('Time series', 'series', 'series');
+                const plotGroups = ['length', 'size'].filter(x =>
+                    listDir(artifactPath(`plots/${x}`)).some(file => file.endsWith('.svg')));
+                if (mixtures.length || plotGroups.length) {
+                    addCategory('Mixtures');
+                    if (mixtures.length)
+                        addItem('Introduction', 'mixtures/intro', 'mixtures-intro');
+                    if (mixtures.length)
+                        addItem('Mixture models', 'mixtures', 'mixtures');
+                    for (const group of plotGroups)
+                        addItem(`Plots (${group})`, `plots/${group}`, 'plot-group');
                 }
 
                 if (Object.keys(FILES[currentDataset]).some(path => path.startsWith(artifactPath('first_mirror/')))) {
                     addCategory('First mirror');
-                    for (const m of ['1', '2', '3', '4', '8']) {
-                        for (const f of listDir(artifactPath(`first_mirror/${m}`)))
-                            addItem(`${m} / ${f}`, `${base}/first_mirror/${m}/${f}`, kindOf(f));
-                    }
+                    addItem('Introduction', 'first_mirror/intro', 'first-mirror-intro');
+                    addItem('Mirroring simulation', 'first_mirror', 'first-mirror');
                 }
 
                 const elephants = listDir(artifactPath('elephants'));
                 if (elephants.length) {
                     addCategory('Elephants');
-                    for (const f of elephants)
+                    addItem('Introduction', 'elephants/intro', 'elephants-intro');
+                    for (const group of ['length', 'size'].filter(x =>
+                        listDir(artifactPath(`elephants/plots/${x}`)).some(file => file.endsWith('.svg'))))
+                        addItem(`Theoretical boundaries (${group})`, `elephants/plots/${group}`, 'plot-group');
+                    for (const f of elephants.filter(file => !file.endsWith('.svg') && !file.endsWith('.pdf') &&
+                            file !== 'Makefile' && file !== 'selected.tex'))
                         addItem(f, `${base}/elephants/${f}`, kindOf(f));
                 }
 
-                addCategory('Flow records');
-                if (!DATASETS[currentDataset].records) {
-                    const li = document.createElement('li');
-                    li.className = 'status';
-                    li.textContent = 'not published';
-                    artifactList.appendChild(li);
-                } else {
-                    addItem('Flow records', 'records', 'records');
-                }
             }
 
             async function populateProperties() {
@@ -1143,8 +1139,9 @@
                     if (metaEl && plotName !== 'single') {
                         try {
                             const meta = JSON.parse(metaEl.textContent);
-                            if (meta.axes && meta.axes.length === 1)
-                                enableInteractivity(view, info, svg, meta.axes[0], plotName, reset, hint);
+                            if (meta.axes && meta.axes.length >= 1)
+                                meta.axes.forEach((ax, i) =>
+                                    enableInteractivity(view, info, svg, ax, plotName, reset, hint, i));
                         } catch (error) {
                             console.warn('Unable to parse embedded plot data', error);
                         }
@@ -1155,7 +1152,7 @@
                 }
             }
 
-            function enableInteractivity(view, infoEl, svg, meta, plotName, reset, hint) {
+            function enableInteractivity(view, infoEl, svg, meta, plotName, reset, hint, axesIdx = 0) {
                 infoEl.hidden = false;
                 hint.hidden = false;
 
@@ -1168,7 +1165,7 @@
                 };
 
                 // ---------- axes rect + data/viewBox coordinate transforms ----------
-                const axesG = svg.querySelector('g[id^="axes_"]');
+                const axesG = svg.querySelectorAll('g[id^="axes_"]')[axesIdx];
                 const clipped = axesG ? Array.from(axesG.querySelectorAll('[clip-path]')) : [];
                 const clipId = clipped.length && (clipped[0].getAttribute('clip-path').match(/#([^)\s]+)/) || [])[1];
                 const clipRect = (clipId && svg.querySelector(`#${CSS.escape(clipId)} rect`))
@@ -1255,7 +1252,7 @@
                     if (wm) c.lw = +wm[1];
                 }
                 // rasterized datapoints are a single embedded image inside the axes
-                const pointsImage = svg.querySelector('g[id^="axes_"] image');
+                const pointsImage = axesG?.querySelector('image');
                 for (const c of curves) {
                     if (c.kind === 'points')
                         c.el = pointsImage;
@@ -1737,7 +1734,9 @@
                     });
                 }
 
-                const legend = svg.querySelector('g[id^="legend_"]');
+                // per-panel legends nest inside their own axes group; a figure-level
+                // legend stays non-isolating since its entries map to multiple panels
+                const legend = axesG?.querySelector('g[id^="legend_"]');
                 if (legend) {
                     // keep the legend above the hit rectangle so its entries stay clickable
                     svg.appendChild(legend);
@@ -1769,20 +1768,22 @@
                     svg.style.transformOrigin = '0 0';
                     svg.style.transform = zoom.s === 1 ? '' : `translate(${zoom.tx}px, ${zoom.ty}px) scale(${zoom.s})`;
                 }
-                view.addEventListener('wheel', e => {
-                    e.preventDefault();
-                    const ns = Math.min(80, Math.max(1, zoom.s * Math.exp(-e.deltaY * 0.0015)));
-                    if (ns === 1) {
-                        zoom.tx = zoom.ty = 0;
-                    } else {
-                        const px = (e.clientX - baseRect.left - zoom.tx) / zoom.s;
-                        const py = (e.clientY - baseRect.top - zoom.ty) / zoom.s;
-                        zoom.tx = e.clientX - baseRect.left - px * ns;
-                        zoom.ty = e.clientY - baseRect.top - py * ns;
-                    }
-                    zoom.s = ns;
-                    applyZoom();
-                }, { passive: false });
+                // wheel zooms the whole svg — attach once even for multi-panel figures
+                if (axesIdx === 0)
+                    view.addEventListener('wheel', e => {
+                        e.preventDefault();
+                        const ns = Math.min(80, Math.max(1, zoom.s * Math.exp(-e.deltaY * 0.0015)));
+                        if (ns === 1) {
+                            zoom.tx = zoom.ty = 0;
+                        } else {
+                            const px = (e.clientX - baseRect.left - zoom.tx) / zoom.s;
+                            const py = (e.clientY - baseRect.top - zoom.ty) / zoom.s;
+                            zoom.tx = e.clientX - baseRect.left - px * ns;
+                            zoom.ty = e.clientY - baseRect.top - py * ns;
+                        }
+                        zoom.s = ns;
+                        applyZoom();
+                    }, { passive: false });
                 if (reset)
                     reset.addEventListener('click', () => {
                         zoom.s = 1; zoom.tx = zoom.ty = 0;
@@ -1875,12 +1876,12 @@
                 });
                 renderInfo();
             }
-            function showPlotGroup(group, request) {
+            function showPlotGroup(dir, request) {
                 const order = file => {
                     const index = PLOT_ORDER.indexOf(file.replace(/\.svg$/, ''));
                     return index < 0 ? PLOT_ORDER.length : index;
                 };
-                const files = listDir(artifactPath(`plots/${group}`))
+                const files = listDir(artifactPath(dir))
                     .filter(file => file.endsWith('.svg'))
                     .sort((a, b) => order(a) - order(b));
                 const selector = document.createElement('div');
@@ -1909,7 +1910,7 @@
                         selector.querySelectorAll('button').forEach(element => element.classList.remove('selected'));
                         button.classList.add('selected');
                         currentPlot = name;
-                        currentArtifact = `${artifactBase()}/plots/${group}/${file}`;
+                        currentArtifact = `${artifactBase()}/${dir}/${file}`;
                         loadPlot(figure, info, currentArtifact, name, request, reset, hint);
                         setAction(viewSvg, currentArtifact);
                         setAction(viewPdf, currentArtifact.replace(/\.svg$/, '.pdf'));
@@ -2310,7 +2311,7 @@
             // linear rate chart of per-second counters: 30 s rolling-mean line
             // over a per-pixel min/max envelope of the raw counts, matching the
             // generated series plots (all = black, dorms = red)
-            function seriesChart(unit, entries, wrap, view) {
+            function seriesChart(unit, entries, wrap, view, div) {
                 const NS = 'http://www.w3.org/2000/svg';
                 const el = (name, attrs) => {
                     const e = document.createElementNS(NS, name);
@@ -2318,7 +2319,7 @@
                         e.setAttribute(k, v);
                     return e;
                 };
-                const W = 720, H = 240, m = { l: 64, r: 12, t: 12, b: 36 };
+                const W = 720, H = 240, m = { l: 64, r: div ? 56 : 12, t: 12, b: 36 };
                 const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
                 const ROLL = 30;
                 const n = Math.min(...entries.map(e => e.raw.length));
@@ -2387,6 +2388,11 @@
                     const tx = el('text', { x: m.l - 5, y: w + 3.5, 'text-anchor': 'end' });
                     tx.textContent = fmtRate(v);
                     labels.appendChild(tx);
+                    if (div) {
+                        const tr = el('text', { x: W - m.r + 5, y: w + 3.5, 'text-anchor': 'start' });
+                        tr.textContent = `${fmtNum(v / div * 100)}%`;
+                        labels.appendChild(tr);
+                    }
                 }
                 svg.append(grid, labels);
                 // shaded period in which flows start
@@ -2744,19 +2750,302 @@
                 }
             }
 
+            async function showFirstMirrorIntro(request) {
+                const page = document.createElement('div');
+                page.className = 'summary-page';
+                artifactDisplay.replaceChildren(page);
+                const para = (text) => {
+                    const p = document.createElement('p');
+                    p.className = 'infoParagraph';
+                    p.textContent = text;
+                    return p;
+                };
+                const sec = pageSection(page, 'First N packets mirroring');
+                sec.appendChild(para('The first N packets mirroring feature, found in the latest '
+                    + 'generation of SDN switches, sends copies of the initial packets from each '
+                    + 'new flow in the dataplane to the switch\'s CPU or SDN controller. The '
+                    + 'controller can then perform packet inspection and flow identification: by '
+                    + 'analyzing the connection setup procedure, packet sizes and time gaps between '
+                    + 'the first packets it can determine the associated application, even for '
+                    + 'encrypted connections.'));
+                sec.appendChild(para('This capability is also valuable for early detection of '
+                    + 'elephant flows. Classifying flows on their first packets eliminates the need '
+                    + 'for mid-flow rerouting, so for the majority of a flow\'s lifespan it is '
+                    + 'subject to traffic engineering mechanisms designed for elephant flows, such '
+                    + 'as individual routing paths. The controller can also continuously learn and '
+                    + 'refine its detection models on the stream of first packets from flows.'));
+                const h3 = document.createElement('h3');
+                h3.textContent = 'The simulation';
+                sec.appendChild(h3);
+                sec.appendChild(para('The simulation replays sorted flow records and emits the first '
+                    + 'N packets of every new flow at their timestamps, producing per-second counters '
+                    + 'of mirrored packets and octets — the load this feature would put on the switch '
+                    + 'control plane. The charts below compare N ∈ {1, 2, 3, 4, 8}: mirrored packet '
+                    + 'and bit rates over the day, their share of overall traffic, and the totals '
+                    + 'per mirror count.'));
+                const note = document.createElement('div');
+                note.className = 'plot-hint';
+                note.textContent = 'See Mirroring simulation below for the interactive results.';
+                sec.appendChild(note);
+            }
+
+            async function showMixturesIntro(request) {
+                const page = document.createElement('div');
+                page.className = 'summary-page';
+                artifactDisplay.replaceChildren(page);
+                const para = (text) => {
+                    const p = document.createElement('p');
+                    p.className = 'infoParagraph';
+                    p.textContent = text;
+                    return p;
+                };
+                const sec = pageSection(page, 'Mixture models');
+                sec.appendChild(para('Each model contains a General Mixture Model of the flow length '
+                    + 'and size distributions, fitted to the dataset histograms with the '
+                    + 'Expectation-Maximisation algorithm. A mixture gives the share and parameters '
+                    + 'of each component distribution; fitted models can be used both in analytical '
+                    + 'calculations and to simulate realistic traffic.'));
+                sec.appendChild(para('Uniform, normal, lognormal, Pareto, Weibull and gamma '
+                    + 'distributions can be used as mixture components — uniform and lognormal are '
+                    + 'usually sufficient for accurate flow length and size models, and their '
+                    + 'analytical maximization steps make them fast to fit and widely usable in '
+                    + 'network simulators and traffic generators.'));
+                const h3 = document.createElement('h3');
+                h3.textContent = 'The models';
+                sec.appendChild(h3);
+                sec.appendChild(para('For both flow length [packets] and size [octets], separate '
+                    + 'mixtures are fitted weighted by flows, packets and octets — the flows, '
+                    + 'packets and octets JSON files under Mixture models. Selecting a model lets '
+                    + 'you inspect its components and compare it against the dataset histograms; '
+                    + 'the Plots entries show the fitted distributions.'));
+                const note = document.createElement('div');
+                note.className = 'plot-hint';
+                note.textContent = 'See Mixture models and Plots below for the interactive results.';
+                sec.appendChild(note);
+            }
+
+            async function showFirstMirror(request) {
+                const base = artifactBase();
+                const dir = artifactPath('first_mirror');
+                const mirrorDirs = Object.keys(FILES[currentDataset])
+                    .filter(path => path.startsWith(`${dir}/`) && /^\d+$/.test(path.slice(dir.length + 1)))
+                    .sort((a, b) => +a.slice(dir.length + 1) - +b.slice(dir.length + 1));
+                const plotFiles = listDir(`${dir}/plots`);
+                const seriesFiles = listDir(artifactPath('series'));
+                const page = document.createElement('div');
+                page.className = 'summary-page';
+                artifactDisplay.replaceChildren(page);
+                const intro = document.createElement('div');
+                intro.className = 'plot-hint';
+                intro.textContent = 'Simulated switch control-plane load when the first N packets of every new flow are mirrored';
+                page.appendChild(intro);
+
+                // day -> m -> what -> {file, bytes, raw}
+                const days = {};
+                const jobs = [];
+                for (const path of mirrorDirs) {
+                    const m = +path.slice(dir.length + 1);
+                    for (const f of listDir(path)) {
+                        const mm = f.match(/^(\d+)\.(packets|octets)_mirrored$/);
+                        if (!mm)
+                            continue;
+                        const rel = `${m}/${f}`;
+                        const rec = ((days[mm[1]] ||= {})[m] ||= {})[mm[2]] = { file: rel };
+                        jobs.push(fetch(`${base}/first_mirror/${rel}`).then(async resp => {
+                            if (!resp.ok)
+                                throw new Error(`HTTP ${resp.status}`);
+                            rec.bytes = +resp.headers.get('content-length') || 0;
+                            rec.raw = parseSeries(await resp.text());
+                        }).catch(error => console.warn(`Unable to load mirror series: ${f}`, error)));
+                    }
+                }
+                // overall traffic totals for the share columns
+                const traffic = {};
+                for (const day of Object.keys(days))
+                    for (const what of ['packets', 'octets'])
+                        if (seriesFiles.includes(`${day}.${what}`))
+                            jobs.push(fetch(`${base}/series/${day}.${what}`).then(async resp => {
+                                if (resp.ok)
+                                    (traffic[day] ||= {})[what] = { raw: parseSeries(await resp.text()) };
+                            }).catch(() => { }));
+                await Promise.all(jobs);
+                if (request !== artifactRequest)
+                    return;
+
+                const MC = { 1: '#0969da', 2: '#1a7f37', 3: '#9a6700', 4: '#cf222e', 8: '#8250df' };
+                const mc = m => MC[m] || '#57606a';
+                const ms = mirrorDirs.map(path => +path.slice(dir.length + 1));
+                for (const day of Object.keys(days).sort((a, b) => a - b)) {
+                    const recs = days[day];
+                    const sec = pageSection(page,
+                        `${new Date(day * 86400 * 1000).toISOString().slice(0, 10)} (Day ${day})`);
+                    // one x range for both metrics: union of nonzero spans, padded
+                    let lo = Infinity, hi = -1, nmax = 0;
+                    for (const rec of Object.values(recs))
+                        for (const what of ['packets', 'octets'])
+                            if (rec[what]?.raw) {
+                                const raw = rec[what].raw;
+                                nmax = Math.max(nmax, raw.length - 1);
+                                for (let i = 0; i < raw.length; i++)
+                                    if (raw[i]) {
+                                        lo = Math.min(lo, i);
+                                        hi = Math.max(hi, i);
+                                    }
+                            }
+                    const span = hi >= 0 ? hi - lo + 1 : 0;
+                    if (hi < 0) {
+                        lo = 0;
+                        hi = nmax;
+                    } else {
+                        lo = Math.max(lo - 600, 0);
+                        hi = Math.min(hi + 600, nmax);
+                    }
+                    const view = { lo, hi, lo0: lo, hi0: hi };
+                    const share = traffic[day] || {};
+                    for (const [what, label, unit, scale] of [
+                        ['packets', 'Mirrored packet rate', 'packets/s', 1],
+                        ['octets', 'Mirrored bit rate', 'bits/s', 8]]) {
+                        const block = document.createElement('div');
+                        block.className = 'series-block';
+                        const note = document.createElement('div');
+                        note.className = 'plot-hint';
+                        const wrap = document.createElement('div');
+                        wrap.className = 'hist-wrap';
+                        block.append(note, wrap);
+                        sec.appendChild(block);
+                        const entries = ms.filter(m => recs[m]?.[what]?.raw)
+                            .map(m => ({
+                                label: `first ${m}`, color: mc(m),
+                                raw: scale === 1 ? recs[m][what].raw
+                                    : recs[m][what].raw.map(v => v * scale)
+                            }));
+                        if (!entries.length) {
+                            note.textContent = 'Series not available.';
+                            continue;
+                        }
+                        note.textContent = `${label} · 30 s rolling mean over per-second counts,`
+                            + ' shaded min–max envelope · hover to inspect'
+                            + (share[what] ? ' · right axis: share of all traffic' : '');
+                        const raw = share[what]?.raw;
+                        const div = raw && span ? raw.reduce((s, v) => s + v, 0) * scale / span : null;
+                        wrap.appendChild(seriesChart(unit, entries, wrap, view, div));
+                    }
+
+                    // totals per mirror count
+                    const table = document.createElement('table');
+                    const thead = document.createElement('thead');
+                    const hr = document.createElement('tr');
+                    const cols = ['first N', 'mirrored packets', 'mirrored octets',
+                        'avg packet rate', 'avg bit rate',
+                        ...(share.packets ? ['of all packets'] : []),
+                        ...(share.octets ? ['of all octets'] : [])];
+                    for (const name of cols) {
+                        const th = document.createElement('th');
+                        th.textContent = name;
+                        hr.appendChild(th);
+                    }
+                    thead.appendChild(hr);
+                    table.appendChild(thead);
+                    for (const m of ms) {
+                        const p = recs[m]?.packets?.raw, o = recs[m]?.octets?.raw;
+                        if (!p && !o)
+                            continue;
+                        const tr = document.createElement('tr');
+                        const tp = p ? p.reduce((s, v) => s + v, 0) : 0;
+                        const to = o ? o.reduce((s, v) => s + v, 0) : 0;
+                        const n = Math.max(p?.length || 0, o?.length || 0, 1);
+                        const cells = [`first ${m}`, p ? fmtInt(tp) : '–', o ? fmtBytes(to) : '–',
+                            `${fmtRate(tp / n)} packets/s`, `${fmtRate(to * 8 / n)} bits/s`];
+                        if (share.packets)
+                            cells.push(tp ? `${fmtNum(tp / share.packets.raw.reduce((s, v) => s + v, 0) * 100)}%` : '–');
+                        if (share.octets)
+                            cells.push(to ? `${fmtNum(to / share.octets.raw.reduce((s, v) => s + v, 0) * 100)}%` : '–');
+                        for (const c of cells) {
+                            const td = document.createElement('td');
+                            td.textContent = c;
+                            tr.appendChild(td);
+                        }
+                        table.appendChild(tr);
+                    }
+                    sec.appendChild(table);
+
+                    fileLinks(sec, [
+                        ...ms.flatMap(m => ['packets', 'octets']
+                            .filter(what => recs[m]?.[what])
+                            .map(what => {
+                                const rec = recs[m][what];
+                                return [rec.file, `${base}/first_mirror/${rec.file}`, true,
+                                    rec.bytes ? fmtBytes(rec.bytes) : null];
+                            })),
+                        ...[`${day}.packets.svg`, `${day}.packets.pdf`,
+                            `${day}.bits.svg`, `${day}.bits.pdf`, 'total.svg', 'total.pdf']
+                            .filter(f => plotFiles.includes(f))
+                            .map(f => [`plots/${f}`, `${base}/first_mirror/plots/${f}`, true, null])
+                    ]);
+                }
+            }
+
+            async function showElephants(request) {
+                const base = artifactBase();
+                const page = document.createElement('div');
+                page.className = 'summary-page';
+                artifactDisplay.replaceChildren(page);
+
+                const sec = pageSection(page, 'Elephant detection algorithms');
+                const para = (text) => {
+                    const p = document.createElement('p');
+                    p.className = 'infoParagraph';
+                    p.textContent = text;
+                    return p;
+                };
+                sec.appendChild(para('Elephant flows — the few flows that carry most of the traffic — '
+                    + 'benefit from dedicated flow-table entries with individual routing, while mice flows '
+                    + 'share aggregated entries. Each detection algorithm decides when a flow entry is '
+                    + 'created; the plots evaluate the traffic coverage, flow-table occupancy and flow '
+                    + 'operations cost of three approaches.'));
+                const figure = document.createElement('div');
+                figure.className = 'series-block';
+                const img = document.createElement('img');
+                img.src = `${base}/elephants/schema.svg`;
+                img.alt = 'Flowcharts of the first, threshold and sampling algorithms';
+                figure.appendChild(img);
+                sec.appendChild(figure);
+                for (const [name, text] of [
+                    ['first', 'A flow entry is created on the arrival of the flow\'s first packet, assuming '
+                        + 'the flow\'s eventual length or size can be determined from it. Impractical in '
+                        + 'reality, it provides an upper bound for all elephant detection algorithms, '
+                        + 'including machine-learning classification on the first packet.'],
+                    ['threshold', 'A flow entry is created when the amount of traffic or the number of '
+                        + 'packets transmitted by a flow exceeds a detection threshold. Realizable with '
+                        + 'per-flow counters or approximate counting structures (TurboFlow, Bloom filters, '
+                        + 'sketches); provides an upper bound for all counting-based methods.'],
+                    ['sampling', 'Packets without flow-table entries are randomly sampled with probability '
+                        + 'p; a sampled packet triggers entry creation and the subsequent packets of the '
+                        + 'flow are forwarded according to it. The probability of detection after n packets '
+                        + 'is 1 − (1 − p)ⁿ, letting operators trade flow-table occupancy against traffic '
+                        + 'coverage.']]) {
+                    const h3 = document.createElement('h3');
+                    h3.textContent = `The ${name} algorithm`;
+                    sec.appendChild(h3);
+                    sec.appendChild(para(text));
+                }
+                fileLinks(sec, [['schema.svg', `${base}/elephants/schema.svg`, true, null]]);
+            }
+
             async function showRecords(request) {
                 const base = artifactBase();
                 const files = listDir(artifactPath('sorted'));
                 const page = document.createElement('div');
                 page.className = 'summary-page';
                 artifactDisplay.replaceChildren(page);
+                // [C type, bytes, C99 fixed-width type]
                 const TYPES = {
-                    b: ['signed char', 1], B: ['unsigned char', 1],
-                    h: ['signed short', 2], H: ['unsigned short', 2],
-                    i: ['signed int', 4], I: ['unsigned int', 4],
-                    l: ['signed long', 8], L: ['unsigned long', 8],
-                    q: ['signed long long', 8], Q: ['unsigned long long', 8],
-                    f: ['float', 4], d: ['double', 8],
+                    b: ['signed char', 1, 'int8_t'], B: ['unsigned char', 1, 'uint8_t'],
+                    h: ['signed short', 2, 'int16_t'], H: ['unsigned short', 2, 'uint16_t'],
+                    i: ['signed int', 4, 'int32_t'], I: ['unsigned int', 4, 'uint32_t'],
+                    l: ['signed long', 8, 'int64_t'], L: ['unsigned long', 8, 'uint64_t'],
+                    q: ['signed long long', 8, 'int64_t'], Q: ['unsigned long long', 8, 'uint64_t'],
+                    f: ['float', 4, ''], d: ['double', 8, ''],
                 };
                 const FIELD_INFO = {
                     af: 'address family (2 = IPv4, 10 = IPv6)',
@@ -2788,12 +3077,13 @@
                 note.className = 'plot-hint';
                 const perRec = fields.reduce((s, f) => s + f.type[1], 0);
                 note.textContent = `Columnar binary records — one {field}.{dtype} file per field, `
-                    + `all arrays aligned by record index and sorted by flow start time · ${perRec} B/record`;
+                    + `all arrays aligned by record index and sorted by flow start time · ${perRec} B/record · `
+                    + `IP addresses anonymized with a prefix-preserving algorithm (Crypto-PAn)`;
                 sec.appendChild(note);
                 const table = document.createElement('table');
                 const thead = document.createElement('thead');
                 const hr = document.createElement('tr');
-                for (const name of ['file', 'C type', 'B/record', 'records', 'size', 'description']) {
+                for (const name of ['file', 'C type', 'C99', 'NumPy', 'B/record', 'records', 'size', 'description']) {
                     const th = document.createElement('th');
                     th.textContent = name;
                     hr.appendChild(th);
@@ -2816,6 +3106,10 @@
                     tdF.appendChild(a);
                     const tdT = document.createElement('td');
                     tdT.textContent = f.type[0];
+                    const td9 = document.createElement('td');
+                    td9.textContent = f.type[2];
+                    const tdNP = document.createElement('td');
+                    tdNP.textContent = f.code;
                     const tdB = document.createElement('td');
                     tdB.textContent = f.type[1];
                     const tdN = document.createElement('td');
@@ -2824,7 +3118,7 @@
                     tdS.className = 'file-size';
                     const tdD = document.createElement('td');
                     tdD.textContent = FIELD_INFO[f.name] || '';
-                    tr.append(tdF, tdT, tdB, tdN, tdS, tdD);
+                    tr.append(tdF, tdT, td9, tdNP, tdB, tdN, tdS, tdD);
                     table.appendChild(tr);
                 }
                 sec.appendChild(table);
@@ -2938,6 +3232,30 @@
                 }
                 if (kind === 'records') {
                     showRecords(request);
+                    if (updateHistory)
+                        updateURL(true);
+                    return;
+                }
+                if (kind === 'first-mirror') {
+                    showFirstMirror(request);
+                    if (updateHistory)
+                        updateURL(true);
+                    return;
+                }
+                if (kind === 'elephants-intro') {
+                    showElephants(request);
+                    if (updateHistory)
+                        updateURL(true);
+                    return;
+                }
+                if (kind === 'first-mirror-intro') {
+                    showFirstMirrorIntro(request);
+                    if (updateHistory)
+                        updateURL(true);
+                    return;
+                }
+                if (kind === 'mixtures-intro') {
+                    showMixturesIntro(request);
                     if (updateHistory)
                         updateURL(true);
                     return;

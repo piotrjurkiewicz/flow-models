@@ -41,8 +41,10 @@ def _fm_total(what, value, ax=None):
     info['totals'][what] = _fm_num(value)
 
 def _fm_add(kind, x, y, label=None, what=None, component=None, ax=None, artists=()):
-    _, info = _fm_axis_data(ax)
-    gid = 'fm-c%d' % len(info['curves'])
+    ax, info = _fm_axis_data(ax)
+    fig = ax.figure
+    fig._fm_n = getattr(fig, '_fm_n', 0) + 1
+    gid = 'fm-c%d' % fig._fm_n
     for artist in artists:
         artist.set_gid(gid)
     entry = {
