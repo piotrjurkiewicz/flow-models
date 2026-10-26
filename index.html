@@ -1,0 +1,3066 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="favicon.svg" sizes="any" type="image/svg+xml">
+    <title>Flow models</title>
+    <style>
+        :root {
+            --background-muted: #f6f8fa;
+            --border: #d0d7de;
+            --border-muted: #d8dee4;
+            --focus: #0969da;
+            --selected: #ddf4ff;
+            --surface: #ffffff;
+            --radius: 6px;
+            --space: 8px;
+            --content-height: calc(100vh - 64px);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: sans-serif;
+            line-height: 1;
+            margin: 0;
+            background-color: var(--background-muted);
+        }
+
+        header {
+            height: 64px;
+            color: #24292e;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            border-bottom: 1px solid var(--border);
+            justify-content: space-between;
+        }
+
+        header div {
+            display: inherit;
+            gap: 10px;
+            flex-grow: 1;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        header a.button {
+            margin: var(--space);
+        }
+
+        h2 {
+            font-size: 16px;
+            margin: 16px 0 8px;
+        }
+
+        h2:first-child {
+            margin-top: 0;
+        }
+
+        a.button {
+            padding: 4px 6px;
+            background-color: var(--background-muted);
+            border: 1px solid var(--border-muted);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space);
+            cursor: pointer;
+            color: inherit;
+            text-decoration: inherit;
+        }
+
+        a.button:hover {
+            background-color: #eaeef2;
+        }
+
+        .button-text {
+            font-size: 14px;
+            line-height: 24px;
+        }
+
+        .action-bar {
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+
+        .action-bar .unavailable {
+            pointer-events: none;
+            cursor: default;
+        }
+
+        .action-bar a.button {
+            flex: 1 1 auto;
+            min-width: 0;
+            height: 32px;
+            padding-block: 2px;
+        }
+
+        .box {
+            padding: 16px;
+            background-color: var(--surface);
+            border: 1px solid var(--border-muted);
+            border-radius: 3px;
+        }
+
+        .main-display {
+            flex: 1;
+            min-height: 0;
+        }
+
+        .data-list {
+            padding: 0;
+            margin: 0;
+        }
+
+        .data-list>* {
+            border-bottom: 1px solid var(--border-muted);
+            font-size: 12px;
+        }
+
+        .data-list> :last-child {
+            border-bottom: none;
+        }
+
+        .data-list> :hover {
+            background-color: var(--background-muted);
+        }
+
+        .data-list>li {
+            list-style-type: none;
+        }
+
+        .property-list>div {
+            display: flex;
+            justify-content: space-between;
+            white-space: nowrap;
+            gap: 24px;
+            padding: 4px;
+        }
+
+        .property-list dt,
+        .property-list dd {
+            margin: 0;
+        }
+
+        .boxed-list {
+            border: 1px solid var(--border-muted);
+            border-radius: 3px;
+            margin-top: var(--space);
+        }
+
+        .list-wrapper {
+            border: 1px solid var(--border-muted);
+            border-radius: 3px;
+        }
+
+        .wrapping-list>div {
+            align-items: flex-start;
+            gap: var(--space);
+            white-space: normal;
+        }
+
+        .wrapping-list dt {
+            flex-shrink: 0;
+        }
+
+        .wrapping-list dd {
+            min-width: 0;
+            overflow-wrap: anywhere;
+            text-align: right;
+        }
+
+        .infoParagraph {
+            margin-bottom: var(--space);
+            margin-top: 0;
+        }
+
+        .infoParagraph a {
+            text-decoration: inherit;
+        }
+
+        .container {
+            display: grid;
+            grid-template-areas: "left main right";
+            grid-template-columns: 300px minmax(0, 1fr) 240px;
+            min-height: var(--content-height);
+        }
+
+        .sidebar-left,
+        .sidebar-right {
+            padding: 24px;
+            font-size: 14px;
+        }
+
+        .sidebar-left {
+            grid-area: left;
+            background-color: var(--surface);
+            border-right: 1px solid var(--border);
+        }
+
+        .sidebar-right {
+            grid-area: right;
+            padding-left: 0;
+        }
+
+        .main-content {
+            grid-area: main;
+            display: flex;
+            padding: 24px;
+            flex-direction: column;
+            max-height: var(--content-height);
+            min-width: 0;
+        }
+
+        .sidebar-right {
+            display: flex;
+            max-height: var(--content-height);
+        }
+
+        .sidebar-right>.box {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        #downloadBar {
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        #downloadBar a.button {
+            justify-content: center;
+        }
+
+        #downloadBar .button-text {
+            font-size: 10px;
+            white-space: nowrap;
+        }
+
+        #downloadBar a.button svg {
+            display: none;
+        }
+
+        .plot-selector button {
+            background-color: var(--background-muted);
+            border: 1px solid var(--border-muted);
+            border-radius: var(--radius);
+            cursor: pointer;
+        }
+
+        .plot-selector button:hover {
+            background-color: #eaeef2;
+        }
+
+        #modelInfo {
+            border: 1px solid var(--border-muted);
+            border-radius: 3px;
+        }
+
+        #artifactDisplay {
+            overflow: auto;
+        }
+
+        #artifactDisplay img,
+        #artifactDisplay embed {
+            width: 100%;
+        }
+
+        .plot-figure {
+            min-height: 0;
+            overflow: auto;
+        }
+
+        .plot-view {
+            position: relative;
+            cursor: crosshair;
+        }
+
+        .plot-view svg {
+            width: 100%;
+            height: auto;
+            max-width: 100%;
+            max-height: calc(var(--content-height) * 0.75);
+            object-fit: contain;
+            display: block;
+            user-select: none;
+        }
+
+        .fm-tooltip {
+            position: absolute;
+            display: none;
+            pointer-events: none;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 3px 6px;
+            font-size: 11px;
+            line-height: 1.35;
+            white-space: nowrap;
+            z-index: 10;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .fm-tooltip .dim {
+            color: #57606a;
+        }
+
+        .plot-info {
+            flex: none;
+            margin-top: var(--space);
+            font-size: 12px;
+            line-height: 1.5;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 24px;
+            align-items: flex-start;
+        }
+
+        .plot-info table {
+            border-collapse: collapse;
+            margin-top: 4px;
+        }
+
+        .plot-info tr.comp {
+            cursor: pointer;
+        }
+
+        .plot-info tr.comp:hover th,
+        .plot-info tr.comp:hover td,
+        .plot-info tr.comp.sel th,
+        .plot-info tr.comp.sel td {
+            background-color: var(--selected);
+        }
+
+        .plot-info th,
+        .plot-info td {
+            border: 1px solid var(--border-muted);
+            padding: 2px 8px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .plot-hint {
+            color: #57606a;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .fm-reset {
+            margin-left: auto;
+        }
+
+        .summary-page {
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        .summary-page section {
+            margin-bottom: 24px;
+        }
+
+        .summary-page table {
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .summary-page th,
+        .summary-page td {
+            border: 1px solid var(--border-muted);
+            padding: 2px 8px;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .summary-page thead th {
+            background-color: var(--background-muted);
+            text-align: center;
+        }
+
+        .summary-page td:first-child {
+            text-align: left;
+        }
+
+        .summary-page .summary-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 28px;
+            align-items: flex-start;
+        }
+
+        .summary-page .hist-col {
+            flex: 1 1 460px;
+            min-width: 0;
+        }
+
+        .summary-page h3 {
+            margin: 0 0 4px;
+            font-size: 14px;
+        }
+
+        .summary-page .mix-col {
+            flex: 1 1 280px;
+            min-width: 0;
+        }
+
+        .summary-page .series-block {
+            margin-top: 8px;
+        }
+
+        .summary-page .series-block .links {
+            margin-top: 4px;
+        }
+
+        .summary-page .links {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .summary-page .links .file-meta {
+            font-size: 11px;
+            color: #57606a;
+            margin-right: 4px;
+        }
+
+        .summary-page .links a.button {
+            font-size: 12px;
+            padding: 2px 8px;
+        }
+
+        .hist-wrap {
+            position: relative;
+            margin-top: 4px;
+        }
+
+        .hist-wrap svg {
+            width: 100%;
+            height: auto;
+            display: block;
+            cursor: crosshair;
+        }
+
+        #artifactDisplay embed {
+            height: 100%;
+        }
+
+        #artifactDisplay pre {
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+
+        .plot-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .plot-selector button {
+            padding: 6px 8px;
+        }
+
+        .plot-selector button.selected {
+            background-color: var(--selected);
+            border-color: #54aeff;
+        }
+
+        .markdown-body {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .markdown-body> :first-child {
+            margin-top: 0;
+        }
+
+        .markdown-body> :last-child {
+            margin-bottom: 0;
+        }
+
+        .markdown-body h1,
+        .markdown-body h2 {
+            border-bottom: 1px solid var(--border-muted);
+            padding-bottom: 0.3em;
+        }
+
+        .markdown-body a {
+            color: var(--focus);
+            text-decoration: none;
+        }
+
+        .markdown-body a:hover {
+            text-decoration: underline;
+        }
+
+        #artifactDisplay .markdown-body img {
+            width: auto;
+            max-width: 100%;
+            display: block;
+            margin-inline: auto;
+        }
+
+        .markdown-body .table-wrapper {
+            width: 100%;
+            margin: 16px 0;
+            overflow-x: auto;
+        }
+
+        .markdown-body table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .markdown-body th,
+        .markdown-body td {
+            border: 1px solid var(--border);
+            padding: 6px 13px;
+        }
+
+        .markdown-body tbody tr:nth-child(2n) {
+            background-color: var(--background-muted);
+        }
+
+        .markdown-body code {
+            background-color: rgba(175, 184, 193, 0.2);
+            border-radius: var(--radius);
+            padding: 0.2em 0.4em;
+        }
+
+        #artifactDisplay .markdown-body pre {
+            background-color: var(--background-muted);
+            border-radius: var(--radius);
+            box-shadow: inset 0 0 0 1px rgba(208, 215, 222, 0.35);
+            line-height: 1.45;
+            margin: 16px 0;
+            overflow: auto;
+            padding: 16px;
+            white-space: pre;
+        }
+
+        .markdown-body pre code {
+            background: transparent;
+            border-radius: 0;
+            padding: 0;
+        }
+
+        select {
+            width: 100%;
+            margin-bottom: var(--space);
+        }
+
+        .artifact-list li.category {
+            padding: 4px;
+            font-weight: bold;
+            background-color: var(--background-muted);
+            font-size: 13px;
+        }
+
+        .artifact-list li.item button,
+        .artifact-list li.status {
+            padding: 4px 4px 4px 16px;
+        }
+
+        .artifact-list li.item button {
+            width: 100%;
+            background: transparent;
+            border: 0;
+            cursor: pointer;
+            font: inherit;
+            text-align: left;
+        }
+
+        .artifact-list li.item.selected button {
+            background-color: var(--selected);
+        }
+
+        .artifact-list li.item button:focus-visible {
+            outline: 2px solid var(--focus);
+            outline-offset: -2px;
+        }
+
+        #artifactListWrapper {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+        }
+
+        #modelInfo {
+            margin-top: var(--space);
+        }
+
+        #modelInfo {
+            padding: 8px;
+            font-size: 12px;
+            text-align: justify;
+        }
+
+        #modelInfo .infoParagraph {
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-areas: "left" "right" "main";
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .sidebar-left {
+                border-bottom: 1px solid var(--border);
+                border-right: none;
+            }
+
+            .sidebar-right {
+                display: block;
+                max-height: none;
+            }
+
+            #artifactListWrapper {
+                overflow-y: visible;
+            }
+
+            .main-content {
+                max-height: none;
+                min-height: 60vh;
+                padding-top: 0;
+            }
+
+            #artifactDisplay {
+                flex: none;
+                overflow: visible;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div>
+            <img src="favicon.svg" alt="" />
+            <h1>Flow models</h1>
+        </div>
+        <a class="button" href="https://flow-models.readthedocs.io/" target="_blank" rel="noopener noreferrer">
+            <span>📄</span>
+            <span class="button-text">Docs</span>
+        </a>
+        <a class="button" href="https://github.com/piotrjurkiewicz/flow-models" target="_blank" rel="noopener noreferrer">
+            <img height="16" src="github-mark.svg" alt="" />
+            <span class="button-text">GitHub</span>
+        </a>
+    </header>
+    <div class="container">
+        <aside class="sidebar-left">
+            <p class="infoParagraph">Repository of flow length and size distribution models fitted to NetFlow records
+                collected in a campus network.</p>
+            <p class="infoParagraph">Documentation: <a href="https://flow-models.readthedocs.io">flow-models.readthedocs.io</a></p>
+            <h2>Select a model</h2>
+            <select id="datasetDropdown" aria-label="Dataset">
+                <option value="" selected>Select a dataset</option>
+            </select>
+            <div id="selectorDropdowns">
+                <select aria-label="Model selector" disabled>
+                    <option selected>Select a model</option>
+                </select>
+            </div>
+            <dl id="metadataList" class="data-list property-list boxed-list wrapping-list">
+            </dl>
+            <dl id="statsList" class="data-list property-list boxed-list">
+            </dl>
+            <div id="modelInfo">
+            </div>
+        </aside>
+        <main class="main-content">
+            <div id="artifactDisplay" class="box main-display">
+                <pre>Select a dataset and filter on the left, then choose an artifact on the right.</pre>
+            </div>
+        </main>
+        <aside class="sidebar-right">
+            <div class="box">
+                <h2>Show artifact</h2>
+                <div id="artifactListWrapper" class="list-wrapper">
+                    <ul id="artifactList" class="data-list artifact-list">
+                    </ul>
+                </div>
+                <h2>Actions</h2>
+                <div id="downloadBar" class="action-bar">
+                    <a id="viewSvg" class="button unavailable" target="_blank" rel="noopener noreferrer" aria-disabled="true">
+                        <span class="button-text">View SVG</span>
+                    </a>
+                    <a id="viewPdf" class="button unavailable" target="_blank" rel="noopener noreferrer" aria-disabled="true">
+                        <span class="button-text">View PDF</span>
+                    </a>
+                    <a id="downloadFile" class="button unavailable" download aria-disabled="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                            <path d="M17 12v5H3v-5H1v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5z" />
+                            <path d="M10 15l5-6h-4V1H9v8H5l5 6z" />
+                        </svg>
+                        <span class="button-text">Download</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script src="vendor/purify.min.js"></script>
+    <script src="vendor/marked.umd.js"></script>
+    <script>
+        const RAW = 'data';
+        let FILES = {};
+
+        let DATASETS = {};
+
+        const PLOT_NAMES = {
+            'cdf': 'CDF', 'pdf-flows': 'PDF of flows', 'pdf-packets': 'PDF of packets', 'pdf-octets': 'PDF of octets',
+            'avg-flow-length': 'Avg flow length', 'avg-flow-size': 'Avg flow size', 'avg-packet-size': 'Avg packet size', 'single': 'Single figure'
+        };
+        const PLOT_ORDER = ['single', ...Object.keys(PLOT_NAMES).filter(name => name !== 'single')];
+
+        let currentDataset = null;
+        let currentFilter = null;
+        let currentArtifact = null;
+        let currentPlot = 'single';
+        let selectorMetadata = {};
+        let artifactRequest = 0;
+        let datasetRequest = 0;
+        let propertiesRequest = 0;
+        let pendingURLState = null;
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const datasetDropdown = document.getElementById('datasetDropdown');
+            const selectorDropdowns = document.getElementById('selectorDropdowns');
+            const artifactList = document.getElementById('artifactList');
+            const artifactDisplay = document.getElementById('artifactDisplay');
+            const metadataList = document.getElementById('metadataList');
+            const statsList = document.getElementById('statsList');
+            const modelInfo = document.getElementById('modelInfo');
+            const viewSvg = document.getElementById('viewSvg');
+            const viewPdf = document.getElementById('viewPdf');
+            const downloadFile = document.getElementById('downloadFile');
+            const actions = [viewSvg, viewPdf, downloadFile];
+
+            function setAction(action, href = null) {
+                action.classList.toggle('unavailable', !href);
+                if (href) {
+                    action.href = href;
+                    action.removeAttribute('aria-disabled');
+                } else {
+                    action.removeAttribute('href');
+                    action.setAttribute('aria-disabled', 'true');
+                }
+            }
+
+            function disableActions() {
+                for (const action of actions)
+                    setAction(action);
+            }
+
+            function updateURL(push = false) {
+                if (!currentDataset)
+                    return;
+                const url = new URL(window.location);
+                url.searchParams.set('dataset', currentDataset);
+                url.searchParams.set('selector', currentFilter || 'ALL');
+                const selectedItem = artifactList.querySelector('li.item.selected');
+                const selectedArtifact = selectedItem?.dataset.key;
+                if (selectedArtifact)
+                    url.searchParams.set('artifact', selectedArtifact);
+                else
+                    url.searchParams.delete('artifact');
+                if (selectedItem?.dataset.kind === 'plot-group' && currentPlot !== 'single')
+                    url.searchParams.set('plot', currentPlot);
+                else
+                    url.searchParams.delete('plot');
+                const href = decodeURIComponent(url.href);
+                window.history[push ? 'pushState' : 'replaceState']({}, '', href);
+            }
+
+            function restoreURLState() {
+                const params = new URLSearchParams(window.location.search);
+                const requestedDataset = params.get('dataset');
+                const validRequestedDataset = requestedDataset && requestedDataset in DATASETS;
+                const dataset = validRequestedDataset ? requestedDataset : Object.keys(DATASETS)[0];
+                if (!dataset)
+                    return;
+                pendingURLState = validRequestedDataset ? {
+                    selector: params.get('selector'),
+                    artifact: params.get('artifact')
+                } : null;
+                const plot = params.get('plot');
+                currentPlot = plot && plot in PLOT_NAMES ? plot : 'single';
+                datasetDropdown.value = dataset;
+                datasetDropdown.dispatchEvent(new Event('change'));
+            }
+
+            try {
+                FILES = await (await fetch('files.json')).json();
+                const repositories = await Promise.all(Object.keys(FILES).map(async repo => {
+                    const response = await fetch(`${RAW}/${repo}/metadata.json`);
+                    if (!response.ok)
+                        return null;
+                    return [repo, { repo, ...await response.json() }];
+                }));
+                DATASETS = Object.fromEntries(repositories.filter(Boolean));
+            } catch (error) {
+                console.error('Unable to load repository metadata', error);
+                setMessage(window.location.protocol === 'file:'
+                    ? 'Repository metadata cannot be loaded from file://. Serve this directory over HTTP.'
+                    : 'Repository metadata not available.');
+            }
+
+            for (const [repo, metadata] of Object.entries(DATASETS)) {
+                const opt = document.createElement('option');
+                opt.value = repo;
+                opt.textContent = metadata.name || repo;
+                datasetDropdown.appendChild(opt);
+            }
+
+            function selectorBase() {
+                return `${RAW}/${DATASETS[currentDataset].repo}${currentFilter ? `/${currentFilter}` : ''}`;
+            }
+
+            function artifactPath(path = '') {
+                return [currentFilter, 'ALL', path].filter(Boolean).join('/');
+            }
+
+            function artifactBase() {
+                return `${RAW}/${DATASETS[currentDataset].repo}/${artifactPath()}`;
+            }
+
+            function artifactKeys(path, kind) {
+                if (kind === 'plot-group') {
+                    const logical = `plots/${path}`;
+                    return { key: artifactPath(logical), logical };
+                }
+                const repositoryBase = `${RAW}/${DATASETS[currentDataset].repo}/`;
+                const artifactPrefix = `${artifactBase()}/`;
+                const selectorPrefix = `${selectorBase()}/`;
+                const key = path.startsWith(repositoryBase) ? path.slice(repositoryBase.length) : path;
+                const logical = path.startsWith(artifactPrefix) ? path.slice(artifactPrefix.length)
+                    : path.startsWith(selectorPrefix) ? path.slice(selectorPrefix.length) : path;
+                return { key, logical };
+            }
+
+            function setMessage(msg) {
+                const pre = document.createElement('pre');
+                pre.textContent = msg;
+                artifactDisplay.replaceChildren(pre);
+                disableActions();
+            }
+
+            function addCategory(name) {
+                const li = document.createElement('li');
+                li.className = 'category';
+                li.textContent = name;
+                artifactList.appendChild(li);
+            }
+
+            function addItem(name, path, kind) {
+                const li = document.createElement('li');
+                const button = document.createElement('button');
+                const keys = artifactKeys(path, kind);
+                li.className = 'item';
+                li.dataset.path = path;
+                li.dataset.kind = kind;
+                li.dataset.key = keys.key;
+                li.dataset.logical = keys.logical;
+                button.type = 'button';
+                button.textContent = name;
+                button.addEventListener('click', () => showArtifact(li, true));
+                li.appendChild(button);
+                artifactList.appendChild(li);
+            }
+
+            function listDir(path) {
+                return FILES[DATASETS[currentDataset].repo][path] || [];
+            }
+
+            async function loadSelectorMetadata(dataset) {
+                const metadata = {};
+                const repositoryFiles = FILES[dataset.repo] || {};
+                await Promise.all(Object.entries(repositoryFiles)
+                    .filter(([, files]) => files.includes('selector.json'))
+                    .map(async ([path]) => {
+                        try {
+                            const response = await fetch(`${RAW}/${dataset.repo}${path ? `/${path}` : ''}/selector.json`);
+                            if (!response.ok)
+                                throw new Error(`HTTP ${response.status}`);
+                            metadata[path] = await response.json();
+                        } catch (error) {
+                            console.warn(`Unable to load selector metadata: ${dataset.repo}/${path}`, error);
+                        }
+                    }));
+                return metadata;
+            }
+
+            function selectorAncestors(path) {
+                if (!path)
+                    return [''];
+                const parts = path.split('/');
+                return ['', ...parts.map((_, index) => parts.slice(0, index + 1).join('/'))];
+            }
+
+            function cumulativeFilter() {
+                const expressions = selectorAncestors(currentFilter)
+                    .map(path => selectorMetadata[path]?.filter).filter(Boolean);
+                return expressions.length ? expressions.map(expression => `(${expression})`).join(' & ') : '-';
+            }
+
+            function mostSpecificDatetime() {
+                const values = selectorAncestors(currentFilter)
+                    .map(path => selectorMetadata[path])
+                    .filter(value => value?.datetime_start && value?.datetime_end);
+                const duration = value => Date.parse(value.datetime_end) - Date.parse(value.datetime_start);
+                return values.sort((a, b) => duration(a) - duration(b))[0] || {};
+            }
+
+            function renderSelectorDropdowns() {
+                selectorDropdowns.replaceChildren();
+                const paths = Object.keys(selectorMetadata).filter(Boolean);
+                if (!paths.length)
+                    return;
+                const selectedParts = currentFilter ? currentFilter.split('/') : [];
+                for (let depth = 0; ; depth++) {
+                    const parent = selectedParts.slice(0, depth).join('/');
+                    const children = paths.filter(path => {
+                        const parts = path.split('/');
+                        return parts.length === depth + 1 && parts.slice(0, depth).join('/') === parent;
+                    });
+                    if (!children.length)
+                        break;
+                    const select = document.createElement('select');
+                    const currentOption = document.createElement('option');
+                    select.setAttribute('aria-label', `Model selector level ${depth + 1}`);
+                    currentOption.value = parent;
+                    currentOption.textContent = 'ALL';
+                    select.appendChild(currentOption);
+                    for (const path of children) {
+                        const option = document.createElement('option');
+                        option.value = path;
+                        option.textContent = path.split('/').at(-1);
+                        select.appendChild(option);
+                    }
+                    select.value = selectedParts.length > depth ? selectedParts.slice(0, depth + 1).join('/') : parent;
+                    select.addEventListener('change', () => selectModel(select.value, undefined, true));
+                    selectorDropdowns.appendChild(select);
+                    if (selectedParts.length <= depth)
+                        break;
+                }
+            }
+
+            function kindOf(name) {
+                if (name.endsWith('.svg'))
+                    return 'svg';
+                if (name.endsWith('.pdf'))
+                    return 'pdf';
+                if (name.endsWith('.json'))
+                    return 'json';
+                return 'download';
+            }
+
+            function populateArtifacts() {
+                artifactList.replaceChildren();
+                const base = artifactBase();
+                const nodeBase = selectorBase();
+
+                addCategory('Documentation');
+                if (listDir(currentFilter).includes('README.md'))
+                    addItem('README', `${nodeBase}/README.md`, 'markdown');
+                if (listDir(currentFilter).includes('Makefile'))
+                    addItem('Makefile', `${nodeBase}/Makefile`, 'text');
+
+                const plotGroups = ['length', 'size'].filter(x =>
+                    listDir(artifactPath(`plots/${x}`)).some(file => file.endsWith('.svg')));
+                if (plotGroups.length) {
+                    addCategory('Plots');
+                    for (const group of plotGroups)
+                        addItem(group[0].toUpperCase() + group.slice(1), group, 'plot-group');
+                }
+
+                if (listDir(artifactPath('summary')).length || listDir(artifactPath('histograms')).length) {
+                    addCategory('Summary');
+                    addItem('Statistics & histograms', 'summary', 'summary');
+                }
+
+                const mixtures = ['length', 'size'].flatMap(x => listDir(artifactPath(`mixtures/${x}`))
+                    .map(file => [x, file]));
+                if (mixtures.length) {
+                    addCategory('Mixtures');
+                    addItem('Mixture models', 'mixtures', 'mixtures');
+                }
+
+                if (listDir(artifactPath('series')).length || listDir(artifactPath('series/dorms')).length) {
+                    addCategory('Time series');
+                    addItem('Time series', 'series', 'series');
+                }
+
+                if (Object.keys(FILES[currentDataset]).some(path => path.startsWith(artifactPath('first_mirror/')))) {
+                    addCategory('First mirror');
+                    for (const m of ['1', '2', '3', '4', '8']) {
+                        for (const f of listDir(artifactPath(`first_mirror/${m}`)))
+                            addItem(`${m} / ${f}`, `${base}/first_mirror/${m}/${f}`, kindOf(f));
+                    }
+                }
+
+                const elephants = listDir(artifactPath('elephants'));
+                if (elephants.length) {
+                    addCategory('Elephants');
+                    for (const f of elephants)
+                        addItem(f, `${base}/elephants/${f}`, kindOf(f));
+                }
+
+                addCategory('Flow records');
+                if (!DATASETS[currentDataset].records) {
+                    const li = document.createElement('li');
+                    li.className = 'status';
+                    li.textContent = 'not published';
+                    artifactList.appendChild(li);
+                } else {
+                    addItem('Flow records', 'records', 'records');
+                }
+            }
+
+            async function populateProperties() {
+                const request = ++propertiesRequest;
+                metadataList.replaceChildren();
+                statsList.replaceChildren();
+                statsList.hidden = true;
+                const ds = DATASETS[currentDataset];
+                const description = document.createElement('p');
+                description.className = 'infoParagraph';
+                description.textContent = ds.description || '';
+                modelInfo.replaceChildren(description);
+                const datetime = mostSpecificDatetime();
+                const metadata = [
+                    ['Dataset', ds.name || currentDataset],
+                    ['Selectors', currentFilter || 'ALL'],
+                    ['Datetime start', datetime.datetime_start || '-'],
+                    ['Datetime end', datetime.datetime_end || '-'],
+                    ['Filter expression', cumulativeFilter()],
+                    ['Flow records', ds.records ? 'included (binary)' : 'not included']
+                ];
+                const stats = [];
+                try {
+                    const resp = await fetch(`${artifactBase()}/summary/length.json`);
+                    if (resp.ok) {
+                        const s = (await resp.json()).stats;
+                        const avgFlowLength = s.avg_flow_length ?? s.number_of_packets / s.number_of_flows;
+                        const avgFlowSize = s.avg_flow_size ?? s.number_of_octets / s.number_of_flows;
+                        const avgPacketSize = s.avg_packet_size ?? s.number_of_octets / s.number_of_packets;
+                        stats.push(
+                            ['Flows [flows]', s.number_of_flows.toLocaleString('en-US').replaceAll(',', ' ')],
+                            ['Packets [packets]', s.number_of_packets.toLocaleString('en-US').replaceAll(',', ' ')],
+                            ['Octets [bytes]', s.number_of_octets.toLocaleString('en-US').replaceAll(',', ' ')],
+                            ['Avg flow length [packets]', avgFlowLength.toFixed(2)],
+                            ['Avg flow size [bytes]', avgFlowSize.toFixed(2)],
+                            ['Avg packet size [bytes]', avgPacketSize.toFixed(2)]
+                        );
+                    }
+                } catch (error) {
+                    console.warn(`Unable to load model statistics: ${artifactBase()}`, error);
+                }
+                if (request !== propertiesRequest)
+                    return;
+                function appendRows(list, rows) {
+                    for (const [key, value] of rows) {
+                        const row = document.createElement('div');
+                        const term = document.createElement('dt');
+                        const description = document.createElement('dd');
+                        term.textContent = key;
+                        description.textContent = value;
+                        row.append(term, description);
+                        list.appendChild(row);
+                    }
+                }
+                appendRows(metadataList, metadata);
+                appendRows(statsList, stats);
+                statsList.hidden = !stats.length;
+            }
+
+            const fmtInt = v => Math.round(v).toLocaleString('en-US').replaceAll(',', ' ');
+            const fmtNum = v => {
+                if (v == null || !isFinite(v))
+                    return '–';
+                const a = Math.abs(v);
+                if (a === 0)
+                    return '0';
+                if (a >= 1000)
+                    return fmtInt(v);
+                if (a >= 0.01)
+                    return String(parseFloat(v.toPrecision(4)));
+                const decimals = Math.min(15, Math.ceil(-Math.log10(a)) + 3);
+                return v.toFixed(decimals).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
+            };
+            const fmtBytes = n => !isFinite(n) || n < 0 ? '–'
+                : n < 1024 ? `${Math.round(n)} B`
+                    : n < 1024 * 1024 ? `${(n / 1024).toFixed(1)} kB`
+                        : `${(n / 1024 / 1024).toFixed(1)} MB`;
+
+            async function loadPlot(figure, info, url, plotName, request, reset, hint) {
+                info.replaceChildren();
+                info.hidden = true;
+                if (reset)
+                    reset.hidden = true;
+                const fallback = () => {
+                    const image = document.createElement('img');
+                    image.src = url;
+                    image.alt = plotName;
+                    image.addEventListener('error', () => {
+                        if (request === artifactRequest)
+                            setMessage('Artifact not available.');
+                    });
+                    figure.replaceChildren(image);
+                };
+                try {
+                    const resp = await fetch(url);
+                    if (!resp.ok)
+                        throw new Error(`HTTP ${resp.status}`);
+                    const text = await resp.text();
+                    if (request !== artifactRequest)
+                        return;
+                    const svg = new DOMParser().parseFromString(text, 'image/svg+xml').documentElement;
+                    if (svg.tagName !== 'svg')
+                        throw new Error('not an svg');
+                    const view = document.createElement('div');
+                    view.className = 'plot-view';
+                    view.appendChild(svg);
+                    figure.replaceChildren(view);
+                    const metaEl = svg.querySelector('#fm-plot-data');
+                    if (metaEl && plotName !== 'single') {
+                        try {
+                            const meta = JSON.parse(metaEl.textContent);
+                            if (meta.axes && meta.axes.length === 1)
+                                enableInteractivity(view, info, svg, meta.axes[0], plotName, reset, hint);
+                        } catch (error) {
+                            console.warn('Unable to parse embedded plot data', error);
+                        }
+                    }
+                } catch (error) {
+                    console.warn(`Unable to load plot: ${url}`, error);
+                    fallback();
+                }
+            }
+
+            function enableInteractivity(view, infoEl, svg, meta, plotName, reset, hint) {
+                infoEl.hidden = false;
+                hint.hidden = false;
+
+                const NS = 'http://www.w3.org/2000/svg';
+                const el = (name, attrs) => {
+                    const e = document.createElementNS(NS, name);
+                    for (const [k, v] of Object.entries(attrs))
+                        e.setAttribute(k, v);
+                    return e;
+                };
+
+                // ---------- axes rect + data/viewBox coordinate transforms ----------
+                const axesG = svg.querySelector('g[id^="axes_"]');
+                const clipped = axesG ? Array.from(axesG.querySelectorAll('[clip-path]')) : [];
+                const clipId = clipped.length && (clipped[0].getAttribute('clip-path').match(/#([^)\s]+)/) || [])[1];
+                const clipRect = (clipId && svg.querySelector(`#${CSS.escape(clipId)} rect`))
+                    || svg.querySelector('clipPath rect');
+                if (!clipRect)
+                    return;
+                const R = {
+                    x: +clipRect.getAttribute('x'), y: +clipRect.getAttribute('y'),
+                    w: +clipRect.getAttribute('width'), h: +clipRect.getAttribute('height')
+                };
+                const { xscale, yscale, xlim, ylim } = meta;
+                const tx = xscale === 'log' ? Math.log10 : (v => v);
+                const ty = yscale === 'log' ? Math.log10 : (v => v);
+                const txInv = xscale === 'log' ? v => 10 ** v : (v => v);
+                const tyInv = yscale === 'log' ? v => 10 ** v : (v => v);
+                const frac = (v, lo, hi, t) => (t(v) - t(lo)) / (t(hi) - t(lo));
+                const x2u = x => R.x + frac(x, xlim[0], xlim[1], tx) * R.w;
+                const y2u = y => R.y + R.h - frac(y, ylim[0], ylim[1], ty) * R.h;
+                const u2x = u => txInv(tx(xlim[0]) + (u - R.x) / R.w * (tx(xlim[1]) - tx(xlim[0])));
+                const u2y = v => tyInv(ty(ylim[0]) + (R.y + R.h - v) / R.h * (ty(ylim[1]) - ty(ylim[0])));
+
+                const vb = svg.viewBox.baseVal;
+                // actual rendered content box, accounting for preserveAspectRatio letterboxing
+                const fitRect = () => {
+                    const r = svg.getBoundingClientRect();
+                    const s = Math.min(r.width / vb.width, r.height / vb.height);
+                    const w = vb.width * s, h = vb.height * s;
+                    return { x: r.left + (r.width - w) / 2, y: r.top + (r.height - h) / 2, w, h, s };
+                };
+                const unitPx = () => 1 / fitRect().s;
+                const toUser = e => {
+                    const f = fitRect();
+                    return { x: vb.x + (e.clientX - f.x) / f.s, y: vb.y + (e.clientY - f.y) / f.s };
+                };
+                const toLocal = (u, v) => {
+                    const f = fitRect();
+                    const c = view.getBoundingClientRect();
+                    return { x: f.x + (u - vb.x) * f.s - c.left, y: f.y + (v - vb.y) * f.s - c.top };
+                };
+
+                // ---------- labels / formatting ----------
+                const parseAxis = s => {
+                    const m = (s || '').match(/^(.*?)\s*\[(.*?)\]\s*$/);
+                    return m ? { name: m[1].trim(), unit: m[2] } : { name: s || 'x', unit: '' };
+                };
+                const xAxis = parseAxis(meta.xlabel);
+                const yAxis = parseAxis(meta.ylabel);
+                const xUnit = xAxis.unit ? ' ' + xAxis.unit : '';
+                const intX = /flow (length|size)/i.test(meta.xlabel || '');
+                const snapX = v => intX ? Math.max(1, Math.round(v)) : v;
+                const yName = c => plotName === 'cdf' ? `CDF of ${c.what || 'value'}` : yAxis.name;
+                const xText = x => `${xAxis.name} = ${fmtNum(x)}${xUnit}`;
+                // CDF/PDF y values are fractions — present them as percentages
+                const pctY = plotName === 'cdf' || plotName.startsWith('pdf-');
+                const yFmt = y => pctY ? `${fmtNum(y * 100)}%` : `${fmtNum(y)}${yAxis.unit ? ' ' + yAxis.unit : ''}`;
+                const yText = (c, y) => `${yName(c)} = ${yFmt(y)}`;
+                const componentText = c => {
+                    const p = c.component;
+                    return `${p.dist}(${p.params.map(fmtNum).join(', ')}) · ${(p.weight * 100).toFixed(2)}%`;
+                };
+
+                // ---------- curves: resolve drawn elements, colors ----------
+                const DEFAULT_COLORS = { flows: '#ff0000', packets: '#008000', octets: '#0000ff' };
+                const curves = meta.curves.filter(c => c.x.length > 1);
+                const primaries = curves.filter(c => c.kind !== 'component' && c.kind !== 'points');
+                const components = curves.filter(c => c.kind === 'component');
+                // each curve's drawn SVG group carries its metadata id (set via
+                // matplotlib set_gid at plot time) — a direct lookup, no matching
+                for (const c of curves) {
+                    const g = c.id ? svg.getElementById(c.id) : null;
+                    const p = g?.querySelector('path');
+                    if (!p)
+                        continue;
+                    c.el = g;
+                    c.pts = (p.getAttribute('d') || '')
+                        .match(/-?[\d.eE+-]+\s+-?[\d.eE+-]+/g)
+                        ?.map(s => s.trim().split(/\s+/).map(Number));
+                    const st = p.getAttribute('style') || '';
+                    const sm = st.match(/stroke:\s*([^;]+)/);
+                    const om = st.match(/stroke-opacity:\s*([\d.]+)/);
+                    const wm = st.match(/stroke-width:\s*([\d.]+)/);
+                    if (sm) c.color = sm[1].trim();
+                    if (om) c.alpha = +om[1];
+                    if (wm) c.lw = +wm[1];
+                }
+                // rasterized datapoints are a single embedded image inside the axes
+                const pointsImage = svg.querySelector('g[id^="axes_"] image');
+                for (const c of curves) {
+                    if (c.kind === 'points')
+                        c.el = pointsImage;
+                    c.color = c.color || DEFAULT_COLORS[c.what] || '#444444';
+                    c.alpha = c.alpha ?? 1;
+                }
+                const rgba = (color, a) => {
+                    const h = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(color || '');
+                    const r = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i.exec(color || '');
+                    if (h)
+                        return `rgba(${parseInt(h[1], 16)}, ${parseInt(h[2], 16)}, ${parseInt(h[3], 16)}, ${a})`;
+                    return r ? `rgba(${r[1]}, ${r[2]}, ${r[3]}, ${a})` : color;
+                };
+                const col = c => c.alpha < 1 ? rgba(c.color, c.alpha) : c.color; // as actually drawn
+                const withAlpha = (color, a = 0.75) => rgba(color, a);          // table/tooltip text
+
+                // ---------- curve data access ----------
+                // bisection: indices around x, or null when x is out of range
+                function locate(c, xv) {
+                    const xs = c.x;
+                    if (xv < tx(xs[0]) || xv > tx(xs[xs.length - 1]))
+                        return null;
+                    let lo = 0, hi = xs.length - 1;
+                    while (hi - lo > 1) {
+                        const mid = (lo + hi) >> 1;
+                        if (tx(xs[mid]) <= xv) lo = mid; else hi = mid;
+                    }
+                    return [lo, hi];
+                }
+                function yAt(c, x) {
+                    const span = locate(c, tx(x));
+                    if (!span)
+                        return null;
+                    const [lo, hi] = span, xs = c.x, ys = c.y, xv = tx(x);
+                    const y0 = ys[lo], y1 = ys[hi];
+                    if (y0 == null || y1 == null || (yscale === 'log' && (y0 <= 0 || y1 <= 0)))
+                        return null;
+                    const f = (xv - tx(xs[lo])) / (tx(xs[hi]) - tx(xs[lo]) || 1);
+                    return tyInv(ty(y0) + f * (ty(y1) - ty(y0)));
+                }
+                function integrate(c, a, b) {
+                    const xs = [a, ...c.x.filter(x => x > a && x < b), b];
+                    let area = 0;
+                    for (let i = 1; i < xs.length; i++) {
+                        const y0 = yAt(c, xs[i - 1]), y1 = yAt(c, xs[i]);
+                        if (y0 != null && y1 != null)
+                            area += (y0 + y1) / 2 * (xs[i] - xs[i - 1]);
+                    }
+                    return area;
+                }
+                function spanStats(c, a, b) {
+                    const ys = c.x.map((x, i) => x >= a && x <= b ? c.y[i] : null)
+                        .concat([yAt(c, a), yAt(c, b)]).filter(y => y != null);
+                    if (!ys.length)
+                        return null;
+                    return { min: Math.min(...ys), max: Math.max(...ys), avg: ys.reduce((s, y) => s + y, 0) / ys.length };
+                }
+
+                // ---------- interaction state ----------
+                let hover = null;       // {c, x, y}
+                let pinned = null;      // {c, x, y}
+                let drag = null;        // {x1, x2, c, moved}
+                let span = null;        // {x1, x2, c}
+                let pan = null;         // {x, y}
+                let selected = null;    // curve isolated via legend/component table
+                let legendHover = null; // curve under the legend/table pointer
+                let compHL = null;      // {path, d, w, so} — restyled component path
+
+                // ---------- overlay DOM ----------
+                const overlay = el('g', { class: 'fm-overlay', 'pointer-events': 'none' });
+                const hit = el('rect', {
+                    x: R.x, y: R.y, width: R.w, height: R.h,
+                    fill: 'transparent', 'pointer-events': 'all'
+                });
+                svg.append(overlay, hit);
+                const tipBox = document.createElement('div');
+                view.appendChild(tipBox);
+                if (reset)
+                    reset.hidden = false;
+
+                const dash = s => `stroke-dasharray: ${3 * s} ${3 * s}`;
+                // vertical guide runs from the x axis up to topV (defaults to the point)
+                function crosshair(x, y, c, parent, topV) {
+                    const u = x2u(x), v = y2u(y), s = unitPx(), color = col(c);
+                    parent.appendChild(el('line', {
+                        x1: u, y1: Math.min(v, topV ?? v), x2: u, y2: R.y + R.h,
+                        stroke: color, 'stroke-width': s, 'stroke-dasharray': `${3 * s} ${3 * s}`
+                    }));
+                    parent.appendChild(el('line', {
+                        x1: u, y1: v, x2: R.x, y2: v,
+                        stroke: color, 'stroke-width': s, 'stroke-dasharray': `${3 * s} ${3 * s}`
+                    }));
+                    parent.appendChild(el('circle', {
+                        cx: u, cy: v, r: Math.max(c.lw || 1, 1.4 * s), fill: color, stroke: '#fff', 'stroke-width': s
+                    }));
+                }
+                function pointLabel(x, y, text, anchor, color, parent) {
+                    const s = unitPx();
+                    const t = el('text', {
+                        x: x2u(x) + (anchor === 'start' ? 5 : -5) * s, y: y2u(y) - 6 * s,
+                        style: `font-size: ${10 * s}px`, fill: color, 'text-anchor': anchor,
+                        stroke: '#fff', 'stroke-width': 3 * s, 'paint-order': 'stroke'
+                    });
+                    t.textContent = text;
+                    parent.appendChild(t);
+                }
+
+                function curveD(c) {
+                    // lift the pen over invalid runs so off-scale tails don't smear
+                    // along the axes edge; drops/rises stay vertical at the
+                    // boundary point (like matplotlib's clipped rendering)
+                    let d = '', pen = false, lastU = 0;
+                    c.x.forEach((x, i) => {
+                        const y = c.y[i];
+                        const ok = y != null && (yscale !== 'log' || y > 0);
+                        const u = x2u(x);
+                        if (!ok) {
+                            if (pen) {
+                                d += `L${lastU} ${R.y + R.h}`;
+                                pen = false;
+                            }
+                            return;
+                        }
+                        const v = Math.min(Math.max(y2u(y), R.y), R.y + R.h);
+                        d += `${pen ? 'L' : (d ? `L${u} ${R.y + R.h}L` : 'M')}${u} ${v}`;
+                        pen = true;
+                        lastU = u;
+                    });
+                    return d;
+                }
+
+                // highlight = restyle the hovered line itself: slightly bolder,
+                // fully opaque, raised above the other lines, and with clamped
+                // path segments so e.g. uniform-component cliffs become visible
+                function setComponentHighlight(mark) {
+                    if (compHL) {
+                        compHL.path.setAttribute('d', compHL.d);
+                        compHL.path.style.strokeWidth = compHL.w;
+                        compHL.path.style.strokeOpacity = compHL.so;
+                        compHL = null;
+                    }
+                    if (mark?.c.kind !== 'component')
+                        return;
+                    const c = mark.c;
+                    const path = c.el?.querySelector('path');
+                    if (!path)
+                        return;
+                    compHL = { path, d: path.getAttribute('d'), w: path.style.strokeWidth, so: path.style.strokeOpacity };
+                    c.el.parentElement.appendChild(c.el);
+                    // a modest bump — component strokes can be as thin as 0.1
+                    path.style.strokeWidth = `${1.5 * unitPx()}px`;
+                    path.style.strokeOpacity = '1';
+                    path.setAttribute('d', curveD(c));
+                }
+
+                function addTooltip(u, v, lines) {
+                    // lines: [{dim: text} | {head, color, text}] — x line first, then y lines
+                    const tip = document.createElement('div');
+                    tip.className = 'fm-tooltip';
+                    tip.style.display = 'block';
+                    for (const l of lines) {
+                        const div = document.createElement('div');
+                        if (l.head) {
+                            const b = document.createElement('b');
+                            b.textContent = l.head;
+                            if (l.color)
+                                b.style.color = withAlpha(l.color);
+                            div.append(b, ' — ', l.text);
+                        } else {
+                            div.textContent = l.text;
+                            div.className = 'dim';
+                        }
+                        tip.appendChild(div);
+                    }
+                    tipBox.appendChild(tip);
+                    const p = toLocal(u, v);
+                    const w = tip.offsetWidth, h = tip.offsetHeight;
+                    const left = u < R.x + R.w / 2 ? p.x + 12 : p.x - w - 12;
+                    tip.style.left = `${Math.min(Math.max(left, 0), view.clientWidth - w - 4)}px`;
+                    tip.style.top = `${Math.min(Math.max(p.y - h / 2, 0), view.clientHeight - h - 4)}px`;
+                }
+                // push tooltips apart vertically when their boxes would overlap
+                function unstackTips() {
+                    const tips = [...tipBox.children]
+                        .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
+                    for (let i = 1; i < tips.length; i++) {
+                        const prev = tips[i - 1].getBoundingClientRect();
+                        const cur = tips[i].getBoundingClientRect();
+                        if (cur.left < prev.right && cur.right > prev.left && cur.top < prev.bottom + 2)
+                            tips[i].style.top =
+                                `${parseFloat(tips[i].style.top) + prev.bottom + 2 - cur.top}px`;
+                    }
+                }
+                // ---------- info tables ----------
+                function mkTable(rows) {
+                    const table = document.createElement('table');
+                    for (const [name, value, color] of rows) {
+                        const tr = document.createElement('tr');
+                        const th = document.createElement('th');
+                        const td = document.createElement('td');
+                        th.textContent = name;
+                        if (color)
+                            th.style.color = withAlpha(color);
+                        td.textContent = value;
+                        tr.append(th, td);
+                        table.appendChild(tr);
+                    }
+                    return table;
+                }
+
+                // per-curve y values at a single x — used for pinned points and span ends
+                function pointRows(x) {
+                    const rows = [];
+                    for (const pc of primaries) {
+                        const y = yAt(pc, x);
+                        if (y == null)
+                            continue;
+                        const total = meta.totals?.[pc.what];
+                        rows.push([pc.label || pc.kind, `${yName(pc)} = ${yFmt(y)}` +
+                            (plotName === 'cdf' && total ? ` (${fmtInt(y * total)} ${pc.what})` : ''), pc.color]);
+                    }
+                    return rows;
+                }
+
+                // per-curve coverage/statistics between a and b — the Delta table body
+                function coverageRows(a, b) {
+                    const rows = [];
+                    for (const pc of primaries.length ? primaries : [span.c]) {
+                        const ya = yAt(pc, a), yb = yAt(pc, b);
+                        if (ya == null || yb == null)
+                            continue;
+                        const total = meta.totals?.[pc.what];
+                        const label = pc.label || pc.kind;
+                        if (plotName === 'cdf') {
+                            const delta = yb - ya;
+                            rows.push([label, total
+                                ? `${fmtInt(delta * total)} ${pc.what} (${(delta * 100).toFixed(2)}%)`
+                                : `${(delta * 100).toFixed(2)}% of ${pc.what}`, pc.color]);
+                        } else if (plotName.startsWith('pdf-')) {
+                            const fr = integrate(pc, a, b);
+                            rows.push([label, total
+                                ? `${fmtInt(fr * total)} ${pc.what || 'total'} (${(fr * 100).toFixed(2)}%)`
+                                : `${(fr * 100).toFixed(2)}% of ${pc.what || 'total'}`, pc.color]);
+                        } else {
+                            const s = spanStats(pc, a, b);
+                            if (s)
+                                rows.push([label, `min ${fmtNum(s.min)} · avg ${fmtNum(s.avg)} · max ${fmtNum(s.max)}`, pc.color]);
+                        }
+                    }
+                    return rows;
+                }
+
+                // persistent listing of mixture components under pdf plots —
+                // rows hover-highlight and click-select like legend entries
+                function compTable() {
+                    const table = document.createElement('table');
+                    for (const c of components) {
+                        const p = c.component;
+                        const tr = document.createElement('tr');
+                        tr.className = 'comp' + (selected === c ? ' sel' : '');
+                        const th = document.createElement('th');
+                        const td = document.createElement('td');
+                        th.textContent = `${p.dist}(${p.params.map(fmtNum).join(', ')})`;
+                        th.style.color = withAlpha(c.color);
+                        td.textContent = `${(p.weight * 100).toFixed(2)}%`;
+                        tr.append(th, td);
+                        table.appendChild(tr);
+                        wireIsolate(tr, c, table);
+                    }
+                    return table;
+                }
+
+                function renderInfo() {
+                    const kids = [];
+                    if (plotName.startsWith('pdf-') && components.length)
+                        kids.push(compTable());
+                    const xn = xAxis.name.toLowerCase();
+                    if (pinned && !span)
+                        kids.push(mkTable([
+                            [xAxis.name, `${fmtNum(pinned.x)}${xUnit}`],
+                            ...(pinned.c.kind === 'points'
+                                ? [['Data point', yText(pinned.c, pinned.y), pinned.c.color]]
+                                : []),
+                            ...pointRows(pinned.x)
+                        ]));
+                    if (span) {
+                        const a = Math.min(span.x1, span.x2), b = Math.max(span.x1, span.x2);
+                        kids.push(mkTable([
+                            [`Start ${xn}`, `${fmtNum(a)}${xUnit}`],
+                            ...pointRows(a)
+                        ]));
+                        kids.push(mkTable([
+                            [`Delta ${xn}`, `${fmtNum(b - a)}${xUnit}`],
+                            ...coverageRows(a, b)
+                        ]));
+                        kids.push(mkTable([
+                            [`End ${xn}`, `${fmtNum(b)}${xUnit}`],
+                            ...pointRows(b)
+                        ]));
+                    }
+                    infoEl.replaceChildren(...kids);
+                }
+
+                // ---------- overlay drawing ----------
+                function drawSpanBox({ x1, x2, c }) {
+                    const a = Math.min(x1, x2), b = Math.max(x1, x2);
+                    overlay.appendChild(el('rect', {
+                        x: x2u(a), y: R.y, width: x2u(b) - x2u(a), height: R.h,
+                        fill: '#ddf4ff', opacity: 0.5
+                    }));
+                    for (const [x, anchor, name] of [[a, 'start', 'start'], [b, 'end', 'end']]) {
+                        const y = yAt(c, x);
+                        if (y == null)
+                            continue;
+                        crosshair(x, y, c, overlay);
+                        pointLabel(x, y, `${name} (${fmtNum(x)}, ${yFmt(y)})`, anchor, col(c), overlay);
+                    }
+                }
+
+                function drawMark(mark) {
+                    const s = unitPx();
+                    if (mark.c.kind === 'component')
+                        setComponentHighlight(mark);
+                    // same-x points on the other primary curves; a single vertical
+                    // guide reaches from the x axis to the topmost of them
+                    const others = primaries.filter(pc => pc !== mark.c)
+                        .map(pc => ({ c: pc, y: yAt(pc, mark.x) })).filter(m => m.y != null);
+                    const topV = Math.min(y2u(mark.y), ...others.map(m => y2u(m.y)));
+                    crosshair(mark.x, mark.y, mark.c, overlay, topV);
+                    if (mark.c.kind === 'points')
+                        pointLabel(mark.x, mark.y, `point (${fmtNum(mark.x)}, ${yFmt(mark.y)})`,
+                            x2u(mark.x) < R.x + R.w / 2 ? 'start' : 'end', col(mark.c), overlay);
+                    for (const m of others)
+                        overlay.appendChild(el('circle', {
+                            cx: x2u(mark.x), cy: y2u(m.y), r: 2.2 * s, fill: col(m.c),
+                            stroke: '#fff', 'stroke-width': 0.7 * s
+                        }));
+                    // a separate tooltip per y quantity, anchored at its connector dot;
+                    // a primary mark joins its own group, a component gets its own tooltip
+                    const groups = new Map();
+                    for (const m of others)
+                        (groups.get(m.c.what) || groups.set(m.c.what, []).get(m.c.what)).push(m);
+                    if (primaries.includes(mark.c))
+                        (groups.get(mark.c.what) || groups.set(mark.c.what, []).get(mark.c.what))
+                            .unshift({ c: mark.c, y: mark.y });
+                    for (const ms of groups.values())
+                        addTooltip(x2u(mark.x), y2u(ms[0].y), [
+                            { text: xText(mark.x) },
+                            ...ms.map(m => ({
+                                head: m.c.label || m.c.kind, color: m.c.color,
+                                text: yText(m.c, m.y)
+                            }))
+                        ]);
+                    if (mark.c.kind === 'component')
+                        addTooltip(x2u(mark.x), y2u(mark.y), [
+                            { text: xText(mark.x) },
+                            { head: componentText(mark.c), color: mark.c.color, text: yText(mark.c, mark.y) }
+                        ]);
+                }
+
+                function redraw() {
+                    overlay.replaceChildren();
+                    tipBox.replaceChildren();
+                    setComponentHighlight(null);
+                    applyDim();
+                    if (span || drag)
+                        drawSpanBox(span || drag);
+                    if (pinned)
+                        drawMark(pinned);
+                    if (hover)
+                        drawMark(hover);
+                    unstackTips();
+                }
+
+                // ---------- picking ----------
+                // nearest point on a polyline (viewBox coords) to (u, v)
+                function ptDist(pts, u, v) {
+                    let d = Infinity, qu, qv;
+                    for (let i = 1; i < pts.length; i++) {
+                        const [u0, v0] = pts[i - 1], [u1, v1] = pts[i];
+                        const du = u1 - u0, dv = v1 - v0, len2 = du * du + dv * dv;
+                        const t = len2 ? Math.min(1, Math.max(0, ((u - u0) * du + (v - v0) * dv) / len2)) : 0;
+                        const d2 = Math.hypot(u - (u0 + t * du), v - (v0 + t * dv));
+                        if (d2 < d) {
+                            d = d2;
+                            qu = u0 + t * du;
+                            qv = v0 + t * dv;
+                        }
+                    }
+                    return { d, qu, qv };
+                }
+
+                // snapped data-space point nearest to viewBox point (u, v) on curve c
+                const markAt = (c, u, v) => {
+                    const x = snapX(u2x(u));
+                    return { x, y: yAt(c, x) ?? u2y(v) };
+                };
+
+                function pickCurve(u, v) {
+                    const xv = tx(u2x(u));
+                    const pool = selected ? [selected] : [...primaries, ...components];
+                    let best = null;
+                    for (const c of pool) {
+                        if (c.kind === 'points') {
+                            // scatter points aren't connected — hit-test the discrete points
+                            let d = Infinity, mi = -1;
+                            for (let i = 0; i < c.x.length; i++) {
+                                const y = c.y[i];
+                                if (y == null || (yscale === 'log' && y <= 0))
+                                    continue;
+                                const d2 = Math.hypot(x2u(c.x[i]) - u, y2u(y) - v);
+                                if (d2 < d) {
+                                    d = d2;
+                                    mi = i;
+                                }
+                            }
+                            if (mi >= 0 && (!best || d < best.d))
+                                best = { c, x: c.x[mi], y: c.y[mi], d };
+                            continue;
+                        }
+                        const loc = locate(c, xv);
+                        if (!loc)
+                            continue;
+                        const [lo, hi] = loc;
+                        const yv = y => (y == null || (yscale === 'log' && y <= 0)) ? R.y + R.h : y2u(y);
+                        let { d, qu, qv } = ptDist(
+                            [[x2u(c.x[lo]), yv(c.y[lo])], [x2u(c.x[hi]), yv(c.y[hi])]], u, v);
+                        let mark = markAt(c, qu, qv);
+                        // also hit-test the actually drawn path — clipped geometry
+                        // (e.g. vertical drops) differs from the metadata polyline
+                        if (c.pts) {
+                            const pb = ptDist(c.pts, u, v);
+                            if (pb.d < d) {
+                                d = pb.d;
+                                mark = markAt(c, pb.qu, pb.qv);
+                            }
+                        }
+                        // primaries come first in the pool, so on ties the
+                        // model/inferred curve wins over a component
+                        if (best && d >= best.d)
+                            continue;
+                        best = { c, ...mark, d };
+                    }
+                    return best && best.d < 18 * unitPx() ? best : null;
+                }
+
+                // ---------- dimming, legend, component isolation ----------
+                function applyDim() {
+                    const active = selected || hover?.c || legendHover;
+                    for (const c of curves) {
+                        if (c.el)
+                            c.el.style.opacity = (active && c.el !== active.el) ? '0.2' : '';
+                        for (const t of c.legendTargets || [])
+                            t.style.opacity = (active && c !== active) ? '0.35' : '';
+                    }
+                }
+
+                // hover-highlight + click-to-isolate wiring shared by legend
+                // entries and component table rows
+                function wireIsolate(elm, c, table) {
+                    elm.addEventListener('mouseenter', () => {
+                        legendHover = c;
+                        applyDim();
+                        setComponentHighlight({ c });
+                    });
+                    elm.addEventListener('mouseleave', () => {
+                        legendHover = null;
+                        applyDim();
+                        setComponentHighlight(hover || pinned);
+                    });
+                    elm.addEventListener('click', e => {
+                        e.stopPropagation();
+                        selected = selected === c ? null : c;
+                        applyDim();
+                        if (table) {
+                            table.querySelectorAll('tr.sel').forEach(r => r.classList.remove('sel'));
+                            elm.classList.toggle('sel', selected === c);
+                        }
+                    });
+                }
+
+                const legend = svg.querySelector('g[id^="legend_"]');
+                if (legend) {
+                    // keep the legend above the hit rectangle so its entries stay clickable
+                    svg.appendChild(legend);
+                    for (const g of legend.querySelectorAll('g[id^="text_"]')) {
+                        const c = curves.find(c => c.label === g.querySelector('text')?.textContent.trim());
+                        if (!c)
+                            continue;
+                        const handle = g.previousElementSibling;
+                        c.legendTargets = handle?.matches('g[id^="line2d_"]') ? [g, handle] : [g];
+                        // cover the whole legend entry (handle + text) with a clickable box
+                        const b1 = handle?.getBBox?.(), b2 = g.getBBox();
+                        const x0 = Math.min(b1?.x ?? b2.x, b2.x), y0 = Math.min(b1?.y ?? b2.y, b2.y);
+                        const box = el('rect', {
+                            x: x0, y: y0,
+                            width: Math.max(b1 ? b1.x + b1.width : 0, b2.x + b2.width) - x0,
+                            height: Math.max(b1 ? b1.y + b1.height : 0, b2.y + b2.height) - y0,
+                            fill: 'transparent'
+                        });
+                        box.style.cursor = 'pointer';
+                        legend.appendChild(box);
+                        wireIsolate(box, c, null);
+                    }
+                }
+
+                // ---------- zoom / pan (CSS transform on the svg element) ----------
+                const zoom = { s: 1, tx: 0, ty: 0 };
+                const baseRect = svg.getBoundingClientRect();
+                function applyZoom() {
+                    svg.style.transformOrigin = '0 0';
+                    svg.style.transform = zoom.s === 1 ? '' : `translate(${zoom.tx}px, ${zoom.ty}px) scale(${zoom.s})`;
+                }
+                view.addEventListener('wheel', e => {
+                    e.preventDefault();
+                    const ns = Math.min(80, Math.max(1, zoom.s * Math.exp(-e.deltaY * 0.0015)));
+                    if (ns === 1) {
+                        zoom.tx = zoom.ty = 0;
+                    } else {
+                        const px = (e.clientX - baseRect.left - zoom.tx) / zoom.s;
+                        const py = (e.clientY - baseRect.top - zoom.ty) / zoom.s;
+                        zoom.tx = e.clientX - baseRect.left - px * ns;
+                        zoom.ty = e.clientY - baseRect.top - py * ns;
+                    }
+                    zoom.s = ns;
+                    applyZoom();
+                }, { passive: false });
+                if (reset)
+                    reset.addEventListener('click', () => {
+                        zoom.s = 1; zoom.tx = zoom.ty = 0;
+                        applyZoom();
+                        clearMarks();
+                    });
+
+                // ---------- pointer events ----------
+                function clearMarks() {
+                    hover = pinned = span = drag = null;
+                    tipBox.replaceChildren();
+                    renderInfo();
+                    redraw();
+                }
+
+                hit.addEventListener('pointerdown', e => {
+                    e.preventDefault();
+                    if (e.button === 1 || e.shiftKey) {
+                        pan = { x: e.clientX, y: e.clientY };
+                        try { hit.setPointerCapture(e.pointerId); } catch { }
+                        return;
+                    }
+                    span = null;
+                    renderInfo();
+                    const p = toUser(e);
+                    const c = hover?.c || pinned?.c || selected || primaries[0] || components[0];
+                    drag = { x1: snapX(u2x(p.x)), x2: snapX(u2x(p.x)), c, moved: false };
+                    try { hit.setPointerCapture(e.pointerId); } catch { }
+                });
+                hit.addEventListener('pointermove', e => {
+                    if (pan) {
+                        zoom.tx += e.clientX - pan.x;
+                        zoom.ty += e.clientY - pan.y;
+                        pan = { x: e.clientX, y: e.clientY };
+                        applyZoom();
+                        return;
+                    }
+                    const p = toUser(e);
+                    if (p.x < R.x || p.x > R.x + R.w || p.y < R.y || p.y > R.y + R.h) {
+                        hover = null;
+                        if (!drag)
+                            tipBox.replaceChildren();
+                        redraw();
+                        return;
+                    }
+                    if (drag) {
+                        drag.x2 = snapX(u2x(Math.min(Math.max(p.x, R.x), R.x + R.w)));
+                        if (Math.abs(x2u(drag.x2) - x2u(drag.x1)) > 4 * unitPx())
+                            drag.moved = true;
+                        redraw();
+                        return;
+                    }
+                    hover = pickCurve(p.x, p.y);
+                    if (!hover)
+                        tipBox.replaceChildren();
+                    redraw();
+                });
+                hit.addEventListener('pointerup', e => {
+                    if (pan) {
+                        pan = null;
+                        return;
+                    }
+                    const p = toUser(e);
+                    if (drag && drag.moved) {
+                        span = { x1: drag.x1, x2: drag.x2, c: drag.c };
+                        renderInfo();
+                    } else {
+                        const pick = pickCurve(p.x, p.y);
+                        pinned = pick && !(pinned && pinned.c === pick.c && pinned.x === pick.x) ? pick : null;
+                        if (!pinned) {
+                            span = null;
+                            hover = pick;
+                            tipBox.replaceChildren();
+                        }
+                        renderInfo();
+                    }
+                    drag = null;
+                    redraw();
+                });
+                hit.addEventListener('pointerleave', () => {
+                    hover = null;
+                    if (!pinned)
+                        tipBox.replaceChildren();
+                    redraw();
+                });
+                document.addEventListener('keydown', e => {
+                    if (!svg.isConnected || e.key !== 'Escape')
+                        return;
+                    clearMarks();
+                });
+                renderInfo();
+            }
+            function showPlotGroup(group, request) {
+                const order = file => {
+                    const index = PLOT_ORDER.indexOf(file.replace(/\.svg$/, ''));
+                    return index < 0 ? PLOT_ORDER.length : index;
+                };
+                const files = listDir(artifactPath(`plots/${group}`))
+                    .filter(file => file.endsWith('.svg'))
+                    .sort((a, b) => order(a) - order(b));
+                const selector = document.createElement('div');
+                const figure = document.createElement('div');
+                const info = document.createElement('div');
+                const reset = document.createElement('button');
+                const hint = document.createElement('div');
+                selector.className = 'plot-selector';
+                figure.className = 'plot-figure';
+                info.className = 'plot-info';
+                reset.type = 'button';
+                reset.className = 'fm-reset';
+                reset.textContent = 'Reset view';
+                reset.hidden = true;
+                hint.className = 'plot-hint';
+                hint.textContent = 'Hover a curve to read values · click to pin · drag to select a span · Shift/middle-drag to pan · scroll to zoom · click a legend entry to isolate a curve · Esc to clear';
+                hint.hidden = true;
+                artifactDisplay.replaceChildren(selector, hint, figure, info);
+                for (const file of files) {
+                    const name = file.replace(/\.svg$/, '');
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.dataset.plot = name;
+                    button.textContent = PLOT_NAMES[name] || name;
+                    button.addEventListener('click', event => {
+                        selector.querySelectorAll('button').forEach(element => element.classList.remove('selected'));
+                        button.classList.add('selected');
+                        currentPlot = name;
+                        currentArtifact = `${artifactBase()}/plots/${group}/${file}`;
+                        loadPlot(figure, info, currentArtifact, name, request, reset, hint);
+                        setAction(viewSvg, currentArtifact);
+                        setAction(viewPdf, currentArtifact.replace(/\.svg$/, '.pdf'));
+                        setAction(downloadFile, currentArtifact);
+                        if (event.isTrusted)
+                            updateURL(true);
+                    });
+                    selector.appendChild(button);
+                }
+                selector.appendChild(reset);
+                const selected = Array.from(selector.querySelectorAll('button:not(.fm-reset)'))
+                    .find(button => button.dataset.plot === currentPlot);
+                (selected || selector.querySelector('button'))?.click();
+            }
+
+            const HIST_UNITS = { length: 'packets', size: 'bytes' };
+            const HIST_COLORS = { flows: '#ff0000', packets: '#008000', octets: '#0000ff' };
+
+            function parseHistCsv(text) {
+                const lines = text.trim().split('\n');
+                const cols = lines[0].split(',');
+                const lo = cols.indexOf('bin_lo'), hi = cols.indexOf('bin_hi');
+                const qs = cols.map((c, i) => [c, i])
+                    .filter(([c]) => c.endsWith('_sum'))
+                    .map(([c, i]) => ({ what: c.slice(0, -4), i }));
+                const rows = [];
+                for (const line of lines.slice(1)) {
+                    const p = line.split(',');
+                    rows.push({ lo: +p[lo], hi: +p[hi], v: qs.map(q => +p[q.i]) });
+                }
+                return { qs: qs.map(q => q.what), rows };
+            }
+
+            function histChart(x, qs, rows, wrap) {
+                const NS = 'http://www.w3.org/2000/svg';
+                const el = (name, attrs) => {
+                    const e = document.createElementNS(NS, name);
+                    for (const [k, v] of Object.entries(attrs))
+                        e.setAttribute(k, v);
+                    return e;
+                };
+                const W = 720, H = 400, m = { l: 56, r: 12, t: 12, b: 36 };
+                const totals = qs.map((_, i) => rows.reduce((s, r) => s + r.v[i], 0));
+                // per-bin density (share of the quantity per unit of x) — the
+                // discrete counterpart of the normalized curves in PDF plots
+                const dens = rows.map(r => qs.map((_, i) => r.v[i] / (r.hi - r.lo) / (totals[i] || 1)));
+                let ymin = Infinity, ymax = 0;
+                for (const r of dens)
+                    for (const d of r)
+                        if (d > 0) {
+                            ymin = Math.min(ymin, d);
+                            ymax = Math.max(ymax, d);
+                        }
+                if (!isFinite(ymin)) {
+                    ymin = 1e-12;
+                    ymax = 1;
+                }
+                const lx0 = Math.log10(Math.max(rows[0].lo, 1e-300));
+                const lx1 = Math.max(Math.log10(Math.max(rows.at(-1).hi, 1e-300)), lx0 + 1e-6);
+                const ly0 = Math.floor(Math.log10(ymin));
+                const ly1 = Math.max(Math.ceil(Math.log10(ymax)), ly0 + 1);
+                const X = v => m.l + (Math.log10(v) - lx0) / (lx1 - lx0) * (W - m.l - m.r);
+                const Y = v => m.t + (1 - (Math.log10(v) - ly0) / (ly1 - ly0)) * (H - m.t - m.b);
+                const u2x = u => 10 ** (lx0 + (u - m.l) / (W - m.l - m.r) * (lx1 - lx0));
+
+                const sup = n => String(n).replace(/./g, c => '⁻⁰¹²³⁴⁵⁶⁷⁸⁹'['-0123456789'.indexOf(c)]);
+                const pow10 = k => k === 0 ? '1' : `10${sup(k)}`;
+
+                const svg = el('svg', { viewBox: `0 0 ${W} ${H}` });
+                const grid = el('g', { stroke: '#d8dee4', 'stroke-width': 0.6 });
+                const labels = el('g', { 'font-size': 11, fill: '#57606a', 'font-family': 'sans-serif' });
+                for (let k = Math.ceil(lx0); k <= lx1; k++) {
+                    const u = X(10 ** k);
+                    grid.appendChild(el('line', { x1: u, y1: m.t, x2: u, y2: H - m.b }));
+                    const t = el('text', { x: u, y: H - m.b + 14, 'text-anchor': 'middle' });
+                    t.textContent = pow10(k);
+                    labels.appendChild(t);
+                }
+                for (let k = ly0; k <= ly1; k++) {
+                    const v = Y(10 ** k);
+                    grid.appendChild(el('line', { x1: m.l, y1: v, x2: W - m.r, y2: v }));
+                    const t = el('text', { x: m.l - 5, y: v + 3.5, 'text-anchor': 'end' });
+                    t.textContent = pow10(k);
+                    labels.appendChild(t);
+                }
+                svg.append(grid, labels);
+                svg.appendChild(el('rect', {
+                    x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b,
+                    fill: 'none', stroke: '#d0d7de'
+                }));
+                const xt = el('text', {
+                    x: m.l + (W - m.l - m.r) / 2, y: H - 2, 'text-anchor': 'middle',
+                    'font-size': 12, fill: '#24292e', 'font-family': 'sans-serif'
+                });
+                xt.textContent = `Flow ${x} [${HIST_UNITS[x] || x}]`;
+                const yc = m.t + (H - m.t - m.b) / 2;
+                const yt = el('text', {
+                    x: 14, y: yc, 'text-anchor': 'middle', transform: `rotate(-90 14 ${yc})`,
+                    'font-size': 12, fill: '#24292e', 'font-family': 'sans-serif'
+                });
+                yt.textContent = 'PDF';
+                svg.append(xt, yt);
+
+                const f = n => n.toFixed(2);
+                // step path per quantity: each bin is a horizontal segment over
+                // [bin_lo, bin_hi) and contiguous bins are joined by a vertical
+                // riser at their shared edge (matplotlib step semantics); the
+                // pen lifts across gaps and empty bins
+                for (let i = 0; i < qs.length; i++) {
+                    let d = '', prevHi = null;
+                    rows.forEach((r, j) => {
+                        const v = dens[j][i];
+                        if (v <= 0) {
+                            prevHi = null;
+                            return;
+                        }
+                        const y = f(Y(v));
+                        d += `${prevHi === r.lo ? 'L' : 'M'}${f(X(r.lo))} ${y}L${f(X(r.hi))} ${y}`;
+                        prevHi = r.hi;
+                    });
+                    svg.appendChild(el('path', {
+                        d, fill: 'none', 'stroke-width': 0.7, 'stroke-opacity': 0.5,
+                        stroke: HIST_COLORS[qs[i]] || '#444444'
+                    }));
+                }
+                // legend, drawn over the curves
+                for (let i = 0; i < qs.length; i++) {
+                    const t = el('text', {
+                        x: W - m.r - 6, y: m.t + 13 + 15 * i, 'text-anchor': 'end', 'font-size': 11,
+                        'font-weight': 'bold', fill: HIST_COLORS[qs[i]] || '#444444',
+                        stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke'
+                    });
+                    t.textContent = qs[i];
+                    svg.appendChild(t);
+                }
+
+                const ov = el('g', { 'pointer-events': 'none' });
+                const hit = el('rect', {
+                    x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b,
+                    fill: 'transparent', 'pointer-events': 'all'
+                });
+                svg.append(ov, hit);
+                const tip = document.createElement('div');
+                tip.className = 'fm-tooltip';
+                wrap.append(tip);
+
+                // bin containing x, or the nearest one across an empty gap
+                function binAt(x) {
+                    let lo = 0, hi = rows.length - 1;
+                    while (lo <= hi) {
+                        const mid = (lo + hi) >> 1;
+                        if (rows[mid].lo <= x)
+                            lo = mid + 1;
+                        else
+                            hi = mid - 1;
+                    }
+                    if (hi < 0)
+                        return 0;
+                    if (x < rows[hi].hi || hi === rows.length - 1)
+                        return hi;
+                    return x - rows[hi].hi < rows[hi + 1].lo - x ? hi : hi + 1;
+                }
+
+                hit.addEventListener('pointermove', e => {
+                    const rect = svg.getBoundingClientRect();
+                    const s = rect.width / W;
+                    const u = (e.clientX - rect.left) / s, v = (e.clientY - rect.top) / s;
+                    const bi = binAt(u2x(u));
+                    const r = rows[bi];
+                    ov.replaceChildren();
+                    ov.appendChild(el('rect', {
+                        x: X(r.lo), y: m.t, width: Math.max(X(r.hi) - X(r.lo), 0.6),
+                        height: H - m.t - m.b, fill: '#ddf4ff', opacity: 0.6
+                    }));
+                    ov.appendChild(el('line', {
+                        x1: u, y1: m.t, x2: u, y2: H - m.b,
+                        stroke: '#57606a', 'stroke-width': 0.6, 'stroke-dasharray': '3 3'
+                    }));
+                    for (let qi = 0; qi < qs.length; qi++) {
+                        if (dens[bi][qi] > 0)
+                            ov.appendChild(el('circle', {
+                                cx: u, cy: Y(dens[bi][qi]), r: 3, stroke: '#fff', 'stroke-width': 0.8,
+                                fill: HIST_COLORS[qs[qi]] || '#444444'
+                            }));
+                    }
+                    tip.replaceChildren();
+                    tip.style.display = 'block';
+                    const head = document.createElement('div');
+                    head.className = 'dim';
+                    head.textContent = `${fmtInt(r.lo)}–${fmtInt(r.hi)} ${HIST_UNITS[x] || ''}`;
+                    tip.appendChild(head);
+                    for (let qi = 0; qi < qs.length; qi++) {
+                        const div = document.createElement('div');
+                        const b = document.createElement('b');
+                        b.textContent = qs[qi];
+                        b.style.color = HIST_COLORS[qs[qi]] || '#444444';
+                        div.append(b, ` — ${fmtInt(r.v[qi])} (${fmtNum(r.v[qi] / totals[qi] * 100)}%)`);
+                        tip.appendChild(div);
+                    }
+                    const pi = qs.indexOf('packets'), oi = qs.indexOf('octets');
+                    if (pi >= 0 && oi >= 0 && r.v[pi] > 0) {
+                        const div = document.createElement('div');
+                        div.className = 'dim';
+                        div.textContent = `avg packet size ${fmtNum(r.v[oi] / r.v[pi])} bytes`;
+                        tip.appendChild(div);
+                    }
+                    const w = tip.offsetWidth, h = tip.offsetHeight;
+                    const wrect = wrap.getBoundingClientRect();
+                    const px = e.clientX - wrect.left, py = e.clientY - wrect.top;
+                    const left = px < wrect.width / 2 ? px + 12 : px - w - 12;
+                    tip.style.left = `${Math.min(Math.max(left, 0), wrap.clientWidth - w - 4)}px`;
+                    tip.style.top = `${Math.min(Math.max(py - h / 2, 0), wrap.clientHeight - h - 4)}px`;
+                });
+                hit.addEventListener('pointerleave', () => {
+                    ov.replaceChildren();
+                    tip.style.display = 'none';
+                });
+                return svg;
+            }
+
+            const pageSection = (page, title) => {
+                const s = document.createElement('section');
+                const h = document.createElement('h2');
+                h.textContent = title;
+                s.appendChild(h);
+                page.appendChild(s);
+                return s;
+            };
+            const fileLinks = (parent, files) => {
+                const div = document.createElement('div');
+                div.className = 'links';
+                for (const [label, href, download, meta] of files) {
+                    const a = document.createElement('a');
+                    a.className = 'button';
+                    a.href = href;
+                    a.textContent = label;
+                    if (download)
+                        a.setAttribute('download', '');
+                    else {
+                        a.target = '_blank';
+                        a.rel = 'noopener noreferrer';
+                    }
+                    div.appendChild(a);
+                    if (meta) {
+                        const span = document.createElement('span');
+                        span.className = 'file-meta';
+                        span.textContent = meta;
+                        div.appendChild(span);
+                    }
+                }
+                if (div.children.length)
+                    parent.appendChild(div);
+            };
+            const cdfTable = (x, cdf) => {
+                const table = document.createElement('table');
+                const thead = document.createElement('thead');
+                const h1 = document.createElement('tr');
+                const thX = document.createElement('th');
+                thX.rowSpan = 2;
+                thX.textContent = `Flows of ${x} up to [${HIST_UNITS[x]}]`;
+                const thM = document.createElement('th');
+                thM.colSpan = 3;
+                thM.textContent = 'Make up %';
+                h1.append(thX, thM);
+                const h2 = document.createElement('tr');
+                for (const q of ['flows', 'packets', 'octets']) {
+                    const th = document.createElement('th');
+                    th.textContent = `of ${q}`;
+                    h2.appendChild(th);
+                }
+                thead.append(h1, h2);
+                table.appendChild(thead);
+                for (const point of Object.keys(cdf).map(Number).sort((a, b) => a - b)) {
+                    const v = cdf[point];
+                    const tr = document.createElement('tr');
+                    const tdX = document.createElement('td');
+                    tdX.textContent = fmtInt(point);
+                    tr.appendChild(tdX);
+                    for (const q of ['flows', 'packets', 'octets']) {
+                        const td = document.createElement('td');
+                        td.textContent = v[q] != null ? v[q].toFixed(4) : '–';
+                        tr.appendChild(td);
+                    }
+                    table.appendChild(tr);
+                }
+                return table;
+            };
+
+            async function showSummary(request) {
+                const base = artifactBase();
+                const summaryFiles = listDir(artifactPath('summary'));
+                const histogramFiles = listDir(artifactPath('histograms'));
+                const page = document.createElement('div');
+                page.className = 'summary-page';
+                artifactDisplay.replaceChildren(page);
+                const section = title => pageSection(page, title);
+                const summaries = {};
+                await Promise.all(['length', 'size'].map(async x => {
+                    if (!summaryFiles.includes(`${x}.json`))
+                        return;
+                    try {
+                        const resp = await fetch(`${base}/summary/${x}.json`);
+                        if (resp.ok)
+                            summaries[x] = await resp.json();
+                    } catch (error) {
+                        console.warn(`Unable to load summary: ${x}`, error);
+                    }
+                }));
+                if (request !== artifactRequest)
+                    return;
+
+                for (const x of ['length', 'size']) {
+                    const cdf = summaries[x]?.cdf?.[x];
+                    const file = `${x}.csv`;
+                    const hasHist = histogramFiles.includes(file);
+                    if (!cdf && !hasHist)
+                        continue;
+                    const sec = section(`Flow ${x}`);
+                    const row = document.createElement('div');
+                    row.className = 'summary-row';
+                    sec.appendChild(row);
+                    let linksParent = sec;
+                    if (cdf) {
+                        const col = document.createElement('div');
+                        col.appendChild(cdfTable(x, cdf));
+                        row.appendChild(col);
+                        linksParent = col;
+                    }
+                    let note = null, wrap = null;
+                    if (hasHist) {
+                        const col = document.createElement('div');
+                        col.className = 'hist-col';
+                        note = document.createElement('div');
+                        note.className = 'plot-hint';
+                        wrap = document.createElement('div');
+                        wrap.className = 'hist-wrap';
+                        col.append(note, wrap);
+                        row.appendChild(col);
+                    }
+                    const b0 = `${x}_b0.csv`;
+                    let parsed = null, csvBytes = 0, b0Bytes = null, histFailed = false;
+                    const jobs = [];
+                    if (hasHist)
+                        jobs.push((async () => {
+                            try {
+                                const resp = await fetch(`${base}/histograms/${file}`);
+                                if (!resp.ok)
+                                    throw new Error(`HTTP ${resp.status}`);
+                                csvBytes = +resp.headers.get('content-length') || 0;
+                                parsed = parseHistCsv(await resp.text());
+                            } catch (error) {
+                                console.warn(`Unable to load histogram: ${file}`, error);
+                                histFailed = true;
+                            }
+                        })());
+                    if (histogramFiles.includes(b0))
+                        jobs.push(fetch(`${base}/histograms/${b0}`, { method: 'HEAD' })
+                            .then(resp => {
+                                if (resp.ok)
+                                    b0Bytes = +resp.headers.get('content-length') || 0;
+                            })
+                            .catch(() => { }));
+                    await Promise.all(jobs);
+                    if (request !== artifactRequest)
+                        return;
+                    fileLinks(linksParent, [
+                        ...(summaryFiles.includes(`${x}.json`) ? [['JSON', `${base}/summary/${x}.json`]] : []),
+                        ...(summaryFiles.includes(`${x}.tex`) ? [['TeX', `${base}/summary/${x}.tex`, true]] : []),
+                        ...(hasHist ? [[file, `${base}/histograms/${file}`, true,
+                            parsed ? fmtBytes(csvBytes) : null]] : []),
+                        ...(histogramFiles.includes(b0)
+                            ? [[`${b0} (unbinned)`, `${base}/histograms/${b0}`, true,
+                            b0Bytes ? fmtBytes(b0Bytes) : null]] : [])
+                    ]);
+                    if (!hasHist)
+                        continue;
+                    if (histFailed) {
+                        note.textContent = 'Histogram not available.';
+                        continue;
+                    }
+                    const { qs, rows } = parsed;
+                    note.textContent = (rows.some(r => r.hi - r.lo > 1) ? 'Logarithmically binned histogram' : 'Unbinned histogram')
+                        + ` · ${fmtInt(rows.length)} bins · hover to inspect bins`;
+                    wrap.appendChild(histChart(x, qs, rows, wrap));
+                }
+            }
+
+            const fmtRate = v => {
+                for (const [f, u] of [[1e9, 'G'], [1e6, 'M'], [1e3, 'k']])
+                    if (Math.abs(v) >= f)
+                        return `${parseFloat((v / f).toPrecision(3))}${u}`;
+                return `${parseFloat(v.toPrecision(3))}`;
+            };
+
+            const parseSeries = (text, scale = 1) =>
+                Float64Array.from(text.trim().split('\n'), v => +v * scale);
+
+            // linear rate chart of per-second counters: 30 s rolling-mean line
+            // over a per-pixel min/max envelope of the raw counts, matching the
+            // generated series plots (all = black, dorms = red)
+            function seriesChart(unit, entries, wrap, view) {
+                const NS = 'http://www.w3.org/2000/svg';
+                const el = (name, attrs) => {
+                    const e = document.createElementNS(NS, name);
+                    for (const [k, v] of Object.entries(attrs))
+                        e.setAttribute(k, v);
+                    return e;
+                };
+                const W = 720, H = 240, m = { l: 64, r: 12, t: 12, b: 36 };
+                const plotW = W - m.l - m.r, plotH = H - m.t - m.b;
+                const ROLL = 30;
+                const n = Math.min(...entries.map(e => e.raw.length));
+                const svg = el('svg', { viewBox: `0 0 ${W} ${H}` });
+                if (!n)
+                    return svg;
+                const smooth = entries.map(e => {
+                    const out = new Float64Array(n);
+                    let acc = 0;
+                    for (let i = 0; i < n; i++) {
+                        acc += e.raw[i];
+                        if (i >= ROLL)
+                            acc -= e.raw[i - ROLL];
+                        out[i] = acc / Math.min(i + 1, ROLL);
+                    }
+                    return out;
+                });
+                let lo = n, hi = -1;
+                if (view) {
+                    lo = view.lo;
+                    hi = view.hi;
+                } else {
+                    for (const e of entries)
+                        for (let i = 0; i < n; i++)
+                            if (e.raw[i]) {
+                                if (i < lo)
+                                    lo = i;
+                                if (i > hi)
+                                    hi = i;
+                            }
+                    if (hi < 0) {
+                        lo = 0;
+                        hi = n - 1;
+                    }
+                    lo = Math.max(lo - 600, 0);
+                    hi = Math.min(hi + 600, n - 1);
+                }
+                let ymax = 0;
+                for (const e of entries)
+                    for (let i = lo; i <= hi; i++)
+                        if (e.raw[i] > ymax)
+                            ymax = e.raw[i];
+                ymax = ymax > 0 ? ymax * 1.05 : 1;
+                const X = t => m.l + (t - lo) / (hi - lo) * plotW;
+                const Y = v => m.t + (1 - v / ymax) * plotH;
+                const u2t = u => lo + (u - m.l) / plotW * (hi - lo);
+                const hhmm = t => `${String(Math.floor(t / 3600)).padStart(2, '0')}:${String(Math.floor(t % 3600 / 60)).padStart(2, '0')}`;
+                const hhmmss = t => `${hhmm(t)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
+
+                const grid = el('g', { stroke: '#d8dee4', 'stroke-width': 0.6 });
+                const labels = el('g', { 'font-size': 11, fill: '#57606a', 'font-family': 'sans-serif' });
+                const xstep = [300, 600, 900, 1800, 3600, 7200, 14400].find(t => (hi - lo) / t <= 10) || 14400;
+                for (let t = Math.ceil(lo / xstep) * xstep; t <= hi; t += xstep) {
+                    const u = X(t);
+                    grid.appendChild(el('line', { x1: u, y1: m.t, x2: u, y2: H - m.b }));
+                    const tx = el('text', { x: u, y: H - m.b + 14, 'text-anchor': 'middle' });
+                    tx.textContent = hhmm(t);
+                    labels.appendChild(tx);
+                }
+                const rough = ymax / 5;
+                const mag = 10 ** Math.floor(Math.log10(rough));
+                const ystep = [1, 2, 2.5, 5, 10].map(k => k * mag).find(s => s >= rough) || mag;
+                for (let v = 0; v <= ymax; v += ystep) {
+                    const w = Y(v);
+                    grid.appendChild(el('line', { x1: m.l, y1: w, x2: W - m.r, y2: w }));
+                    const tx = el('text', { x: m.l - 5, y: w + 3.5, 'text-anchor': 'end' });
+                    tx.textContent = fmtRate(v);
+                    labels.appendChild(tx);
+                }
+                svg.append(grid, labels);
+                // shaded period in which flows start
+                if (view?.shade)
+                    svg.appendChild(el('rect', {
+                        x: X(view.shade[0]), y: m.t,
+                        width: Math.max(X(view.shade[1]) - X(view.shade[0]), 0.6),
+                        height: plotH, fill: '#ddf4ff', opacity: 0.4
+                    }));
+                svg.appendChild(el('rect', {
+                    x: m.l, y: m.t, width: plotW, height: plotH,
+                    fill: 'none', stroke: '#d0d7de'
+                }));
+                const xt = el('text', {
+                    x: m.l + plotW / 2, y: H - 2, 'text-anchor': 'middle',
+                    'font-size': 12, fill: '#24292e', 'font-family': 'sans-serif'
+                });
+                xt.textContent = 'Time of day [UTC]';
+                const yc = m.t + plotH / 2;
+                const yt = el('text', {
+                    x: 14, y: yc, 'text-anchor': 'middle', transform: `rotate(-90 14 ${yc})`,
+                    'font-size': 12, fill: '#24292e', 'font-family': 'sans-serif'
+                });
+                yt.textContent = unit;
+                svg.append(xt, yt);
+
+                const f = n => n.toFixed(2);
+                const cols = Math.ceil(plotW);
+                entries.forEach((en, ei) => {
+                    const sm = smooth[ei];
+                    const tops = new Float64Array(cols), bots = new Float64Array(cols);
+                    for (let c = 0; c < cols; c++) {
+                        const a = lo + Math.floor(c / cols * (hi - lo + 1));
+                        const b = lo + Math.floor((c + 1) / cols * (hi - lo + 1));
+                        let mn = Infinity, mx = -Infinity;
+                        for (let i = a; i < b; i++) {
+                            const v = en.raw[i];
+                            if (v < mn)
+                                mn = v;
+                            if (v > mx)
+                                mx = v;
+                        }
+                        tops[c] = mx > -Infinity ? mx : 0;
+                        bots[c] = mn < Infinity ? mn : 0;
+                    }
+                    let d = `M${f(m.l)} ${f(Y(tops[0]))}`;
+                    for (let c = 1; c < cols; c++)
+                        d += `L${f(m.l + c)} ${f(Y(tops[c]))}`;
+                    for (let c = cols - 1; c >= 0; c--)
+                        d += `L${f(m.l + c)} ${f(Y(bots[c]))}`;
+                    svg.appendChild(el('path', {
+                        d: d + 'Z', fill: en.color, 'fill-opacity': 0.12, stroke: 'none'
+                    }));
+                    d = '';
+                    for (let c = 0; c < cols; c++) {
+                        const a = lo + Math.floor(c / cols * (hi - lo + 1));
+                        const b = lo + Math.floor((c + 1) / cols * (hi - lo + 1));
+                        let s = 0, k = 0;
+                        for (let i = a; i < b; i++) {
+                            s += sm[i];
+                            k++;
+                        }
+                        d += `${c ? 'L' : 'M'}${f(m.l + c)} ${f(Y(k ? s / k : 0))}`;
+                    }
+                    svg.appendChild(el('path', {
+                        d, fill: 'none', 'stroke-width': 0.8, stroke: en.color
+                    }));
+                });
+                if (entries.length > 1)
+                    entries.forEach((en, i) => {
+                        const t = el('text', {
+                            x: m.l + 8, y: m.t + 13 + 15 * i, 'font-size': 11,
+                            'font-weight': 'bold', fill: en.color,
+                            stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke'
+                        });
+                        t.textContent = en.label;
+                        svg.appendChild(t);
+                    });
+
+                const ov = el('g', { 'pointer-events': 'none' });
+                const hit = el('rect', {
+                    x: m.l, y: m.t, width: plotW, height: plotH,
+                    fill: 'transparent', 'pointer-events': 'all'
+                });
+                svg.append(ov, hit);
+                const tip = document.createElement('div');
+                tip.className = 'fm-tooltip';
+                wrap.append(tip);
+                hit.addEventListener('pointermove', e => {
+                    const rect = svg.getBoundingClientRect();
+                    const s = rect.width / W;
+                    const u = (e.clientX - rect.left) / s;
+                    const t = Math.round(Math.min(Math.max(u2t(u), lo), hi));
+                    hit.style.cursor = view?.shade && view.onShade && t >= view.shade[0] && t <= view.shade[1]
+                        ? 'pointer' : 'crosshair';
+                    ov.replaceChildren();
+                    ov.appendChild(el('line', {
+                        x1: u, y1: m.t, x2: u, y2: H - m.b,
+                        stroke: '#57606a', 'stroke-width': 0.6, 'stroke-dasharray': '3 3'
+                    }));
+                    tip.replaceChildren();
+                    tip.style.display = 'block';
+                    const head = document.createElement('div');
+                    head.className = 'dim';
+                    head.textContent = hhmmss(t);
+                    tip.appendChild(head);
+                    entries.forEach((en, ei) => {
+                        ov.appendChild(el('circle', {
+                            cx: u, cy: Y(smooth[ei][t]), r: 3, stroke: '#fff', 'stroke-width': 0.8,
+                            fill: en.color
+                        }));
+                        const div = document.createElement('div');
+                        const b = document.createElement('b');
+                        b.textContent = en.label;
+                        b.style.color = en.color;
+                        div.append(b, ` — ${fmtRate(smooth[ei][t])} ${unit}`);
+                        tip.appendChild(div);
+                    });
+                    const w = tip.offsetWidth, h = tip.offsetHeight;
+                    const wrect = wrap.getBoundingClientRect();
+                    const px = e.clientX - wrect.left, py = e.clientY - wrect.top;
+                    const left = px < wrect.width / 2 ? px + 12 : px - w - 12;
+                    tip.style.left = `${Math.min(Math.max(left, 0), wrap.clientWidth - w - 4)}px`;
+                    tip.style.top = `${Math.min(Math.max(py - h / 2, 0), wrap.clientHeight - h - 4)}px`;
+                });
+                hit.addEventListener('click', e => {
+                    if (!view?.shade || !view.onShade)
+                        return;
+                    const rect = svg.getBoundingClientRect();
+                    const s = rect.width / W;
+                    const t = u2t((e.clientX - rect.left) / s);
+                    if (t >= view.shade[0] && t <= view.shade[1])
+                        view.onShade();
+                });
+                hit.addEventListener('pointerleave', () => {
+                    ov.replaceChildren();
+                    tip.style.display = 'none';
+                });
+                return svg;
+            }
+
+            async function showMixtures(request) {
+                const base = artifactBase();
+                const page = document.createElement('div');
+                page.className = 'summary-page';
+                artifactDisplay.replaceChildren(page);
+                for (const x of ['length', 'size']) {
+                    const files = listDir(artifactPath(`mixtures/${x}`));
+                    const qs = ['flows', 'packets', 'octets'].filter(q => files.includes(`${q}.json`));
+                    if (!qs.length)
+                        continue;
+                    const sec = pageSection(page, `Flow ${x}`);
+                    const row = document.createElement('div');
+                    row.className = 'summary-row';
+                    sec.appendChild(row);
+                    for (const q of qs) {
+                        const col = document.createElement('div');
+                        col.className = 'mix-col';
+                        row.appendChild(col);
+                        const h = document.createElement('h3');
+                        h.textContent = q;
+                        h.style.color = HIST_COLORS[q];
+                        col.appendChild(h);
+                        try {
+                            const jobs = [fetch(`${base}/mixtures/${x}/${q}.json`).then(async resp => {
+                                if (!resp.ok)
+                                    throw new Error(`HTTP ${resp.status}`);
+                                return { data: await resp.json(), bytes: +resp.headers.get('content-length') || 0 };
+                            })];
+                            if (files.includes(`${q}.mode`))
+                                jobs.push(fetch(`${base}/mixtures/${x}/${q}.mode`).then(async resp =>
+                                    resp.ok ? { mode: await resp.json(), bytes: +resp.headers.get('content-length') || 0 } : {})
+                                    .catch(() => ({})));
+                            const [mixRes, modeRes] = await Promise.all(jobs);
+                            if (request !== artifactRequest)
+                                return;
+                            const { data, bytes } = mixRes;
+                            const table = document.createElement('table');
+                            const thead = document.createElement('thead');
+                            const hr = document.createElement('tr');
+                            for (const name of [`% of ${q}`, 'count', 'component']) {
+                                const th = document.createElement('th');
+                                th.textContent = name;
+                                hr.appendChild(th);
+                            }
+                            thead.appendChild(hr);
+                            table.appendChild(thead);
+                            for (const [w, dist, params] of data.mix) {
+                                const tr = document.createElement('tr');
+                                const tdW = document.createElement('td');
+                                tdW.textContent = (w * 100).toFixed(2);
+                                const tdC = document.createElement('td');
+                                tdC.textContent = fmtInt(w * data.sum);
+                                const tdD = document.createElement('td');
+                                tdD.textContent = `${dist}(${params.map(fmtNum).join(', ')})`;
+                                tr.append(tdW, tdC, tdD);
+                                table.appendChild(tr);
+                            }
+                            col.appendChild(table);
+                            const total = data.mix.reduce((s, entry) => s + entry[0], 0);
+                            const init = modeRes?.mode?.initial;
+                            const dim = document.createElement('div');
+                            dim.className = 'plot-hint';
+                            dim.textContent = `model covers ${(total * 100).toFixed(1)}% of ${fmtInt(data.sum)} ${q}`
+                                + (init ? ` · fit ${init.U ?? 0} uniform + ${init.L ?? 0} lognorm ≤ ${modeRes.mode.max_iter} iterations` : '');
+                            col.appendChild(dim);
+                            fileLinks(col, [
+                                [`${q}.json`, `${base}/mixtures/${x}/${q}.json`, false, fmtBytes(bytes)],
+                                ...(files.includes(`${q}.mode`) ? [[`${q}.mode`, `${base}/mixtures/${x}/${q}.mode`, true,
+                                modeRes?.bytes ? fmtBytes(modeRes.bytes) : null]] : [])
+                            ]);
+                        } catch (error) {
+                            console.warn(`Unable to load mixture: ${x}/${q}`, error);
+                            if (request === artifactRequest) {
+                                const dim = document.createElement('div');
+                                dim.className = 'plot-hint';
+                                dim.textContent = 'Mixture not available.';
+                                col.appendChild(dim);
+                            }
+                        }
+                    }
+                }
+            }
+
+            async function showSeries(request) {
+                const base = artifactBase();
+                const seriesFiles = listDir(artifactPath('series'));
+                const dormFiles = listDir(artifactPath('series/dorms'));
+                const page = document.createElement('div');
+                page.className = 'summary-page';
+                artifactDisplay.replaceChildren(page);
+                const stems = [...new Set(seriesFiles
+                    .map(f => f.match(/^(\d+)\.(?:flows|packets|octets)$/)?.[1])
+                    .filter(Boolean))].sort((a, b) => a - b);
+                const METRICS = [
+                    ['flows', 'Flow rate [flows/s]', 'flows/s', 1],
+                    ['packets', 'Packet rate [packets/s]', 'packets/s', 1],
+                    ['octets', 'Bit rate [bits/s]', 'bits/s', 8],
+                ];
+                for (const stem of stems) {
+                    const sec = pageSection(page, `${new Date(stem * 86400 * 1000).toISOString().slice(0, 10)} (Day ${stem})`);
+                    // fetch all metrics first — charts share one x range and the
+                    // shaded flow-start band, like the regenerated plots
+                    const recs = {};
+                    const jobs = [];
+                    for (const [suffix, label, unit, scale] of METRICS) {
+                        const file = `${stem}.${suffix}`;
+                        if (!seriesFiles.includes(file))
+                            continue;
+                        const what = suffix === 'octets' ? 'bits' : suffix;
+                        const rec = recs[suffix] = { file, what, label, unit };
+                        jobs.push(fetch(`${base}/series/${file}`).then(async resp => {
+                            if (!resp.ok)
+                                throw new Error(`HTTP ${resp.status}`);
+                            rec.bytes = +resp.headers.get('content-length') || 0;
+                            rec.raw = parseSeries(await resp.text(), scale);
+                        }).catch(error => console.warn(`Unable to load series: ${file}`, error)));
+                        if (dormFiles.includes(file))
+                            jobs.push(fetch(`${base}/series/dorms/${file}`).then(async resp => {
+                                if (resp.ok) {
+                                    rec.dormBytes = +resp.headers.get('content-length') || 0;
+                                    rec.dormRaw = parseSeries(await resp.text(), scale);
+                                }
+                            }).catch(() => { }));
+                        for (const f of [`${stem}.${what}.svg`, `${stem}.${what}.pdf`])
+                            if (seriesFiles.includes(f))
+                                jobs.push(fetch(`${base}/series/${f}`, { method: 'HEAD' })
+                                    .then(resp => {
+                                        if (resp.ok)
+                                            (rec.extra ||= {})[f] = +resp.headers.get('content-length') || 0;
+                                    })
+                                    .catch(() => { }));
+                    }
+                    await Promise.all(jobs);
+                    if (request !== artifactRequest)
+                        return;
+                    const spanOf = arr => {
+                        let a = Infinity, b = -1;
+                        for (let i = 0; i < arr.length; i++)
+                            if (arr[i]) {
+                                if (i < a)
+                                    a = i;
+                                if (i > b)
+                                    b = i;
+                            }
+                        return b < 0 ? null : [a, b];
+                    };
+                    const arrays = Object.values(recs).flatMap(rec => [rec.raw, rec.dormRaw].filter(Boolean));
+                    const spans = arrays.map(spanOf).filter(Boolean);
+                    const nmax = Math.max(0, ...arrays.map(a => a.length));
+                    let lo = Infinity, hi = -1;
+                    for (const [a, b] of spans) {
+                        if (a < lo)
+                            lo = a;
+                        if (b > hi)
+                            hi = b;
+                    }
+                    if (hi < 0) {
+                        lo = 0;
+                        hi = Math.max(nmax - 1, 0);
+                    } else {
+                        lo = Math.max(lo - 600, 0);
+                        hi = Math.min(hi + 600, Math.max(nmax - 1, 0));
+                    }
+                    const view = {
+                        lo, hi, lo0: lo, hi0: hi, zoomed: false,
+                        shade: recs.flows?.raw ? spanOf(recs.flows.raw) : null
+                    };
+                    const renders = [];
+                    if (view.shade)
+                        view.onShade = () => {
+                            view.zoomed = !view.zoomed;
+                            view.lo = view.zoomed ? view.shade[0] : view.lo0;
+                            view.hi = view.zoomed ? view.shade[1] : view.hi0;
+                            renders.forEach(r => r());
+                        };
+                    for (const [suffix, , unit] of METRICS) {
+                        const rec = recs[suffix];
+                        if (!rec)
+                            continue;
+                        const block = document.createElement('div');
+                        block.className = 'series-block';
+                        const note = document.createElement('div');
+                        note.className = 'plot-hint';
+                        const wrap = document.createElement('div');
+                        wrap.className = 'hist-wrap';
+                        block.append(note, wrap);
+                        sec.appendChild(block);
+                        const entries = [
+                            ...(rec.raw ? [{ label: 'all', color: '#24292e', raw: rec.raw }] : []),
+                            ...(rec.dormRaw ? [{ label: 'dorms', color: '#d62728', raw: rec.dormRaw }] : []),
+                        ];
+                        if (!entries.length) {
+                            note.textContent = 'Series not available.';
+                            continue;
+                        }
+                        note.textContent = `${rec.label} · 30 s rolling mean over per-second counts, shaded min–max envelope · hover to inspect`
+                            + (view.shade ? ' · click the shaded band to isolate the flow-start period' : '');
+                        renders.push(() => {
+                            wrap.replaceChildren();
+                            wrap.appendChild(seriesChart(unit, entries, wrap, view));
+                        });
+                        renders[renders.length - 1]();
+                        const svgFile = `${stem}.${rec.what}.svg`, pdfFile = `${stem}.${rec.what}.pdf`;
+                        fileLinks(block, [
+                            [rec.file, `${base}/series/${rec.file}`, true, rec.bytes ? fmtBytes(rec.bytes) : null],
+                            ...(rec.dormRaw ? [[`dorms/${rec.file}`, `${base}/series/dorms/${rec.file}`, true,
+                            rec.dormBytes ? fmtBytes(rec.dormBytes) : null]] : []),
+                            ...(seriesFiles.includes(svgFile) ? [[svgFile, `${base}/series/${svgFile}`, true,
+                                rec.extra?.[svgFile] ? fmtBytes(rec.extra[svgFile]) : null]] : []),
+                            ...(seriesFiles.includes(pdfFile) ? [[pdfFile, `${base}/series/${pdfFile}`, true,
+                                rec.extra?.[pdfFile] ? fmtBytes(rec.extra[pdfFile]) : null]] : []),
+                        ]);
+                    }
+                }
+            }
+
+            async function showRecords(request) {
+                const base = artifactBase();
+                const files = listDir(artifactPath('sorted'));
+                const page = document.createElement('div');
+                page.className = 'summary-page';
+                artifactDisplay.replaceChildren(page);
+                const TYPES = {
+                    b: ['signed char', 1], B: ['unsigned char', 1],
+                    h: ['signed short', 2], H: ['unsigned short', 2],
+                    i: ['signed int', 4], I: ['unsigned int', 4],
+                    l: ['signed long', 8], L: ['unsigned long', 8],
+                    q: ['signed long long', 8], Q: ['unsigned long long', 8],
+                    f: ['float', 4], d: ['double', 8],
+                };
+                const FIELD_INFO = {
+                    af: 'address family (2 = IPv4, 10 = IPv6)',
+                    prot: 'IP protocol number',
+                    inif: 'input interface number',
+                    outif: 'output interface number',
+                    sa0: 'source IP address, 1st word', sa1: 'source IP address, 2nd word',
+                    sa2: 'source IP address, 3rd word', sa3: 'source IP address, 4th word',
+                    da0: 'destination IP address, 1st word', da1: 'destination IP address, 2nd word',
+                    da2: 'destination IP address, 3rd word', da3: 'destination IP address, 4th word',
+                    sp: 'source transport-layer port',
+                    dp: 'destination transport-layer port',
+                    first: 'timestamp of first packet, seconds',
+                    first_ms: 'timestamp of first packet, milliseconds',
+                    last: 'timestamp of last packet, seconds',
+                    last_ms: 'timestamp of last packet, milliseconds',
+                    packets: 'number of packets (flow length)',
+                    octets: 'number of octets (flow size)',
+                    aggs: 'aggregated flow records',
+                };
+                const fields = files.map(f => {
+                    const [name, code] = f.split('.');
+                    return { file: f, name, code, type: TYPES[code] };
+                }).filter(f => f.type);
+
+                // ---------- binary format section ----------
+                const sec = pageSection(page, 'Binary format');
+                const note = document.createElement('div');
+                note.className = 'plot-hint';
+                const perRec = fields.reduce((s, f) => s + f.type[1], 0);
+                note.textContent = `Columnar binary records — one {field}.{dtype} file per field, `
+                    + `all arrays aligned by record index and sorted by flow start time · ${perRec} B/record`;
+                sec.appendChild(note);
+                const table = document.createElement('table');
+                const thead = document.createElement('thead');
+                const hr = document.createElement('tr');
+                for (const name of ['file', 'C type', 'B/record', 'records', 'size', 'description']) {
+                    const th = document.createElement('th');
+                    th.textContent = name;
+                    hr.appendChild(th);
+                }
+                thead.appendChild(hr);
+                table.appendChild(thead);
+                const jobs = fields.map(f => fetch(`${base}/sorted/${f.file}`, { method: 'HEAD' })
+                    .then(resp => {
+                        if (resp.ok)
+                            f.bytes = +resp.headers.get('content-length') || 0;
+                    })
+                    .catch(() => { }));
+                for (const f of fields) {
+                    const tr = document.createElement('tr');
+                    const tdF = document.createElement('td');
+                    const a = document.createElement('a');
+                    a.href = `${base}/sorted/${f.file}`;
+                    a.textContent = f.file;
+                    a.setAttribute('download', '');
+                    tdF.appendChild(a);
+                    const tdT = document.createElement('td');
+                    tdT.textContent = f.type[0];
+                    const tdB = document.createElement('td');
+                    tdB.textContent = f.type[1];
+                    const tdN = document.createElement('td');
+                    tdN.className = 'file-recs';
+                    const tdS = document.createElement('td');
+                    tdS.className = 'file-size';
+                    const tdD = document.createElement('td');
+                    tdD.textContent = FIELD_INFO[f.name] || '';
+                    tr.append(tdF, tdT, tdB, tdN, tdS, tdD);
+                    table.appendChild(tr);
+                }
+                sec.appendChild(table);
+                await Promise.all(jobs);
+                if (request !== artifactRequest)
+                    return;
+                const recs = table.querySelectorAll('.file-recs');
+                const sizes = table.querySelectorAll('.file-size');
+                fields.forEach((f, i) => {
+                    if (f.bytes) {
+                        recs[i].textContent = fmtInt(f.bytes / f.type[1]);
+                        sizes[i].textContent = fmtBytes(f.bytes);
+                    }
+                });
+
+                // ---------- record preview ----------
+                try {
+                    const resp = await fetch(`${base}/sorted/preview.json`);
+                    if (!resp.ok)
+                        throw new Error(`HTTP ${resp.status}`);
+                    const preview = await resp.json();
+                    if (request !== artifactRequest)
+                        return;
+                    const sec2 = pageSection(page, `Record preview — first ${preview.records.length} of ${fmtInt(preview.count)}`);
+                    const idx = name => preview.fields.findIndex(f => f.name === name);
+                    const iAF = idx('af'), iSA = idx('sa3'), iDA = idx('da3'), iSP = idx('sp'), iDP = idx('dp'),
+                        iPR = idx('prot'), iF = idx('first'), iFM = idx('first_ms'),
+                        iL = idx('last'), iLM = idx('last_ms'), iP = idx('packets'), iO = idx('octets');
+                    const ipv4 = v => [(v >>> 24) & 255, (v >>> 16) & 255, (v >>> 8) & 255, v & 255].join('.');
+                    const ts = (s, ms) => new Date((s + (ms || 0) / 1000) * 1000).toISOString().slice(11, 23);
+                    const PROT = { 1: 'ICMP', 6: 'TCP', 17: 'UDP', 41: 'IPv6', 47: 'GRE', 50: 'ESP', 58: 'ICMPv6' };
+                    const cols = [['#', (_, i) => i]];
+                    if (iAF >= 0)
+                        cols.push(['af', r => r[iAF] === 2 ? 'IPv4' : r[iAF]]);
+                    if (iF >= 0)
+                        cols.push(['first [UTC]', r => ts(r[iF], iFM >= 0 ? r[iFM] : 0)]);
+                    if (iL >= 0)
+                        cols.push(['last [UTC]', r => ts(r[iL], iLM >= 0 ? r[iLM] : 0)]);
+                    if (iF >= 0 && iL >= 0)
+                        cols.push(['dur [ms]', r => fmtInt((r[iL] - r[iF]) * 1000 + (iLM >= 0 && iFM >= 0 ? r[iLM] - r[iFM] : 0))]);
+                    if (iSA >= 0 || iSP >= 0)
+                        cols.push(['source', r => `${iSA >= 0 ? ipv4(r[iSA]) : '?'}${iSP >= 0 ? ':' + r[iSP] : ''}`]);
+                    if (iDA >= 0 || iDP >= 0)
+                        cols.push(['destination', r => `${iDA >= 0 ? ipv4(r[iDA]) : '?'}${iDP >= 0 ? ':' + r[iDP] : ''}`]);
+                    if (iPR >= 0)
+                        cols.push(['prot', r => PROT[r[iPR]] || r[iPR]]);
+                    if (iP >= 0)
+                        cols.push(['packets', r => fmtInt(r[iP])]);
+                    if (iO >= 0)
+                        cols.push(['octets', r => fmtInt(r[iO])]);
+                    const table2 = document.createElement('table');
+                    table2.className = 'records-preview';
+                    const thead2 = document.createElement('thead');
+                    const hr2 = document.createElement('tr');
+                    for (const [name] of cols) {
+                        const th = document.createElement('th');
+                        th.textContent = name;
+                        hr2.appendChild(th);
+                    }
+                    thead2.appendChild(hr2);
+                    table2.appendChild(thead2);
+                    const tbody = document.createElement('tbody');
+                    preview.records.forEach((r, i) => {
+                        const tr = document.createElement('tr');
+                        for (const [, fun] of cols) {
+                            const td = document.createElement('td');
+                            td.textContent = fun(r, i);
+                            tr.appendChild(td);
+                        }
+                        tbody.appendChild(tr);
+                    });
+                    table2.appendChild(tbody);
+                    sec2.appendChild(table2);
+                    fileLinks(sec2, [['preview.json', `${base}/sorted/preview.json`]]);
+                } catch (error) {
+                    console.warn('Unable to load record preview', error);
+                }
+            }
+
+            async function showArtifact(li, updateHistory = false) {
+                const request = ++artifactRequest;
+                artifactList.querySelectorAll('li.item').forEach(e => e.classList.remove('selected'));
+                li.classList.add('selected');
+                currentArtifact = li.dataset.path;
+                const artifact = currentArtifact;
+                const kind = li.dataset.kind;
+                disableActions();
+                if (kind === 'plot-group') {
+                    showPlotGroup(artifact, request);
+                    if (updateHistory)
+                        updateURL(true);
+                    return;
+                }
+                if (kind === 'summary') {
+                    showSummary(request);
+                    if (updateHistory)
+                        updateURL(true);
+                    return;
+                }
+                if (kind === 'mixtures') {
+                    showMixtures(request);
+                    if (updateHistory)
+                        updateURL(true);
+                    return;
+                }
+                if (kind === 'series') {
+                    showSeries(request);
+                    if (updateHistory)
+                        updateURL(true);
+                    return;
+                }
+                if (kind === 'records') {
+                    showRecords(request);
+                    if (updateHistory)
+                        updateURL(true);
+                    return;
+                }
+                setAction(downloadFile, artifact);
+
+                if (kind === 'svg') {
+                    const image = document.createElement('img');
+                    setAction(viewSvg, artifact);
+                    setAction(viewPdf, artifact.replace(/\.svg$/, '.pdf'));
+                    image.src = artifact;
+                    image.alt = li.textContent;
+                    image.addEventListener('error', () => {
+                        if (request === artifactRequest)
+                            setMessage('Artifact not available.');
+                    });
+                    artifactDisplay.replaceChildren(image);
+                } else if (kind === 'pdf') {
+                    const embed = document.createElement('embed');
+                    embed.src = artifact;
+                    embed.type = 'application/pdf';
+                    artifactDisplay.replaceChildren(embed);
+                } else if (kind === 'download') {
+                    setMessage(`Binary file. Use the Download button to fetch ${artifact}.`);
+                    setAction(downloadFile, artifact);
+                } else {
+                    setMessage('Loading...');
+                    try {
+                        const resp = await fetch(artifact);
+                        if (!resp.ok)
+                            throw new Error(`HTTP ${resp.status}`);
+                        let text = await resp.text();
+                        if (request !== artifactRequest)
+                            return;
+                        if (kind === 'json' && !artifact.includes('/mixtures/'))
+                            text = JSON.stringify(JSON.parse(text), null, 2);
+                        if (kind === 'markdown') {
+                            const article = document.createElement('article');
+                            article.className = 'markdown-body';
+                            article.innerHTML = DOMPurify.sanitize(marked.parse(text));
+                            for (const table of article.querySelectorAll('table')) {
+                                const wrapper = document.createElement('div');
+                                wrapper.className = 'table-wrapper';
+                                table.replaceWith(wrapper);
+                                wrapper.appendChild(table);
+                            }
+                            artifactDisplay.replaceChildren(article);
+                            const baseUrl = new URL('.', new URL(artifact, window.location.href));
+                            for (const element of article.querySelectorAll('a[href], img[src]')) {
+                                const attribute = element.matches('a') ? 'href' : 'src';
+                                const value = element.getAttribute(attribute);
+                                element.setAttribute(attribute, new URL(value, baseUrl).href);
+                                if (element.matches('a')) {
+                                    element.target = '_blank';
+                                    element.rel = 'noopener noreferrer';
+                                }
+                            }
+                        } else {
+                            const pre = document.createElement('pre');
+                            pre.textContent = text;
+                            artifactDisplay.replaceChildren(pre);
+                        }
+                        setAction(downloadFile, artifact);
+                    } catch (error) {
+                        console.warn(`Unable to load artifact: ${artifact}`, error);
+                        if (request === artifactRequest)
+                            setMessage('Artifact not available.');
+                    }
+                }
+                if (updateHistory && request === artifactRequest)
+                    updateURL(true);
+            }
+
+            function selectModel(path, selectedArtifact = artifactList.querySelector('li.item.selected')?.dataset.logical, updateHistory = false) {
+                currentFilter = path;
+                artifactRequest++;
+                renderSelectorDropdowns();
+                setMessage('Select an artifact on the right.');
+                populateProperties();
+                populateArtifacts();
+                const matchingArtifact = Array.from(artifactList.querySelectorAll('li.item'))
+                    .find(li => li.dataset.key === selectedArtifact || li.dataset.logical === selectedArtifact);
+                if (matchingArtifact)
+                    showArtifact(matchingArtifact);
+                if (updateHistory)
+                    updateURL(true);
+            }
+
+            datasetDropdown.addEventListener('change', async event => {
+                const request = ++datasetRequest;
+                artifactRequest++;
+                propertiesRequest++;
+                const selectedArtifact = artifactList.querySelector('li.item.selected')?.dataset.logical;
+                currentDataset = datasetDropdown.value;
+                selectorDropdowns.replaceChildren();
+                if (!currentDataset) {
+                    selectorMetadata = {};
+                    artifactList.replaceChildren();
+                    metadataList.replaceChildren();
+                    statsList.replaceChildren();
+                    modelInfo.replaceChildren();
+                    setMessage('Select a dataset and filter on the left, then choose an artifact on the right.');
+                    return;
+                }
+                const metadata = await loadSelectorMetadata(DATASETS[currentDataset]);
+                if (request !== datasetRequest)
+                    return;
+                selectorMetadata = metadata;
+                const paths = Object.keys(selectorMetadata);
+                const desired = pendingURLState;
+                pendingURLState = null;
+                const desiredSelector = desired?.selector === 'ALL' ? '' : desired?.selector;
+                const initialPath = desiredSelector in selectorMetadata ? desiredSelector
+                    : paths.includes('') ? '' : paths.sort((a, b) => a.split('/').length - b.split('/').length)[0];
+                if (initialPath !== undefined)
+                    selectModel(initialPath, desired?.artifact || selectedArtifact, event.isTrusted);
+            });
+
+            window.addEventListener('popstate', restoreURLState);
+            restoreURLState();
+            window.__fm = { enableInteractivity };
+        });
+    </script>
+</body>
+
+</html>

@@ -1,4 +1,8 @@
+import collections
 import contextlib
+import json
+import pathlib
+import re
 
 import matplotlib
 import numpy as np
@@ -19,10 +23,92 @@ MODES_MIXTURE = ['comp', 'comp_stack', 'comp_labels']
 MODES_PDF = ['points', 'hist', 'kde', *MODES_MIXTURE]
 MODES_CDF = MODES_MIXTURE
 
+def _fm_num(v):
+    v = float(v)
+    if not np.isfinite(v):
+        return None
+    return float(f'{v:.7g}')
+
+def _fm_axis_data(ax=None):
+    ax = ax or plt.gca()
+    fig = ax.figure
+    if not hasattr(fig, '_fm_axes'):
+        fig._fm_axes = {}
+    return ax, fig._fm_axes.setdefault(ax, {'curves': [], 'totals': {}})
+
+def _fm_total(what, value, ax=None):
+    _, info = _fm_axis_data(ax)
+    info['totals'][what] = _fm_num(value)
+
+def _fm_add(kind, x, y, label=None, what=None, component=None, ax=None, artists=()):
+    _, info = _fm_axis_data(ax)
+    gid = 'fm-c%d' % len(info['curves'])
+    for artist in artists:
+        artist.set_gid(gid)
+    entry = {
+        'id': gid,
+        'kind': kind,
+        'x': [_fm_num(v) for v in np.asarray(x, dtype=float).ravel()],
+        'y': [_fm_num(v) for v in np.asarray(y, dtype=float).ravel()],
+    }
+    if label:
+        entry['label'] = label
+    if what:
+        entry['what'] = what
+    if component:
+        entry['component'] = component
+    info['curves'].append(entry)
+
+def _fm_embed(figure, fname):
+    axes = getattr(figure, '_fm_axes', None)
+    if not axes:
+        return
+    data = {'axes': []}
+    for ax, info in axes.items():
+        data['axes'].append({
+            'xlabel': ax.get_xlabel(),
+            'ylabel': ax.get_ylabel(),
+            'xscale': ax.get_xscale(),
+            'yscale': ax.get_yscale(),
+            'xlim': [_fm_num(v) for v in ax.get_xlim()],
+            'ylim': [_fm_num(v) for v in ax.get_ylim()],
+            'totals': info['totals'],
+            'curves': info['curves'],
+        })
+    payload = json.dumps(data, separators=(',', ':')).replace('&', '&amp;').replace('<', '&lt;')
+    path = pathlib.Path(fname)
+    text = path.read_text()
+    insert = text.find('>', text.find('<svg')) + 1
+    text = text[:insert] + f'<metadata id="fm-plot-data">{payload}</metadata>' + _fm_slim(text[insert:])
+    path.write_text(text)
+
+def _fm_slim(text):
+    """Collapse repeated inline text styling into a single CSS rule."""
+    fams = collections.Counter(re.findall(r'font-family: ([^;"]+)', text))
+    sizes = collections.Counter(re.findall(r'font-size: ([\d.]+)px', text))
+    rules = ''
+    if fams:
+        # prefer the full fallback list over per-element resolved names
+        fam = max(fams, key=lambda f: (',' in f, fams[f]))
+        text = re.sub(r'font-family: [^;"]+;? ?', '', text)
+        rules += f'font-family: {fam}; '
+    if sizes:
+        size = sizes.most_common(1)[0][0]
+        text = re.sub(r'font-size: %spx;? ?' % re.escape(size), '', text)
+        rules += f'font-size: {size}px; '
+    if rules:
+        text = text.replace(' style=""', '').replace('; "', '"')
+        text = f'<style type="text/css">text {{{rules}}}</style>' + text
+    return text
+
 def save_figure(figure, fname, ext='pdf', **kwargs):
     if ext == 'pdf':
         kwargs['metadata'] = PDF_NONE
-    figure.savefig(f'{fname}.{ext}', bbox_inches='tight', **kwargs)
+    # svg keeps the exact figure canvas so the axes rect is identical across
+    # plots; pdf expands to include labels drawn outside the axes
+    figure.savefig(f'{fname}.{ext}', bbox_inches=None if ext == 'svg' else 'tight', **kwargs)
+    if ext == 'svg':
+        _fm_embed(figure, f'{fname}.{ext}')
 
 @contextlib.contextmanager
 def matplotlib_config(latex=False):
@@ -30,10 +116,11 @@ def matplotlib_config(latex=False):
         matplotlib.rcParams['figure.dpi'] *= 2
         matplotlib.rcParams['figure.subplot.hspace'] = 0
         matplotlib.rcParams['figure.subplot.wspace'] /= 1.5
-        matplotlib.rcParams['figure.subplot.left'] = 0.00
-        matplotlib.rcParams['figure.subplot.bottom'] = 0.00
-        matplotlib.rcParams['figure.subplot.right'] = 1.00
-        matplotlib.rcParams['figure.subplot.top'] = 1.00
+        # fixed margins — identical axes rect across all plots
+        matplotlib.rcParams['figure.subplot.left'] = 0.10
+        matplotlib.rcParams['figure.subplot.bottom'] = 0.11
+        matplotlib.rcParams['figure.subplot.right'] = 0.99
+        matplotlib.rcParams['figure.subplot.top'] = 0.97
         matplotlib.rcParams['xtick.major.width'] = 0.25
         matplotlib.rcParams['xtick.minor.width'] = 0.25
         matplotlib.rcParams['xtick.top'] = True
@@ -48,8 +135,9 @@ def matplotlib_config(latex=False):
         matplotlib.rcParams['axes.ymargin'] = 0.05
         matplotlib.rcParams['axes.linewidth'] = 0.25
         matplotlib.rcParams['pdf.use14corefonts'] = True
-        matplotlib.rcParams['font.family'] = 'sans'
-        matplotlib.rcParams['font.size'] *= 1.15
+        matplotlib.rcParams['font.family'] = 'sans-serif'
+        matplotlib.rcParams['font.sans-serif'] = ['Helvetica', 'Arial', 'Liberation Sans', 'sans-serif']
+        matplotlib.rcParams['svg.fonttype'] = 'none'
 
         if latex:
             matplotlib.rcParams['text.usetex'] = True
@@ -76,33 +164,51 @@ def plot_mixture(data, idx, x_val, what, mode, fun):
         data = data.get(what)
         if data is None:
             return plots
+    if 'sum' in data:
+        _fm_total(what, data['sum'])
     if 'mixture' in mode:
         fit = []
-        label = 'model'
+        label = 'Model'
         if fun == 'cdf':
             fit = cdf(data, idx)
-            label = what + ' (model)'
+            label = what.capitalize() + ' (model)'
         if fun == 'pdf':
             fit = pdf(data, idx, x_val)
 
-        plots += plt.plot(idx, fit, 'k-', lw=1, ms=1, alpha=0.5, label=label)
+        artists = plt.plot(idx, fit, 'k-', lw=1, ms=1, alpha=0.5, label=label)
+        plots += artists
+        _fm_add('model', idx, fit, label=label, what=what, artists=artists)
+
+    components = []
+    if 'comp' in mode or 'comp_stack' in mode:
+        comp = {}
+        if fun == 'cdf':
+            comp = cdf_comp(data, idx)
+        if fun == 'pdf':
+            comp = pdf_comp(data, idx, x_val)
+        mix = data.get('mix', [])
+        weights = np.array([entry[0] for entry in mix], dtype=float)
+        wsum = weights.sum()
+        for entry, (label, dd), wnorm in zip(mix, comp.items(), weights / wsum if wsum else weights):
+            components.append({'label': label[:1].upper() + label[1:], 'y': dd, 'weight': wnorm, 'dist': entry[1], 'params': entry[2]})
 
     if 'comp' in mode:
-        comp = {}
-        if fun == 'cdf':
-            comp = cdf_comp(data, idx)
-        if fun == 'pdf':
-            comp = pdf_comp(data, idx, x_val)
-        for weight, dd in comp.items():
-            plots += plt.plot(idx, dd, '--', dashes=(20, 20), lw=0.1, label=str(weight) if 'comp_labels' in mode else None)
+        for c in components:
+            artists = plt.plot(idx, c['y'], '--', dashes=(20, 20), lw=0.1,
+                               label=c['label'] if 'comp_labels' in mode else None)
+            plots += artists
+            _fm_add('component', idx, c['y'], label=c['label'], what=what,
+                    component={'weight': _fm_num(c['weight']), 'dist': c['dist'], 'params': c['params']},
+                    artists=artists)
 
     if 'comp_stack' in mode:
-        comp = {}
-        if fun == 'cdf':
-            comp = cdf_comp(data, idx)
-        if fun == 'pdf':
-            comp = pdf_comp(data, idx, x_val)
-        plots += plt.stackplot(idx, *comp.values(), lw=0.1, labels=comp.keys() if 'comp_labels' in mode else [], alpha=0.5)
+        artists = plt.stackplot(idx, *[c['y'] for c in components], lw=0.1,
+                                labels=[c['label'] for c in components] if 'comp_labels' in mode else [], alpha=0.5)
+        plots += artists
+        for c, artist in zip(components, artists):
+            _fm_add('component', idx, c['y'], label=c['label'], what=what,
+                    component={'weight': _fm_num(c['weight']), 'dist': c['dist'], 'params': c['params']},
+                    artists=[artist])
     return plots
 
 def plot_pdf(data, idx=None, x_val='length', what='flows', mode=frozenset(['points', 'mixture']), normalize=True, fft=False):
@@ -118,9 +224,14 @@ def plot_pdf(data, idx=None, x_val='length', what='flows', mode=frozenset(['poin
         pdfi = pdf_from_cdf(data, idx, what)
         xmin, xmax, ymin, ymax = calc_minmax(idx, pdfi)
 
+        _fm_total(what, data[what + '_sum'].sum())
+
         if 'line' in mode:
-            plots += plt.plot(idx, pdfi, STYLE[what][0] + '-', lw=2, ms=1, alpha=0.5, zorder=3,
-                              label='infered from data points')
+            label = 'Infered from data points'
+            artists = plt.plot(idx, pdfi, STYLE[what][0] + '-', lw=2, ms=1, alpha=0.5, zorder=3,
+                               label=label)
+            plots += artists
+            _fm_add('data', idx, pdfi, label=label, what=what, artists=artists)
 
         values_sum = data[what + '_sum'].sum()
         weights = data['flows_sum'].to_numpy()
@@ -135,20 +246,24 @@ def plot_pdf(data, idx=None, x_val='length', what='flows', mode=frozenset(['poin
         if 'points' in mode:
             logmsg('Plotting points')
             if normalize:
-                plots += plt.plot(pdfd.index, pdfd,
-                                  STYLE[what][0] + ',', lw=1, ms=1, alpha=1, zorder=1,
-                                  label='data points (normalized)', rasterized=True)
+                label = 'Data points (normalized)'
+                artists = plt.plot(pdfd.index, pdfd,
+                                   STYLE[what][0] + ',', lw=1, ms=1, alpha=1, zorder=1,
+                                   label=label, rasterized=True)
             else:
-                plots += plt.plot(pdfd.index, pdfd,
-                                  'c' + ',', lw=1, ms=1, alpha=1, zorder=2,
-                                  label='data points (log-binned)', rasterized=True)
+                label = 'Data points (log-binned)'
+                artists = plt.plot(pdfd.index, pdfd,
+                                   'c' + ',', lw=1, ms=1, alpha=1, zorder=2,
+                                   label=label, rasterized=True)
+            plots += artists
+            _fm_add('points', pdfd.index.to_numpy(), pdfd.to_numpy(), label=label, what=what, artists=artists)
 
         if 'hist' in mode:
             logmsg('Plotting hist')
             plt.hist2d(pdfd.index, pdfd, weights=weights,
                        bins=[np.geomspace(xmin, xmax, HIST_NBINS), np.geomspace(ymin, ymax, HIST_NBINS)],
                        cmin=1, norm=colors.LogNorm(),
-                       alpha=1.0, label=what + ' data', rasterized=False, **kwargs)
+                       alpha=1.0, label=what.capitalize() + ' data', rasterized=False, **kwargs)
 
         if 'kde' in mode:
             logmsg('Calculating KDE')
@@ -173,11 +288,15 @@ def plot_cdf(data, idx=None, x_val='length', what='flows', mode=frozenset(['mixt
     if isinstance(data, pd.DataFrame):
         if idx is None:
             idx = np.unique(np.rint(np.geomspace(data.index.min(), data.index.max(), LINE_NBINS)).astype(np.int64))
+        _fm_total(what, data[what + '_sum'].sum())
         if 'line' in mode:
             cdfd = data[what + '_sum'].cumsum() / data[what + '_sum'].sum()
             cdfi = scipy.interpolate.interp1d(cdfd.index, cdfd, 'linear', bounds_error=False)(idx)
-            plots += plt.plot(idx, cdfi, STYLE[what][0] + '-', lw=2, ms=1, alpha=0.5,
-                              label=what + ' (infered from data points)')
+            label = what.capitalize() + ' (infered from data points)'
+            artists = plt.plot(idx, cdfi, STYLE[what][0] + '-', lw=2, ms=1, alpha=0.5,
+                               label=label)
+            plots += artists
+            _fm_add('data', idx, cdfi, label=label, what=what, artists=artists)
     else:
         plots += plot_mixture(data, idx, x_val, what, mode, 'cdf')
 
@@ -221,12 +340,17 @@ def plot_avg(data, idx=None, x_val='length', what='packets', mode=frozenset(['mi
         else:
             raise ValueError
 
-        plots += plt.plot(avg_points.index.values, avg_points.values,
-                          color + ',', lw=1, ms=1, alpha=1,
-                          label='data points', rasterized=True)
+        artists = plt.plot(avg_points.index.values, avg_points.values,
+                           color + ',', lw=1, ms=1, alpha=1,
+                           label='Data points', rasterized=True)
+        plots += artists
+        _fm_add('points', avg_points.index.values, avg_points.values, label='Data points', what=what, artists=artists)
 
-        plots += plt.plot(idx, avg_line, color + '-', lw=2, ms=1, alpha=0.5,
-                          label='infered from data points')
+        label = 'Infered from data points'
+        artists = plt.plot(idx, avg_line, color + '-', lw=2, ms=1, alpha=0.5,
+                           label=label)
+        plots += artists
+        _fm_add('data', idx, avg_line, label=label, what=what, artists=artists)
     elif 'mixture' in mode:
         try:
             avg_mix = avg(data, idx, x_val, what)
@@ -237,8 +361,11 @@ def plot_avg(data, idx=None, x_val='length', what='packets', mode=frozenset(['mi
         if what in ['packets', 'octets']:
             plt.yscale('log')
 
-        plots += plt.plot(idx, avg_mix, 'k-', lw=2, ms=1, alpha=0.5,
-                          label='infered from model')
+        label = 'Infered from model'
+        artists = plt.plot(idx, avg_mix, 'k-', lw=2, ms=1, alpha=0.5,
+                           label=label)
+        plots += artists
+        _fm_add('model', idx, avg_mix, label=label, what=what, artists=artists)
 
     plt.legend(frameon=False)
     return plots
