@@ -14,7 +14,7 @@ from flow_models.lib.ml import load_arrays, prepare_input
 from flow_models.lib.plot import PDF_NONE
 
 matplotlib.rcParams['pdf.use14corefonts'] = True
-matplotlib.rcParams['font.family'] = 'sans'
+matplotlib.rcParams['font.family'] = 'sans-serif'
 
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
@@ -105,15 +105,15 @@ def main():
         ax0.set_ylabel("Header feature bit number")
 
         ax0.hlines(y=0, xmin=0, xmax=1, colors='k', lw=2)
-        ax0.hlines(y=32, xmin=0, xmax=1, colors='k', lw=2)
-        ax0.hlines(y=64, xmin=0, xmax=1, colors='k', lw=2)
+        ax0.hlines(y=16, xmin=0, xmax=1, colors='k', lw=2)
+        ax0.hlines(y=48, xmin=0, xmax=1, colors='k', lw=2)
         ax0.hlines(y=80, xmin=0, xmax=1, colors='k', lw=2)
         ax0.hlines(y=96, xmin=0, xmax=1, colors='k', lw=2)
         ax0.hlines(y=104, xmin=0, xmax=1, colors='k', lw=2)
 
-        ax0.text(0.5, 16, "Source IP address", rotation=90, va='center', ha='center')
-        ax0.text(0.5, 48, "Destination IP address", rotation=90, va='center', ha='center')
-        ax0.text(0.5, 72, "Source port", rotation=90, va='center', ha='center')
+        ax0.text(0.5, 8, "Source port", rotation=90, va='center', ha='center')
+        ax0.text(0.5, 32, "Source IP address", rotation=90, va='center', ha='center')
+        ax0.text(0.5, 64, "Destination IP address", rotation=90, va='center', ha='center')
         ax0.text(0.5, 88, "Destination port", rotation=90, va='center', ha='center')
         ax0.text(0.5, 100, "Transport protocol", rotation=90, va='center', ha='center')
 
@@ -142,8 +142,8 @@ def main():
                     ax1.text(j + 0.5, i + 0.58, f"{val:7.2f}", ha='center', va='center', color='w' if val > 100 else 'k')
 
         ax1.hlines(y=0, xmin=0, xmax=2, colors='k', lw=2)
-        ax1.hlines(y=32, xmin=0, xmax=2, colors='k', lw=2)
-        ax1.hlines(y=64, xmin=0, xmax=2, colors='k', lw=2)
+        ax1.hlines(y=16, xmin=0, xmax=2, colors='k', lw=2)
+        ax1.hlines(y=48, xmin=0, xmax=2, colors='k', lw=2)
         ax1.hlines(y=80, xmin=0, xmax=2, colors='k', lw=2)
         ax1.hlines(y=96, xmin=0, xmax=2, colors='k', lw=2)
         ax1.hlines(y=104, xmin=0, xmax=2, colors='k', lw=2)
@@ -177,8 +177,8 @@ def main():
                     ax2.text(j + 0.5, i + 0.58, f"{val:7.2f}", ha='center', va='center', color='w' if val > 100 else 'k')
 
         ax2.hlines(y=0, xmin=0, xmax=6, colors='k', lw=2)
-        ax2.hlines(y=32, xmin=0, xmax=6, colors='k', lw=2)
-        ax2.hlines(y=64, xmin=0, xmax=6, colors='k', lw=2)
+        ax2.hlines(y=16, xmin=0, xmax=6, colors='k', lw=2)
+        ax2.hlines(y=48, xmin=0, xmax=6, colors='k', lw=2)
         ax2.hlines(y=80, xmin=0, xmax=6, colors='k', lw=2)
         ax2.hlines(y=96, xmin=0, xmax=6, colors='k', lw=2)
         ax2.hlines(y=104, xmin=0, xmax=6, colors='k', lw=2)
