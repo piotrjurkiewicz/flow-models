@@ -18,13 +18,13 @@ from flow_models.lib.plot import PDF_NONE
 from flow_models.lib.util import logmsg
 
 matplotlib.rcParams['pdf.use14corefonts'] = True
-matplotlib.rcParams['font.family'] = 'sans'
+matplotlib.rcParams['font.family'] = 'sans-serif'
 
 TSV_COLUMNS = [
     'threshold', 'coverage', 'reduction',
     'min_coverage', 'mean_coverage', 'max_coverage',
     'min_occupancy', 'mean_occupancy', 'max_occupancy',
-    'r2_score', 'r2_score_weighted', 'depth', 'leaves',
+    'r2_score',
     'true_negatives', 'false_positives', 'false_negatives', 'true_positives',
 ]
 
@@ -84,9 +84,9 @@ def load_data(app_args):
     for f in sorted(pathlib.Path(f'{app_args.files}/').glob('*.tsv')):
         logmsg(f'Loading file {f}')
         columns = []
-        columns.extend(np.loadtxt(str(f), delimiter='\t', max_rows=len(TSV_COLUMNS) - 6))
-        columns.extend(np.loadtxt(str(f), delimiter='\t', skiprows=len(TSV_COLUMNS) - 6, max_rows=6, dtype=np.uint64))
-        if not any(a in str(f) for a in ['Data', 'KNeighborsClassifier',  'HistGradientBoostingClassifier']):
+        columns.extend(np.loadtxt(str(f), delimiter='\t', max_rows=len(TSV_COLUMNS) - 4))
+        columns.extend(np.loadtxt(str(f), delimiter='\t', skiprows=len(TSV_COLUMNS) - 4, max_rows=4, dtype=np.uint64))
+        if not any(a in str(f) for a in ['Data', 'KNeighborsRegressor', 'HistGradientBoostingRegressor']):
             columns.extend(np.loadtxt(str(f), delimiter='\t', skiprows=len(TSV_COLUMNS)))
         results[f.stem] = columns
 
@@ -100,7 +100,7 @@ def load_data(app_args):
     #     decisions_predicted[f.stem[:-3]] = np.load(str(f))
 
     res = {}
-    for part in ['Mixture', 'Data', 'DecisionTree', 'RandomForest', 'ExtraTrees', 'AdaBoost', 'GradientBoosting', 'HistGradientBoostingClassifier', 'KNeighbors']:
+    for part in ['Mixture', 'Data', 'DecisionTree', 'RandomForest', 'ExtraTrees', 'AdaBoost', 'GradientBoosting', 'HistGradientBoostingRegressor', 'KNeighbors']:
         for name in results:
             if part in name:
                 res[name] = results[name]

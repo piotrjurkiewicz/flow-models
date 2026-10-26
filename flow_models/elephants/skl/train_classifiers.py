@@ -10,6 +10,7 @@ import sys
 
 import numpy as np
 import sklearn.ensemble
+import sklearn.metrics
 import sklearn.model_selection
 import sklearn.neighbors
 import sklearn.neural_network
@@ -71,11 +72,13 @@ def main():
 
     all_data = make_slice(data, **data_par)
     *all_inp, all_octets = all_data
+    skip = data_par.get('skip', 0)
+    index_offset = int(len(data[0]) * skip) if isinstance(skip, float) else skip
     for n, (train_index, test_index) in enumerate(sklearn.model_selection.KFold(data_par.get('folds', 5)).split(all_octets)):
         logmsg(f"Folding {n}")
         train_octets, test_octets = all_octets[train_index], all_octets[test_index]
-        train_flows_sum, train_octets_sum, train_flows_slots, train_octets_slots = simulate_data(app_args.directory, index=train_index, mask=None, pps=PPS, fps=FPS, timeout=TIMEOUT)
-        test_flows_sum, test_octets_sum, test_flows_slots, test_octets_slots = simulate_data(app_args.directory, index=test_index, mask=None, pps=PPS, fps=FPS, timeout=TIMEOUT)
+        train_flows_sum, train_octets_sum, train_flows_slots, train_octets_slots = simulate_data(app_args.directory, index=train_index + index_offset, mask=None, pps=PPS, fps=FPS, timeout=TIMEOUT)
+        test_flows_sum, test_octets_sum, test_flows_slots, test_octets_slots = simulate_data(app_args.directory, index=test_index + index_offset, mask=None, pps=PPS, fps=FPS, timeout=TIMEOUT)
         for prep_par in prep_params:
             logmsg(f"Preparing {prep_par} {n}")
             prepared_inp = prepare_input(all_inp, **prep_par)
@@ -111,7 +114,7 @@ def main():
                             train_decision = prepare_decision(train_octets, training_coverage)
                             # train_decision = train_octets > 8388608
                             # idx = Ellipsis
-                            idx = top_idx(train_octets, 0.1)
+                            idx = top_idx(train_octets, 0.1, seed=app_args.seed)
                             # Balanced sample weights
                             # sample_weight = np.ones(len(train_decision))
                             # sample_weight[train_decision] *= len(train_octets[~train_decision]) / len(train_octets[train_decision])
@@ -137,7 +140,7 @@ def main():
                                 decision_predicted = clf.predict(inp)
                             decisions_true[f'{name} ({mode})'].append(np.packbits(decision_true))
                             decisions_predicted[f'{name} ({mode})'].append(np.packbits(decision_predicted))
-                            this_flows_sum, this_octets_sum, this_flows_slots, this_octets_slots = simulate_data(app_args.directory, index=index, mask=decision_predicted, pps=PPS, fps=FPS, timeout=TIMEOUT)
+                            this_flows_sum, this_octets_sum, this_flows_slots, this_octets_slots = simulate_data(app_args.directory, index=index + index_offset, mask=decision_predicted, pps=PPS, fps=FPS, timeout=TIMEOUT)
                             c = itertools.count()
                             results[f'{name} ({mode})'][next(c)].append(training_coverage)
                             results[f'{name} ({mode})'][next(c)].append(octets[decision_predicted].sum() / octets.sum())

@@ -19,7 +19,7 @@ from flow_models.lib.plot import PDF_NONE
 from flow_models.lib.util import logmsg
 
 matplotlib.rcParams['pdf.use14corefonts'] = True
-matplotlib.rcParams['font.family'] = 'sans'
+matplotlib.rcParams['font.family'] = 'sans-serif'
 
 TSV_COLUMNS = [
     'training_coverage', 'coverage', 'reduction',

@@ -11,6 +11,7 @@ import sys
 
 import numpy as np
 import sklearn.ensemble
+import sklearn.metrics
 import sklearn.model_selection
 import sklearn.neighbors
 import sklearn.neural_network
@@ -71,11 +72,13 @@ def main():
 
     all_data = make_slice(data, **data_par)
     *all_inp, all_octets = all_data
+    skip = data_par.get('skip', 0)
+    index_offset = int(len(data[0]) * skip) if isinstance(skip, float) else skip
     for n, (train_index, test_index) in enumerate(sklearn.model_selection.KFold(data_par.get('folds', 5)).split(all_octets)):
         logmsg(f"Folding {n}")
         train_octets, test_octets = all_octets[train_index], all_octets[test_index]
-        train_flows_sum, train_octets_sum, train_flows_slots, train_octets_slots = simulate_data(app_args.directory, index=train_index, mask=None, pps=PPS, fps=FPS, timeout=TIMEOUT)
-        test_flows_sum, test_octets_sum, test_flows_slots, test_octets_slots = simulate_data(app_args.directory, index=test_index, mask=None, pps=PPS, fps=FPS, timeout=TIMEOUT)
+        train_flows_sum, train_octets_sum, train_flows_slots, train_octets_slots = simulate_data(app_args.directory, index=train_index + index_offset, mask=None, pps=PPS, fps=FPS, timeout=TIMEOUT)
+        test_flows_sum, test_octets_sum, test_flows_slots, test_octets_slots = simulate_data(app_args.directory, index=test_index + index_offset, mask=None, pps=PPS, fps=FPS, timeout=TIMEOUT)
         for prep_par in prep_params:
             logmsg(f"Preparing {prep_par} {n}")
             prepared_inp = prepare_input(all_inp, **prep_par)
@@ -136,7 +139,7 @@ def main():
                             thresholds = np.logspace(0, 24, 64, base=2) * 64
                             for threshold in thresholds:
                                 decision_predicted = octets_predicted > threshold
-                                sim_results.append(pool.apply_async(simulate_data, (app_args.directory, index, decision_predicted, PPS, FPS, TIMEOUT)))
+                                sim_results.append(pool.apply_async(simulate_data, (app_args.directory, index + index_offset, decision_predicted, PPS, FPS, TIMEOUT)))
                             for i, threshold in enumerate(thresholds):
                                 logmsg(f"Evaluating {name} mode: {mode} threshold: {threshold}")
                                 decision_true = octets > threshold

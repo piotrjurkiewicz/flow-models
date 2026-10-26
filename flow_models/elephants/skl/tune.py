@@ -4,6 +4,7 @@
 import argparse
 
 import pandas as pd
+import sklearn.base
 import sklearn.ensemble
 import sklearn.metrics
 import sklearn.model_selection
