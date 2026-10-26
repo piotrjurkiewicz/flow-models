@@ -8,8 +8,9 @@ import array
 import json
 import pathlib
 
+from flow_models.lib.io import CODECS
+
 N = 100
-CODECS = set('bBhHiIlLqQfd')
 
 fields = {}
 for f in sorted(pathlib.Path().iterdir()):

@@ -6,7 +6,7 @@ import pathlib
 import subprocess
 import sys
 
-from flow_models.lib.io import IOArgumentParser, prepare_file_list
+from flow_models.lib.io import IOArgumentParser, binary_field_files, prepare_file_list
 from flow_models.lib.util import logmsg
 
 EPILOG = \
@@ -70,7 +70,7 @@ def cut(in_files, output, in_format='binary', out_format='binary', skip_in=0, co
     if filter_expr is not None:
         raise NotImplementedError("Filter expressions are not supported")
 
-    in_files = prepare_file_list(in_files)
+    in_files = binary_field_files(prepare_file_list(in_files))
 
     if output != sys.stdout:
         output = pathlib.Path(output)

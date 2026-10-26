@@ -5,7 +5,7 @@ import pathlib
 
 import numpy as np
 
-from flow_models.lib.io import FILTER_HELP, IOArgumentParser, load_array_np, load_arrays, prepare_file_list
+from flow_models.lib.io import FILTER_HELP, IOArgumentParser, binary_field_files, load_array_np, load_arrays, prepare_file_list
 from flow_models.lib.util import logmsg, measure_memory
 
 EPILOG = \
@@ -239,7 +239,7 @@ def sort(in_files, output, key_fields, in_format='binary', out_format='binary', 
             index = create_index(in_files[0], key_fields, index_file, counters, reverse)
 
     if output:
-        for f in prepare_file_list(in_files):
+        for f in binary_field_files(prepare_file_list(in_files)):
             sort_array(f, output, index, counters)
 
 def parser():

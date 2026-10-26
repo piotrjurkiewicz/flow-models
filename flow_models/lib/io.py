@@ -690,6 +690,13 @@ def prepare_file_list(file_paths):
                     raise ValueError(f'File {path} is not file')
     return files
 
+CODECS = frozenset('bBhHiIlLqQfd')
+
+def binary_field_files(files):
+    """Filter file list to {field}.{dtype} binary record files."""
+    return [f for f in files
+            if isinstance(f, pathlib.Path) and f.stem and f.suffix[1:] in CODECS]
+
 class Formatter(argparse.RawDescriptionHelpFormatter, argparse.ArgumentDefaultsHelpFormatter):
     pass
 
