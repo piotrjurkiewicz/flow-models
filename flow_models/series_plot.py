@@ -81,6 +81,5 @@ with matplotlib_config():
             ax.set_ylim(bottom=0)
             ax.yaxis.set_major_formatter(FuncFormatter(fmt_suffix))
 
-            save_figure(fig, f'{f.stem}.{what}', 'pdf')
             save_figure(fig, f'{f.stem}.{what}', 'svg')
             plt.close(fig)
