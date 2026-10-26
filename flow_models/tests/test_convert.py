@@ -4,9 +4,9 @@ import itertools
 
 import flow_models.convert
 
-IN_FILES = 'data/agh_2015061019_IPv4_anon/sorted'
+IN_FILES = 'data/agh_2015061019_IPv4_anon/ALL/sorted'
 
-RESULTS = {'all': {'24d26df2a70d2533': [{'skip_in': -1, 'count_in': None, 'skip_out': -1, 'count_out': None},
+RESULTS = {'all': {'bdb1c629f04b58c8': [{'skip_in': -1, 'count_in': None, 'skip_out': -1, 'count_out': None},
                                         {'skip_in': -1, 'count_in': None, 'skip_out': -1, 'count_out': 4097},
                                         {'skip_in': -1, 'count_in': None, 'skip_out': 0, 'count_out': None},
                                         {'skip_in': -1, 'count_in': None, 'skip_out': 0, 'count_out': 4097},
@@ -22,7 +22,7 @@ RESULTS = {'all': {'24d26df2a70d2533': [{'skip_in': -1, 'count_in': None, 'skip_
                                         {'skip_in': 0, 'count_in': 4097, 'skip_out': -1, 'count_out': 4097},
                                         {'skip_in': 0, 'count_in': 4097, 'skip_out': 0, 'count_out': None},
                                         {'skip_in': 0, 'count_in': 4097, 'skip_out': 0, 'count_out': 4097}],
-                   '8951376641729ee3': [{'skip_in': -1, 'count_in': None, 'skip_out': -1, 'count_out': 1},
+                   'c991e8e6be001f54': [{'skip_in': -1, 'count_in': None, 'skip_out': -1, 'count_out': 1},
                                         {'skip_in': -1, 'count_in': None, 'skip_out': 0, 'count_out': 1},
                                         {'skip_in': -1, 'count_in': 1, 'skip_out': -1, 'count_out': None},
                                         {'skip_in': -1, 'count_in': 1, 'skip_out': -1, 'count_out': 1},
@@ -42,7 +42,7 @@ RESULTS = {'all': {'24d26df2a70d2533': [{'skip_in': -1, 'count_in': None, 'skip_
                                         {'skip_in': 0, 'count_in': 1, 'skip_out': 0, 'count_out': 4097},
                                         {'skip_in': 0, 'count_in': 4097, 'skip_out': -1, 'count_out': 1},
                                         {'skip_in': 0, 'count_in': 4097, 'skip_out': 0, 'count_out': 1}],
-                   'f151efbfa70a390a': [{'skip_in': -1, 'count_in': None, 'skip_out': 1, 'count_out': None},
+                   '758dda76b6334742': [{'skip_in': -1, 'count_in': None, 'skip_out': 1, 'count_out': None},
                                         {'skip_in': -1, 'count_in': None, 'skip_out': 1, 'count_out': 4097},
                                         {'skip_in': -1, 'count_in': 4097, 'skip_out': 1, 'count_out': None},
                                         {'skip_in': -1, 'count_in': 4097, 'skip_out': 1, 'count_out': 4097},
@@ -58,7 +58,7 @@ RESULTS = {'all': {'24d26df2a70d2533': [{'skip_in': -1, 'count_in': None, 'skip_
                                         {'skip_in': 1, 'count_in': 4097, 'skip_out': -1, 'count_out': 4097},
                                         {'skip_in': 1, 'count_in': 4097, 'skip_out': 0, 'count_out': None},
                                         {'skip_in': 1, 'count_in': 4097, 'skip_out': 0, 'count_out': 4097}],
-                   '2abc89bab762aeba': [{'skip_in': -1, 'count_in': None, 'skip_out': 1, 'count_out': 1},
+                   '8ebb71fdcb8cc0f0': [{'skip_in': -1, 'count_in': None, 'skip_out': 1, 'count_out': 1},
                                         {'skip_in': -1, 'count_in': 4097, 'skip_out': 1, 'count_out': 1},
                                         {'skip_in': 0, 'count_in': None, 'skip_out': 1, 'count_out': 1},
                                         {'skip_in': 0, 'count_in': 4097, 'skip_out': 1, 'count_out': 1},
@@ -81,13 +81,13 @@ RESULTS = {'all': {'24d26df2a70d2533': [{'skip_in': -1, 'count_in': None, 'skip_
                                         {'skip_in': 1, 'count_in': 1, 'skip_out': 1, 'count_out': None},
                                         {'skip_in': 1, 'count_in': 1, 'skip_out': 1, 'count_out': 1},
                                         {'skip_in': 1, 'count_in': 1, 'skip_out': 1, 'count_out': 4097}],
-                   '372c1bbd739bd444': [{'skip_in': 1, 'count_in': None, 'skip_out': 1, 'count_out': None},
+                   '884cabb39b49a3cb': [{'skip_in': 1, 'count_in': None, 'skip_out': 1, 'count_out': None},
                                         {'skip_in': 1, 'count_in': None, 'skip_out': 1, 'count_out': 4097},
                                         {'skip_in': 1, 'count_in': 4097, 'skip_out': 1, 'count_out': None},
                                         {'skip_in': 1, 'count_in': 4097, 'skip_out': 1, 'count_out': 4097}],
-                   '3711e7810167e360': [{'skip_in': 1, 'count_in': None, 'skip_out': 1, 'count_out': 1},
+                   '314cd3670ed95d3f': [{'skip_in': 1, 'count_in': None, 'skip_out': 1, 'count_out': 1},
                                         {'skip_in': 1, 'count_in': 4097, 'skip_out': 1, 'count_out': 1}]},
-           'udp': {'f6d7a54b406cbe38': [{'skip_in': -1, 'count_in': None, 'skip_out': -1, 'count_out': None},
+           'udp': {'80cfaef0195b2703': [{'skip_in': -1, 'count_in': None, 'skip_out': -1, 'count_out': None},
                                         {'skip_in': -1, 'count_in': None, 'skip_out': -1, 'count_out': 4097},
                                         {'skip_in': -1, 'count_in': None, 'skip_out': 0, 'count_out': None},
                                         {'skip_in': -1, 'count_in': None, 'skip_out': 0, 'count_out': 4097},
@@ -103,7 +103,7 @@ RESULTS = {'all': {'24d26df2a70d2533': [{'skip_in': -1, 'count_in': None, 'skip_
                                         {'skip_in': 0, 'count_in': 4097, 'skip_out': -1, 'count_out': 4097},
                                         {'skip_in': 0, 'count_in': 4097, 'skip_out': 0, 'count_out': None},
                                         {'skip_in': 0, 'count_in': 4097, 'skip_out': 0, 'count_out': 4097}],
-                   '8951376641729ee3': [{'skip_in': -1, 'count_in': None, 'skip_out': -1, 'count_out': 1},
+                   'c991e8e6be001f54': [{'skip_in': -1, 'count_in': None, 'skip_out': -1, 'count_out': 1},
                                         {'skip_in': -1, 'count_in': None, 'skip_out': 0, 'count_out': 1},
                                         {'skip_in': -1, 'count_in': 1, 'skip_out': -1, 'count_out': None},
                                         {'skip_in': -1, 'count_in': 1, 'skip_out': -1, 'count_out': 1},
@@ -123,7 +123,7 @@ RESULTS = {'all': {'24d26df2a70d2533': [{'skip_in': -1, 'count_in': None, 'skip_
                                         {'skip_in': 0, 'count_in': 1, 'skip_out': 0, 'count_out': 4097},
                                         {'skip_in': 0, 'count_in': 4097, 'skip_out': -1, 'count_out': 1},
                                         {'skip_in': 0, 'count_in': 4097, 'skip_out': 0, 'count_out': 1}],
-                   '3934bba9aef55323': [{'skip_in': -1, 'count_in': None, 'skip_out': 1, 'count_out': None},
+                   '1963ff6a3f692abc': [{'skip_in': -1, 'count_in': None, 'skip_out': 1, 'count_out': None},
                                         {'skip_in': -1, 'count_in': None, 'skip_out': 1, 'count_out': 4097},
                                         {'skip_in': -1, 'count_in': 4097, 'skip_out': 1, 'count_out': None},
                                         {'skip_in': -1, 'count_in': 4097, 'skip_out': 1, 'count_out': 4097},
@@ -139,7 +139,7 @@ RESULTS = {'all': {'24d26df2a70d2533': [{'skip_in': -1, 'count_in': None, 'skip_
                                         {'skip_in': 1, 'count_in': 4097, 'skip_out': -1, 'count_out': 4097},
                                         {'skip_in': 1, 'count_in': 4097, 'skip_out': 0, 'count_out': None},
                                         {'skip_in': 1, 'count_in': 4097, 'skip_out': 0, 'count_out': 4097}],
-                   '2abc89bab762aeba': [{'skip_in': -1, 'count_in': None, 'skip_out': 1, 'count_out': 1},
+                   '8ebb71fdcb8cc0f0': [{'skip_in': -1, 'count_in': None, 'skip_out': 1, 'count_out': 1},
                                         {'skip_in': -1, 'count_in': 4097, 'skip_out': 1, 'count_out': 1},
                                         {'skip_in': 0, 'count_in': None, 'skip_out': 1, 'count_out': 1},
                                         {'skip_in': 0, 'count_in': 4097, 'skip_out': 1, 'count_out': 1},
@@ -162,13 +162,13 @@ RESULTS = {'all': {'24d26df2a70d2533': [{'skip_in': -1, 'count_in': None, 'skip_
                                         {'skip_in': 1, 'count_in': 1, 'skip_out': 1, 'count_out': None},
                                         {'skip_in': 1, 'count_in': 1, 'skip_out': 1, 'count_out': 1},
                                         {'skip_in': 1, 'count_in': 1, 'skip_out': 1, 'count_out': 4097}],
-                   '98fed1716eb39ebd': [{'skip_in': 1, 'count_in': None, 'skip_out': 1, 'count_out': None},
+                   'da19c4fc2a3baf06': [{'skip_in': 1, 'count_in': None, 'skip_out': 1, 'count_out': None},
                                         {'skip_in': 1, 'count_in': None, 'skip_out': 1, 'count_out': 4097},
                                         {'skip_in': 1, 'count_in': 4097, 'skip_out': 1, 'count_out': None},
                                         {'skip_in': 1, 'count_in': 4097, 'skip_out': 1, 'count_out': 4097}],
-                   '58c7902cf54ff596': [{'skip_in': 1, 'count_in': None, 'skip_out': 1, 'count_out': 1},
+                   '65fa9f09ff7fd044': [{'skip_in': 1, 'count_in': None, 'skip_out': 1, 'count_out': 1},
                                         {'skip_in': 1, 'count_in': 4097, 'skip_out': 1, 'count_out': 1}]},
-           'tcp': {'59ca6f285d30e339': [{'skip_in': -1, 'count_in': None, 'skip_out': -1, 'count_out': None},
+           'tcp': {'e3ac3b6736ad9171': [{'skip_in': -1, 'count_in': None, 'skip_out': -1, 'count_out': None},
                                         {'skip_in': -1, 'count_in': None, 'skip_out': -1, 'count_out': 4097},
                                         {'skip_in': -1, 'count_in': None, 'skip_out': 0, 'count_out': None},
                                         {'skip_in': -1, 'count_in': None, 'skip_out': 0, 'count_out': 4097},
@@ -192,7 +192,7 @@ RESULTS = {'all': {'24d26df2a70d2533': [{'skip_in': -1, 'count_in': None, 'skip_
                                         {'skip_in': 1, 'count_in': 4097, 'skip_out': -1, 'count_out': 4097},
                                         {'skip_in': 1, 'count_in': 4097, 'skip_out': 0, 'count_out': None},
                                         {'skip_in': 1, 'count_in': 4097, 'skip_out': 0, 'count_out': 4097}],
-                   '3711e7810167e360': [{'skip_in': -1, 'count_in': None, 'skip_out': -1, 'count_out': 1},
+                   '314cd3670ed95d3f': [{'skip_in': -1, 'count_in': None, 'skip_out': -1, 'count_out': 1},
                                         {'skip_in': -1, 'count_in': None, 'skip_out': 0, 'count_out': 1},
                                         {'skip_in': -1, 'count_in': 4097, 'skip_out': -1, 'count_out': 1},
                                         {'skip_in': -1, 'count_in': 4097, 'skip_out': 0, 'count_out': 1},
@@ -204,7 +204,7 @@ RESULTS = {'all': {'24d26df2a70d2533': [{'skip_in': -1, 'count_in': None, 'skip_
                                         {'skip_in': 1, 'count_in': None, 'skip_out': 0, 'count_out': 1},
                                         {'skip_in': 1, 'count_in': 4097, 'skip_out': -1, 'count_out': 1},
                                         {'skip_in': 1, 'count_in': 4097, 'skip_out': 0, 'count_out': 1}],
-                   '939803429004969c': [{'skip_in': -1, 'count_in': None, 'skip_out': 1, 'count_out': None},
+                   '6f8fd3ebef650fa9': [{'skip_in': -1, 'count_in': None, 'skip_out': 1, 'count_out': None},
                                         {'skip_in': -1, 'count_in': None, 'skip_out': 1, 'count_out': 4097},
                                         {'skip_in': -1, 'count_in': 4097, 'skip_out': 1, 'count_out': None},
                                         {'skip_in': -1, 'count_in': 4097, 'skip_out': 1, 'count_out': 4097},
@@ -216,7 +216,7 @@ RESULTS = {'all': {'24d26df2a70d2533': [{'skip_in': -1, 'count_in': None, 'skip_
                                         {'skip_in': 1, 'count_in': None, 'skip_out': 1, 'count_out': 4097},
                                         {'skip_in': 1, 'count_in': 4097, 'skip_out': 1, 'count_out': None},
                                         {'skip_in': 1, 'count_in': 4097, 'skip_out': 1, 'count_out': 4097}],
-                   '2fe69ee49b77fc8c': [{'skip_in': -1, 'count_in': None, 'skip_out': 1, 'count_out': 1},
+                   'a31f82d1ae7d4ad0': [{'skip_in': -1, 'count_in': None, 'skip_out': 1, 'count_out': 1},
                                         {'skip_in': -1, 'count_in': 4097, 'skip_out': 1, 'count_out': 1},
                                         {'skip_in': 0, 'count_in': None, 'skip_out': 1, 'count_out': 1},
                                         {'skip_in': 0, 'count_in': 4097, 'skip_out': 1, 'count_out': 1},
@@ -259,7 +259,7 @@ def test_convert():
     result = array.array('Q')
     flow_models.convert.convert([IN_FILES], result, in_format='binary', out_format='extend')
     assert len(result) == 6517484 * 21
-    assert hashlib.md5(result).hexdigest() == '13d9b8b7117ee6b0ab37ce14ff90075e'
+    assert hashlib.md5(result).hexdigest() == '5fc79a2478e75d50120a5515dfea7da6'
 
     flow_models.convert.convert([IN_FILES], IN_FILES + '_4096', in_format='binary', out_format='binary', count_in=4096)
     flow_models.convert.convert([IN_FILES], IN_FILES + '_4096.csv', in_format='binary', out_format='csv_flow', count_in=4096)
@@ -267,12 +267,12 @@ def test_convert():
     result = array.array('Q')
     flow_models.convert.convert([IN_FILES + '_4096'], result, in_format='binary', out_format='extend')
     assert len(result) == 4096 * 21
-    assert hashlib.md5(result).hexdigest() == '24d26df2a70d2533c82661bab440e5b2'
+    assert hashlib.md5(result).hexdigest() == 'bdb1c629f04b58c8f0962884625c1825'
 
     result = array.array('Q')
     flow_models.convert.convert([IN_FILES + '_4096.csv'], result, in_format='csv_flow', out_format='extend')
     assert len(result) == 4096 * 21
-    assert hashlib.md5(result).hexdigest() == '24d26df2a70d2533c82661bab440e5b2'
+    assert hashlib.md5(result).hexdigest() == 'bdb1c629f04b58c8f0962884625c1825'
 
     matrix = {
         'skip_in': [-1, 0, 1, 4097],

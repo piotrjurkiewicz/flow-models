@@ -1,7 +1,7 @@
 import flow_models.anonymize
 import flow_models.convert
 
-IN_FILES = 'data/agh_2015061019_IPv4_anon/sorted'
+IN_FILES = 'data/agh_2015061019_IPv4_anon/ALL/sorted'
 KEY = "boojahyoo3vaeToong0Eijee7Ahz3yee"
 
 def test_anonymize():

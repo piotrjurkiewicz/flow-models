@@ -6,7 +6,7 @@ import flow_models.convert
 import flow_models.cut
 import flow_models.tests.test_convert
 
-IN_FILES = 'data/agh_2015061019_IPv4_anon/sorted'
+IN_FILES = 'data/agh_2015061019_IPv4_anon/ALL/sorted'
 
 def test_cut():
     flow_models.cut.cut([IN_FILES], IN_FILES + '_4096_cut', in_format='binary', out_format='binary', count_in=4096)
@@ -14,7 +14,7 @@ def test_cut():
     result = array.array('Q')
     flow_models.convert.convert([IN_FILES + '_4096_cut'], result, in_format='binary', out_format='extend')
     assert len(result) == 4096 * 21
-    assert hashlib.md5(result).hexdigest() == '24d26df2a70d2533c82661bab440e5b2'
+    assert hashlib.md5(result).hexdigest() == 'bdb1c629f04b58c8f0962884625c1825'
 
     matrix = {
         'skip_in': [-1, 0, 1, 4097],

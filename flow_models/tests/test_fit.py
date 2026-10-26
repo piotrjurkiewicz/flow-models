@@ -2,7 +2,7 @@ import pytest
 
 import flow_models.fit
 
-IN_FILES = 'data/agh_2015061019_IPv4_anon/histograms/all/length.csv'
+IN_FILES = 'data/agh_2015061019_IPv4_anon/ALL/histograms/length.csv'
 
 def test_fit():
     result = flow_models.fit.fit(IN_FILES, 'flows', 400, initial={'U': 6, 'L': 4})

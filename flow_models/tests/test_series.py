@@ -3,7 +3,7 @@ import pathlib
 
 import flow_models.series
 
-IN_FILES = 'data/agh_2015061019_IPv4_anon/sorted'
+IN_FILES = 'data/agh_2015061019_IPv4_anon/ALL/sorted'
 
 def test_series():
     flow_models.series.series([IN_FILES], IN_FILES + '_4096_series_test', in_format='binary', out_format='csv_series', count_in=4096)

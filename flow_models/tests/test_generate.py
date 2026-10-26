@@ -1,6 +1,6 @@
 import flow_models.generate
 
-IN_FILES = 'data/agh_2015061019_IPv4_anon/histograms/all/length.csv'
+IN_FILES = 'data/agh_2015061019_IPv4_anon/ALL/histograms/length.csv'
 
 def test_generate():
     result = []

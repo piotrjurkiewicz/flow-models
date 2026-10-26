@@ -3,7 +3,7 @@ import hashlib
 import flow_models.hist
 import flow_models.hist_np
 
-IN_FILES = 'data/agh_2015061019_IPv4_anon/sorted'
+IN_FILES = 'data/agh_2015061019_IPv4_anon/ALL/sorted'
 
 def test_hist():
     result = []
