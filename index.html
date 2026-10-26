@@ -722,6 +722,98 @@
         const RAW = 'data';
         let FILES = {};
 
+        // files.json is generated at build time by Jekyll (see the
+        // files.json template in the repository root) and contains a flat
+        // list of deployed paths — regroup it into repo -> dir -> filenames.
+        function regroupPaths(paths) {
+            const files = {};
+            for (const path of paths) {
+                const parts = path.split('/');  // [repo, dirs..., name]
+                const repo = parts[0];
+                const dir = parts.slice(1, -1).join('/');
+                const name = parts[parts.length - 1];
+                ((files[repo] = files[repo] || {})[dir] = files[repo][dir] || []).push(name);
+            }
+            Object.values(files).forEach(dirs => Object.values(dirs).forEach(names => names.sort()));
+            for (const [repo, dirs] of Object.entries(files))
+                DIRS[repo] = new Set(Object.keys(dirs));
+            return files;
+        }
+
+        // On plain static servers (e.g. python3 -m http.server) files.json is
+        // the raw Jekyll template and won't parse — then directory listings
+        // are fetched lazily from the server's autoindex pages instead.
+        let LAZY_FILES = false;
+        const DIRS = {};
+        const pendingDirs = {};
+
+        async function listdir(path) {
+            const url = `${path}/`;
+            const resp = await fetch(url).catch(() => fetch(url));
+            if (!resp.ok)
+                return [];
+            const base = new URL(url, location.href).pathname;
+            const doc = new DOMParser().parseFromString(await resp.text(), 'text/html');
+            return [...doc.querySelectorAll('a')].map(a => {
+                try {
+                    const href = a.getAttribute('href') || '';
+                    if (!href || href.startsWith('?'))
+                        return null;
+                    const rest = decodeURIComponent(new URL(href, resp.url).pathname);
+                    if (!rest.startsWith(base))
+                        return null;
+                    const name = rest.slice(base.length).replace(/\/$/, '');
+                    if (!name || name === '..' || name.includes('/') || name.startsWith('.'))
+                        return null;
+                    return { isDir: rest.endsWith('/'), name };
+                } catch (e) {
+                    return null;
+                }
+            }).filter(Boolean);
+        }
+
+        async function ensureDir(repo, dir) {
+            if (!LAZY_FILES || dir in (FILES[repo] || {}))
+                return;
+            const key = `${repo} ${dir}`;
+            await (pendingDirs[key] ??= (async () => {
+                const names = [];
+                for (const e of await listdir(`data/${repo}${dir ? `/${dir}` : ''}`)) {
+                    if (e.isDir)
+                        (DIRS[repo] = DIRS[repo] || new Set()).add(dir ? `${dir}/${e.name}` : e.name);
+                    else
+                        names.push(e.name);
+                }
+                (FILES[repo] = FILES[repo] || {})[dir] = names.sort();
+            })());
+        }
+
+        function ensureDirs(repo, dirs) {
+            return Promise.all(dirs.map(dir => ensureDir(repo, dir)));
+        }
+
+        function subdirs(repo, dir) {
+            const prefix = dir ? `${dir}/` : '';
+            return [...(DIRS[repo] || [])].filter(p =>
+                p.startsWith(prefix) && !p.slice(prefix.length).includes('/'));
+        }
+
+        async function discoverFiles() {
+            try {
+                const response = await fetch('files.json');
+                if (response.ok)
+                    return regroupPaths(await response.json());
+            } catch (e) {}
+            LAZY_FILES = true;
+            const files = {};
+            for (const e of await listdir('data'))
+                if (e.isDir)
+                    files[e.name] = {};
+            if (!Object.keys(files).length)
+                throw new Error('data/ directory listing is empty');
+            return files;
+        }
+
         let DATASETS = {};
 
         const PLOT_NAMES = {
@@ -809,7 +901,7 @@
             }
 
             try {
-                FILES = await (await fetch('files.json')).json();
+                FILES = await discoverFiles();
                 const repositories = await Promise.all(Object.keys(FILES).map(async repo => {
                     const response = await fetch(`${RAW}/${repo}/metadata.json`);
                     if (!response.ok)
@@ -821,7 +913,7 @@
                 console.error('Unable to load repository metadata', error);
                 setMessage(window.location.protocol === 'file:'
                     ? 'Repository metadata cannot be loaded from file://. Serve this directory over HTTP.'
-                    : 'Repository metadata not available.');
+                    : `Repository metadata not available: ${error && error.message ? error.message : error}`);
             }
 
             for (const [repo, metadata] of Object.entries(DATASETS)) {
@@ -892,6 +984,20 @@
 
             async function loadSelectorMetadata(dataset) {
                 const metadata = {};
+                if (LAZY_FILES) {
+                    async function probe(dir) {
+                        await ensureDir(dataset.repo, dir);
+                        if (!(FILES[dataset.repo][dir] || []).includes('selector.json'))
+                            return;
+                        const resp = await fetch(`${RAW}/${dataset.repo}${dir ? `/${dir}` : ''}/selector.json`).catch(() => {});
+                        if (resp && resp.ok) {
+                            metadata[dir] = await resp.json();
+                            await Promise.all(subdirs(dataset.repo, dir).map(probe));
+                        }
+                    }
+                    await probe('');
+                    return metadata;
+                }
                 const repositoryFiles = FILES[dataset.repo] || {};
                 await Promise.all(Object.entries(repositoryFiles)
                     .filter(([, files]) => files.includes('selector.json'))
@@ -1010,7 +1116,7 @@
                         addItem(`Plots (${group})`, `plots/${group}`, 'plot-group');
                 }
 
-                if (Object.keys(FILES[currentDataset]).some(path => path.startsWith(artifactPath('first_mirror/')))) {
+                if ([...(DIRS[currentDataset] || [])].some(path => path.startsWith(artifactPath('first_mirror/')))) {
                     addCategory('First mirror');
                     addItem('Introduction', 'first_mirror/intro', 'first-mirror-intro');
                     addItem('Mirroring simulation', 'first_mirror', 'first-mirror');
@@ -2827,9 +2933,10 @@
             async function showFirstMirror(request) {
                 const base = artifactBase();
                 const dir = artifactPath('first_mirror');
-                const mirrorDirs = Object.keys(FILES[currentDataset])
+                const mirrorDirs = [...(DIRS[currentDataset] || [])]
                     .filter(path => path.startsWith(`${dir}/`) && /^\d+$/.test(path.slice(dir.length + 1)))
                     .sort((a, b) => +a.slice(dir.length + 1) - +b.slice(dir.length + 1));
+                await ensureDirs(DATASETS[currentDataset].repo, mirrorDirs);
                 const plotFiles = listDir(`${dir}/plots`);
                 const seriesFiles = listDir(artifactPath('series'));
                 const page = document.createElement('div');
@@ -3329,12 +3436,21 @@
                     updateURL(true);
             }
 
-            function selectModel(path, selectedArtifact = artifactList.querySelector('li.item.selected')?.dataset.logical, updateHistory = false) {
+            function artifactDirs(filter) {
+                const ap = p => [filter, 'ALL', p].filter(Boolean).join('/');
+                return [filter, 'mixtures/length', 'mixtures/size', 'summary', 'histograms',
+                    'series', 'series/dorms', 'plots/length', 'plots/size', 'sorted',
+                    'first_mirror', 'first_mirror/plots',
+                    'elephants', 'elephants/plots/length', 'elephants/plots/size'].map(ap);
+            }
+
+            async function selectModel(path, selectedArtifact = artifactList.querySelector('li.item.selected')?.dataset.logical, updateHistory = false) {
                 currentFilter = path;
                 artifactRequest++;
                 renderSelectorDropdowns();
                 setMessage('Select an artifact on the right.');
                 populateProperties();
+                await ensureDirs(DATASETS[currentDataset].repo, artifactDirs(currentFilter));
                 populateArtifacts();
                 const matchingArtifact = Array.from(artifactList.querySelectorAll('li.item'))
                     .find(li => li.dataset.key === selectedArtifact || li.dataset.logical === selectedArtifact);
@@ -3371,7 +3487,7 @@
                 const initialPath = desiredSelector in selectorMetadata ? desiredSelector
                     : paths.includes('') ? '' : paths.sort((a, b) => a.split('/').length - b.split('/').length)[0];
                 if (initialPath !== undefined)
-                    selectModel(initialPath, desired?.artifact || selectedArtifact, event.isTrusted);
+                    await selectModel(initialPath, desired?.artifact || selectedArtifact, event.isTrusted);
             });
 
             window.addEventListener('popstate', restoreURLState);
