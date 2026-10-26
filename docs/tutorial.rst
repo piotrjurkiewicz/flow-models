@@ -238,22 +238,22 @@ The command below will generate plots of PDF and CDF of number of flows, packets
     1.76 Saving pdf-octets
     2.17 Done pdf-octets
     2.19 Drawing AVG histograms/all/length.csv packets
-    2.20 Saving avg-packets
-    2.57 Done avg-packets
+    2.20 Saving avg-flow-length
+    2.57 Done avg-flow-length
     2.58 Drawing AVG histograms/all/length.csv octets
-    2.59 Saving avg-octets
-    3.07 Done avg-octets
+    2.59 Saving avg-flow-size
+    3.07 Done avg-flow-size
     3.09 Drawing AVG histograms/all/length.csv packet_size
-    3.11 Saving avg-packet_size
-    3.54 Done avg-packet_size
+    3.11 Saving avg-packet-size
+    3.54 Done avg-packet-size
 
     $ ls -la
     total 596
     drwxrwxr-x 6 jurkiew jurkiew   4096 sty 16 00:34 .
     drwxrwxr-x 7 jurkiew jurkiew   4096 sty 16 00:29 ..
-    -rw-rw-r-- 1 jurkiew jurkiew  68690 sty 16 00:34 avg-octets.png
-    -rw-rw-r-- 1 jurkiew jurkiew 133890 sty 16 00:34 avg-packet_size.png
-    -rw-rw-r-- 1 jurkiew jurkiew  63385 sty 16 00:34 avg-packets.png
+    -rw-rw-r-- 1 jurkiew jurkiew  68690 sty 16 00:34 avg-flow-size.png
+    -rw-rw-r-- 1 jurkiew jurkiew 133890 sty 16 00:34 avg-packet-size.png
+    -rw-rw-r-- 1 jurkiew jurkiew  63385 sty 16 00:34 avg-flow-length.png
     -rw-rw-r-- 1 jurkiew jurkiew  96648 sty 16 00:34 cdf.png
     drwxrwxr-x 6 jurkiew jurkiew   4096 sty 16 00:20 elephants
     -rw-rw-r-- 1 jurkiew jurkiew     45 sty 16 00:20 .gitignore
@@ -435,16 +435,16 @@ The `tools/plot` tool can be used not only to plot empirical distribution functi
     2.26 Done pdf-octets
     2.28 Drawing AVG histograms/all/length.csv packets
     2.29 Drawing AVG my_mixture packets
-    2.30 Saving avg-packets
-    2.90 Done avg-packets
+    2.30 Saving avg-flow-length
+    2.90 Done avg-flow-length
     2.92 Drawing AVG histograms/all/length.csv octets
     2.93 Drawing AVG my_mixture octets
-    2.95 Saving avg-octets
-    3.45 Done avg-octets
+    2.95 Saving avg-flow-size
+    3.45 Done avg-flow-size
     3.47 Drawing AVG histograms/all/length.csv packet_size
     3.49 Drawing AVG my_mixture packet_size
-    3.51 Saving avg-packet_size
-    4.15 Done avg-packet_size
+    3.51 Saving avg-packet-size
+    4.15 Done avg-packet-size
 
 As can be seen on the plots below, empirical functions are presented along with models, including the oversimplified model of packets distribution created in the interactive mode.
 
