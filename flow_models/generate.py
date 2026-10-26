@@ -54,7 +54,7 @@ def generate_arrays(obj, size=1, x_val='length', random_state=None, max_x=None):
         number = None
         packet_size = avg(data, sample, x_val, 'packet_size')
     if x_val == 'length':
-        np.clip(packet_size, 64, 1522, out=packet_size)
+        packet_size = np.clip(packet_size, 64, 1522)
         packets = sample
         octets = packets * packet_size
     elif x_val == 'size':
