@@ -275,6 +275,12 @@
             width: 100%;
         }
 
+        #artifactDisplay img.schema {
+            display: block;
+            margin: 0 auto;
+            max-width: 1200px;
+        }
+
         .plot-figure {
             min-height: 0;
             overflow: auto;
@@ -477,6 +483,25 @@
         .plot-selector button.selected {
             background-color: var(--selected);
             border-color: #54aeff;
+        }
+
+        .plot-line {
+            display: flex;
+            flex: 0 0 auto;
+            flex-wrap: nowrap;
+            gap: 6px;
+            align-items: baseline;
+            margin-right: 18px;
+        }
+
+        .plot-line b {
+            padding: 0 4px;
+            border-radius: var(--radius);
+        }
+
+        .plot-line.current > b {
+            color: #0969da;
+            background-color: var(--selected);
         }
 
         .markdown-body {
@@ -701,9 +726,6 @@
                     <a id="viewSvg" class="button unavailable" target="_blank" rel="noopener noreferrer" aria-disabled="true">
                         <span class="button-text">View SVG</span>
                     </a>
-                    <a id="viewPdf" class="button unavailable" target="_blank" rel="noopener noreferrer" aria-disabled="true">
-                        <span class="button-text">View PDF</span>
-                    </a>
                     <a id="downloadFile" class="button unavailable" download aria-disabled="true">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
                             <path d="M17 12v5H3v-5H1v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5z" />
@@ -843,9 +865,8 @@
             const statsList = document.getElementById('statsList');
             const modelInfo = document.getElementById('modelInfo');
             const viewSvg = document.getElementById('viewSvg');
-            const viewPdf = document.getElementById('viewPdf');
             const downloadFile = document.getElementById('downloadFile');
-            const actions = [viewSvg, viewPdf, downloadFile];
+            const actions = [viewSvg, downloadFile];
 
             function setAction(action, href = null) {
                 action.classList.toggle('unavailable', !href);
@@ -1072,8 +1093,6 @@
             function kindOf(name) {
                 if (name.endsWith('.svg'))
                     return 'svg';
-                if (name.endsWith('.pdf'))
-                    return 'pdf';
                 if (name.endsWith('.json'))
                     return 'json';
                 return 'download';
@@ -1094,13 +1113,16 @@
                     .map(file => [x, file]));
                 const hasSummary = listDir(artifactPath('summary')).length || listDir(artifactPath('histograms')).length;
                 const hasSeries = listDir(artifactPath('series')).length || listDir(artifactPath('series/dorms')).length;
-                if (hasSummary || hasSeries || DATASETS[currentDataset].records) {
+                const hasRecords = listDir(artifactPath('sorted')).length > 0;
+                if (hasSummary || hasSeries || hasRecords) {
                     addCategory('Analysis');
+                    if (listDir(artifactPath('series')).some(file => file.endsWith('.svg')))
+                        addItem('Time series', 'series', 'plot-group');
                     if (hasSeries)
-                        addItem('Time series', 'series', 'series');
+                        addItem('Time series (data)', 'series-data', 'series');
                     if (hasSummary)
                         addItem('Histograms', 'summary', 'summary');
-                    if (DATASETS[currentDataset].records)
+                    if (hasRecords)
                         addItem('Flow records', 'records', 'records');
                 }
 
@@ -1119,7 +1141,9 @@
                 if ([...(DIRS[currentDataset] || [])].some(path => path.startsWith(artifactPath('first_mirror/')))) {
                     addCategory('First mirror');
                     addItem('Introduction', 'first_mirror/intro', 'first-mirror-intro');
-                    addItem('Mirroring simulation', 'first_mirror', 'first-mirror');
+                    if (listDir(artifactPath('first_mirror/plots')).some(file => file.endsWith('.svg')))
+                        addItem('Mirroring simulation', 'first_mirror/plots', 'plot-group');
+                    addItem('Mirroring simulation (data)', 'first_mirror-data', 'first-mirror');
                 }
 
                 const elephants = listDir(artifactPath('elephants'));
@@ -1982,6 +2006,38 @@
                 });
                 renderInfo();
             }
+            const SERIES_METRIC = { flows: 'Flow rate', packets: 'Packet rate', bits: 'Bit rate' };
+            const DAY_PLOT = /^(\d+)\.(flows|packets|bits)$/;
+            const dayLabel = day => `${new Date(+day * 86400e3).toISOString().slice(0, 10)} (Day ${day})`;
+            const TOTAL_NAMES = { total: 'Total (absolute)', total_share: 'Total (share)' };
+            const HINT_INTERACTIVE = 'Hover a curve to read values · click to pin · drag to select a span · Shift/middle-drag to pan · scroll to zoom · click a legend entry to isolate a curve · Esc to clear';
+            const HINT_READ = 'Hover a curve to read values';
+            const SERIES_DESC = { flows: 'Flow rate [flows/s]', packets: 'Packet rate [packets/s]', bits: 'Bit rate [bits/s]' };
+            const MIRROR_DESC = { packets: 'Mirrored packet rate', bits: 'Mirrored bit rate' };
+            const DIR_INTRO = { 'first_mirror/plots': 'Simulated switch control-plane load when the first N packets of every new flow are mirrored' };
+            function plotDescription(dir, name) {
+                const m = name.match(DAY_PLOT);
+                const label = m && (dir.startsWith('first_mirror') ? MIRROR_DESC[m[2]] : SERIES_DESC[m[2]]);
+                if (!label)
+                    return '';
+                return `${label} · 30 s rolling mean over per-second counts, shaded min–max envelope`
+                    + (dir.startsWith('first_mirror') ? ' · right axis: share of all traffic' : '');
+            }
+            const selectPlotButton = (selector, button) => {
+                selector.querySelectorAll('button').forEach(element => element.classList.remove('selected'));
+                selector.querySelectorAll('.plot-line').forEach(element => element.classList.remove('current'));
+                button.classList.add('selected');
+                button.closest('.plot-line')?.classList.add('current');
+            };
+            function plotLabel(name) {
+                if (name in PLOT_NAMES)
+                    return PLOT_NAMES[name];
+                if (name in TOTAL_NAMES)
+                    return TOTAL_NAMES[name];
+                const m = name.match(DAY_PLOT);
+                return m ? `${dayLabel(m[1])} · ${SERIES_METRIC[m[2]]}` : name;
+            }
+
             function showPlotGroup(dir, request) {
                 const order = file => {
                     const index = PLOT_ORDER.indexOf(file.replace(/\.svg$/, ''));
@@ -1995,36 +2051,65 @@
                 const info = document.createElement('div');
                 const reset = document.createElement('button');
                 const hint = document.createElement('div');
+                const desc = document.createElement('div');
+                const intro = document.createElement('div');
                 selector.className = 'plot-selector';
                 figure.className = 'plot-figure';
                 info.className = 'plot-info';
+                desc.className = 'plot-hint';
+                desc.hidden = true;
+                intro.className = 'plot-hint';
+                intro.textContent = DIR_INTRO[dir] || '';
+                intro.hidden = !intro.textContent;
                 reset.type = 'button';
                 reset.className = 'fm-reset';
                 reset.textContent = 'Reset view';
                 reset.hidden = true;
                 hint.className = 'plot-hint';
-                hint.textContent = 'Hover a curve to read values · click to pin · drag to select a span · Shift/middle-drag to pan · scroll to zoom · click a legend entry to isolate a curve · Esc to clear';
+                hint.textContent = HINT_INTERACTIVE;
                 hint.hidden = true;
-                artifactDisplay.replaceChildren(selector, hint, figure, info);
-                for (const file of files) {
-                    const name = file.replace(/\.svg$/, '');
+                artifactDisplay.replaceChildren(selector, intro, desc, hint, figure, info);
+                const named = files.map(file => ({ file, name: file.replace(/\.svg$/, '') }));
+                const anyDay = named.some(item => DAY_PLOT.test(item.name));
+                const makeButton = ({ file, name }) => {
                     const button = document.createElement('button');
                     button.type = 'button';
                     button.dataset.plot = name;
-                    button.textContent = PLOT_NAMES[name] || name;
+                    const m = name.match(DAY_PLOT);
+                    button.textContent = anyDay && m ? SERIES_METRIC[m[2]] : plotLabel(name);
                     button.addEventListener('click', event => {
-                        selector.querySelectorAll('button').forEach(element => element.classList.remove('selected'));
-                        button.classList.add('selected');
+                        selectPlotButton(selector, button);
+                        desc.textContent = plotDescription(dir, name);
+                        desc.hidden = !desc.textContent;
                         currentPlot = name;
                         currentArtifact = `${artifactBase()}/${dir}/${file}`;
                         loadPlot(figure, info, currentArtifact, name, request, reset, hint);
                         setAction(viewSvg, currentArtifact);
-                        setAction(viewPdf, currentArtifact.replace(/\.svg$/, '.pdf'));
                         setAction(downloadFile, currentArtifact);
                         if (event.isTrusted)
                             updateURL(true);
                     });
-                    selector.appendChild(button);
+                    return button;
+                };
+                if (!anyDay) {
+                    for (const item of named)
+                        selector.appendChild(makeButton(item));
+                } else {
+                    for (const item of named) {
+                        const day = item.name.match(DAY_PLOT)?.[1] ?? null;
+                        if (selector.lastElementChild?.dataset.day !== String(day)) {
+                            const line = document.createElement('div');
+                            line.className = 'plot-line';
+                            line.dataset.day = String(day);
+                            if (day !== null) {
+                                const label = document.createElement('b');
+                                label.textContent = `${dayLabel(day)}:`;
+                                line.appendChild(label);
+                            }
+                            selector.appendChild(line);
+                        }
+                        selector.lastElementChild.appendChild(makeButton(item));
+                    }
                 }
                 selector.appendChild(reset);
                 const selected = Array.from(selector.querySelectorAll('button:not(.fm-reset)'))
@@ -2254,7 +2339,7 @@
                     a.href = href;
                     a.textContent = label;
                     if (download)
-                        a.setAttribute('download', '');
+                        a.setAttribute('download', typeof download === 'string' ? download : '');
                     else {
                         a.target = '_blank';
                         a.rel = 'noopener noreferrer';
@@ -2727,21 +2812,22 @@
                 const base = artifactBase();
                 const seriesFiles = listDir(artifactPath('series'));
                 const dormFiles = listDir(artifactPath('series/dorms'));
-                const page = document.createElement('div');
-                page.className = 'summary-page';
-                artifactDisplay.replaceChildren(page);
                 const stems = [...new Set(seriesFiles
                     .map(f => f.match(/^(\d+)\.(?:flows|packets|octets)$/)?.[1])
                     .filter(Boolean))].sort((a, b) => a - b);
                 const METRICS = [
-                    ['flows', 'Flow rate [flows/s]', 'flows/s', 1],
-                    ['packets', 'Packet rate [packets/s]', 'packets/s', 1],
-                    ['octets', 'Bit rate [bits/s]', 'bits/s', 8],
+                    ['octets', 'Bit rate [bits/s]', 'bits/s', 8, 'Bit rate'],
+                    ['flows', 'Flow rate [flows/s]', 'flows/s', 1, 'Flow rate'],
+                    ['packets', 'Packet rate [packets/s]', 'packets/s', 1, 'Packet rate'],
                 ];
-                for (const stem of stems) {
-                    const sec = pageSection(page, `${new Date(stem * 86400 * 1000).toISOString().slice(0, 10)} (Day ${stem})`);
-                    // fetch all metrics first — charts share one x range and the
-                    // shaded flow-start band, like the regenerated plots
+                const selector = document.createElement('div');
+                selector.className = 'plot-selector';
+                const content = document.createElement('div');
+                artifactDisplay.replaceChildren(selector, content);
+
+                // per-day data is fetched once on first selection and cached
+                const days = {};
+                const loadDay = stem => days[stem] ||= (async () => {
                     const recs = {};
                     const jobs = [];
                     for (const [suffix, label, unit, scale] of METRICS) {
@@ -2763,38 +2849,30 @@
                                     rec.dormRaw = parseSeries(await resp.text(), scale);
                                 }
                             }).catch(() => { }));
-                        for (const f of [`${stem}.${what}.svg`, `${stem}.${what}.pdf`])
-                            if (seriesFiles.includes(f))
-                                jobs.push(fetch(`${base}/series/${f}`, { method: 'HEAD' })
-                                    .then(resp => {
-                                        if (resp.ok)
-                                            (rec.extra ||= {})[f] = +resp.headers.get('content-length') || 0;
-                                    })
-                                    .catch(() => { }));
                     }
                     await Promise.all(jobs);
-                    if (request !== artifactRequest)
-                        return;
-                    const spanOf = arr => {
-                        let a = Infinity, b = -1;
-                        for (let i = 0; i < arr.length; i++)
-                            if (arr[i]) {
-                                if (i < a)
-                                    a = i;
-                                if (i > b)
-                                    b = i;
-                            }
-                        return b < 0 ? null : [a, b];
-                    };
+                    return recs;
+                })();
+
+                const spanOf = arr => {
+                    let a = Infinity, b = -1;
+                    for (let i = 0; i < arr.length; i++)
+                        if (arr[i]) {
+                            if (i < a)
+                                a = i;
+                            if (i > b)
+                                b = i;
+                        }
+                    return b < 0 ? null : [a, b];
+                };
+                const makeView = recs => {
                     const arrays = Object.values(recs).flatMap(rec => [rec.raw, rec.dormRaw].filter(Boolean));
                     const spans = arrays.map(spanOf).filter(Boolean);
                     const nmax = Math.max(0, ...arrays.map(a => a.length));
                     let lo = Infinity, hi = -1;
                     for (const [a, b] of spans) {
-                        if (a < lo)
-                            lo = a;
-                        if (b > hi)
-                            hi = b;
+                        lo = Math.min(lo, a);
+                        hi = Math.max(hi, b);
                     }
                     if (hi < 0) {
                         lo = 0;
@@ -2803,11 +2881,47 @@
                         lo = Math.max(lo - 600, 0);
                         hi = Math.min(hi + 600, Math.max(nmax - 1, 0));
                     }
-                    const view = {
-                        lo, hi, lo0: lo, hi0: hi, zoomed: false,
-                        shade: recs.flows?.raw ? spanOf(recs.flows.raw) : null
-                    };
-                    const renders = [];
+                    return { lo, hi, lo0: lo, hi0: hi, zoomed: false, shade: recs.flows?.raw ? spanOf(recs.flows.raw) : null };
+                };
+
+                const render = async (stem, suffix, button) => {
+                    const loading = document.createElement('div');
+                    loading.className = 'plot-hint';
+                    loading.textContent = 'Loading…';
+                    content.replaceChildren(loading);
+                    const recs = await loadDay(stem);
+                    if (request !== artifactRequest || !button.classList.contains('selected'))
+                        return;
+                    const rec = recs[suffix];
+                    const note = document.createElement('div');
+                    note.className = 'plot-hint';
+                    const hint = document.createElement('div');
+                    hint.className = 'plot-hint';
+                    const sec = document.createElement('section');
+                    sec.className = 'summary-page';
+                    content.replaceChildren(note, hint, sec);
+                    const block = document.createElement('div');
+                    block.className = 'series-block';
+                    const wrap = document.createElement('div');
+                    wrap.className = 'hist-wrap';
+                    block.append(wrap);
+                    sec.appendChild(block);
+                    const view = makeView(recs);
+                    const entries = [
+                        ...(rec?.raw ? [{ label: 'all', color: '#24292e', raw: rec.raw }] : []),
+                        ...(rec?.dormRaw ? [{ label: 'dorms', color: '#d62728', raw: rec.dormRaw }] : []),
+                    ];
+                    if (!entries.length) {
+                        note.textContent = 'Series not available.';
+                        return;
+                    }
+                    note.textContent = `${rec.label} · 30 s rolling mean over per-second counts, shaded min–max envelope`;
+                    hint.textContent = HINT_READ
+                        + (view.shade ? ' · click the shaded band to isolate the flow-start period' : '');
+                    const renders = [() => {
+                        wrap.replaceChildren();
+                        wrap.appendChild(seriesChart(rec.unit, entries, wrap, view));
+                    }];
                     if (view.shade)
                         view.onShade = () => {
                             view.zoomed = !view.zoomed;
@@ -2815,45 +2929,37 @@
                             view.hi = view.zoomed ? view.shade[1] : view.hi0;
                             renders.forEach(r => r());
                         };
-                    for (const [suffix, , unit] of METRICS) {
-                        const rec = recs[suffix];
-                        if (!rec)
+                    renders[0]();
+                    fileLinks(block, [
+                        [rec.file, `${base}/series/${rec.file}`, true, rec.bytes ? fmtBytes(rec.bytes) : null],
+                        ...(rec.dormRaw ? [[`dorms/${rec.file}`, `${base}/series/dorms/${rec.file}`,
+                        `dorms-${rec.file}`,
+                        rec.dormBytes ? fmtBytes(rec.dormBytes) : null]] : []),
+                    ]);
+                };
+
+                for (const stem of stems) {
+                    const line = document.createElement('div');
+                    line.className = 'plot-line';
+                    const label = document.createElement('b');
+                    label.textContent = `${dayLabel(stem)}:`;
+                    line.appendChild(label);
+                    for (const [suffix, , , , short] of METRICS) {
+                        if (!seriesFiles.includes(`${stem}.${suffix}`))
                             continue;
-                        const block = document.createElement('div');
-                        block.className = 'series-block';
-                        const note = document.createElement('div');
-                        note.className = 'plot-hint';
-                        const wrap = document.createElement('div');
-                        wrap.className = 'hist-wrap';
-                        block.append(note, wrap);
-                        sec.appendChild(block);
-                        const entries = [
-                            ...(rec.raw ? [{ label: 'all', color: '#24292e', raw: rec.raw }] : []),
-                            ...(rec.dormRaw ? [{ label: 'dorms', color: '#d62728', raw: rec.dormRaw }] : []),
-                        ];
-                        if (!entries.length) {
-                            note.textContent = 'Series not available.';
-                            continue;
-                        }
-                        note.textContent = `${rec.label} · 30 s rolling mean over per-second counts, shaded min–max envelope · hover to inspect`
-                            + (view.shade ? ' · click the shaded band to isolate the flow-start period' : '');
-                        renders.push(() => {
-                            wrap.replaceChildren();
-                            wrap.appendChild(seriesChart(unit, entries, wrap, view));
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.textContent = short;
+                        button.addEventListener('click', () => {
+                            selectPlotButton(selector, button);
+                            render(stem, suffix, button);
                         });
-                        renders[renders.length - 1]();
-                        const svgFile = `${stem}.${rec.what}.svg`, pdfFile = `${stem}.${rec.what}.pdf`;
-                        fileLinks(block, [
-                            [rec.file, `${base}/series/${rec.file}`, true, rec.bytes ? fmtBytes(rec.bytes) : null],
-                            ...(rec.dormRaw ? [[`dorms/${rec.file}`, `${base}/series/dorms/${rec.file}`, true,
-                            rec.dormBytes ? fmtBytes(rec.dormBytes) : null]] : []),
-                            ...(seriesFiles.includes(svgFile) ? [[svgFile, `${base}/series/${svgFile}`, true,
-                                rec.extra?.[svgFile] ? fmtBytes(rec.extra[svgFile]) : null]] : []),
-                            ...(seriesFiles.includes(pdfFile) ? [[pdfFile, `${base}/series/${pdfFile}`, true,
-                                rec.extra?.[pdfFile] ? fmtBytes(rec.extra[pdfFile]) : null]] : []),
-                        ]);
+                        line.appendChild(button);
                     }
+                    if (line.querySelector('button'))
+                        selector.appendChild(line);
                 }
+                selector.querySelector('button')?.click();
             }
 
             async function showFirstMirrorIntro(request) {
@@ -2937,61 +3043,74 @@
                     .filter(path => path.startsWith(`${dir}/`) && /^\d+$/.test(path.slice(dir.length + 1)))
                     .sort((a, b) => +a.slice(dir.length + 1) - +b.slice(dir.length + 1));
                 await ensureDirs(DATASETS[currentDataset].repo, mirrorDirs);
-                const plotFiles = listDir(`${dir}/plots`);
                 const seriesFiles = listDir(artifactPath('series'));
-                const page = document.createElement('div');
-                page.className = 'summary-page';
-                artifactDisplay.replaceChildren(page);
+                const selector = document.createElement('div');
+                selector.className = 'plot-selector';
+                const content = document.createElement('div');
                 const intro = document.createElement('div');
                 intro.className = 'plot-hint';
                 intro.textContent = 'Simulated switch control-plane load when the first N packets of every new flow are mirrored';
-                page.appendChild(intro);
-
-                // day -> m -> what -> {file, bytes, raw}
-                const days = {};
-                const jobs = [];
-                for (const path of mirrorDirs) {
-                    const m = +path.slice(dir.length + 1);
-                    for (const f of listDir(path)) {
-                        const mm = f.match(/^(\d+)\.(packets|octets)_mirrored$/);
-                        if (!mm)
-                            continue;
-                        const rel = `${m}/${f}`;
-                        const rec = ((days[mm[1]] ||= {})[m] ||= {})[mm[2]] = { file: rel };
-                        jobs.push(fetch(`${base}/first_mirror/${rel}`).then(async resp => {
-                            if (!resp.ok)
-                                throw new Error(`HTTP ${resp.status}`);
-                            rec.bytes = +resp.headers.get('content-length') || 0;
-                            rec.raw = parseSeries(await resp.text());
-                        }).catch(error => console.warn(`Unable to load mirror series: ${f}`, error)));
-                    }
-                }
-                // overall traffic totals for the share columns
-                const traffic = {};
-                for (const day of Object.keys(days))
-                    for (const what of ['packets', 'octets'])
-                        if (seriesFiles.includes(`${day}.${what}`))
-                            jobs.push(fetch(`${base}/series/${day}.${what}`).then(async resp => {
-                                if (resp.ok)
-                                    (traffic[day] ||= {})[what] = { raw: parseSeries(await resp.text()) };
-                            }).catch(() => { }));
-                await Promise.all(jobs);
-                if (request !== artifactRequest)
-                    return;
+                artifactDisplay.replaceChildren(selector, intro, content);
 
                 const MC = { 1: '#0969da', 2: '#1a7f37', 3: '#9a6700', 4: '#cf222e', 8: '#8250df' };
                 const mc = m => MC[m] || '#57606a';
                 const ms = mirrorDirs.map(path => +path.slice(dir.length + 1));
-                for (const day of Object.keys(days).sort((a, b) => a - b)) {
-                    const recs = days[day];
-                    const sec = pageSection(page,
-                        `${new Date(day * 86400 * 1000).toISOString().slice(0, 10)} (Day ${day})`);
+
+                // day -> m -> what -> file (file lists only — fetched on selection)
+                const dayFiles = {};
+                for (const path of mirrorDirs) {
+                    const m = +path.slice(dir.length + 1);
+                    for (const f of listDir(path)) {
+                        const mm = f.match(/^(\d+)\.(packets|octets)_mirrored$/);
+                        if (mm)
+                            ((dayFiles[mm[1]] ||= {})[m] ||= {})[mm[2]] = `${m}/${f}`;
+                    }
+                }
+                const dayNums = Object.keys(dayFiles).sort((a, b) => a - b);
+
+                const days = {};        // day -> Promise<{recs, share}>
+                const loadDay = day => days[day] ||= (async () => {
+                    const recs = {};    // m -> what -> {file, bytes, raw}
+                    const share = {};
+                    const jobs = [];
+                    for (const [m, byWhat] of Object.entries(dayFiles[day])) {
+                        const rec = recs[m] = {};
+                        for (const [what, rel] of Object.entries(byWhat)) {
+                            const r = rec[what] = { file: rel };
+                            jobs.push(fetch(`${base}/first_mirror/${rel}`).then(async resp => {
+                                if (!resp.ok)
+                                    throw new Error(`HTTP ${resp.status}`);
+                                r.bytes = +resp.headers.get('content-length') || 0;
+                                r.raw = parseSeries(await resp.text());
+                            }).catch(error => console.warn(`Unable to load mirror series: ${rel}`, error)));
+                        }
+                    }
+                    // overall traffic totals for the share columns
+                    for (const what of ['packets', 'octets'])
+                        if (seriesFiles.includes(`${day}.${what}`))
+                            jobs.push(fetch(`${base}/series/${day}.${what}`).then(async resp => {
+                                if (resp.ok)
+                                    share[what] = { raw: parseSeries(await resp.text()) };
+                            }).catch(() => { }));
+                    await Promise.all(jobs);
+                    return { recs, share };
+                })();
+
+                const render = async (day, what, button) => {
+                    disableActions();
+                    const loading = document.createElement('div');
+                    loading.className = 'plot-hint';
+                    loading.textContent = 'Loading…';
+                    content.replaceChildren(loading);
+                    const { recs, share } = await loadDay(day);
+                    if (request !== artifactRequest || !button.classList.contains('selected'))
+                        return;
                     // one x range for both metrics: union of nonzero spans, padded
                     let lo = Infinity, hi = -1, nmax = 0;
                     for (const rec of Object.values(recs))
-                        for (const what of ['packets', 'octets'])
-                            if (rec[what]?.raw) {
-                                const raw = rec[what].raw;
+                        for (const w of ['packets', 'octets'])
+                            if (rec[w]?.raw) {
+                                const raw = rec[w].raw;
                                 nmax = Math.max(nmax, raw.length - 1);
                                 for (let i = 0; i < raw.length; i++)
                                     if (raw[i]) {
@@ -3008,31 +3127,35 @@
                         hi = Math.min(hi + 600, nmax);
                     }
                     const view = { lo, hi, lo0: lo, hi0: hi };
-                    const share = traffic[day] || {};
-                    for (const [what, label, unit, scale] of [
-                        ['packets', 'Mirrored packet rate', 'packets/s', 1],
-                        ['octets', 'Mirrored bit rate', 'bits/s', 8]]) {
-                        const block = document.createElement('div');
-                        block.className = 'series-block';
-                        const note = document.createElement('div');
-                        note.className = 'plot-hint';
-                        const wrap = document.createElement('div');
-                        wrap.className = 'hist-wrap';
-                        block.append(note, wrap);
-                        sec.appendChild(block);
-                        const entries = ms.filter(m => recs[m]?.[what]?.raw)
-                            .map(m => ({
-                                label: `first ${m}`, color: mc(m),
-                                raw: scale === 1 ? recs[m][what].raw
-                                    : recs[m][what].raw.map(v => v * scale)
-                            }));
-                        if (!entries.length) {
-                            note.textContent = 'Series not available.';
-                            continue;
-                        }
+                    const note = document.createElement('div');
+                    note.className = 'plot-hint';
+                    const hint = document.createElement('div');
+                    hint.className = 'plot-hint';
+                    const sec = document.createElement('section');
+                    sec.className = 'summary-page';
+                    content.replaceChildren(note, hint, sec);
+                    const [label, unit, scale] = what === 'packets'
+                        ? ['Mirrored packet rate', 'packets/s', 1]
+                        : ['Mirrored bit rate', 'bits/s', 8];
+                    const block = document.createElement('div');
+                    block.className = 'series-block';
+                    const wrap = document.createElement('div');
+                    wrap.className = 'hist-wrap';
+                    block.append(wrap);
+                    sec.appendChild(block);
+                    const entries = ms.filter(m => recs[m]?.[what]?.raw)
+                        .map(m => ({
+                            label: `first ${m}`, color: mc(m),
+                            raw: scale === 1 ? recs[m][what].raw
+                                : recs[m][what].raw.map(v => v * scale)
+                        }));
+                    if (!entries.length) {
+                        note.textContent = 'Series not available.';
+                    } else {
                         note.textContent = `${label} · 30 s rolling mean over per-second counts,`
-                            + ' shaded min–max envelope · hover to inspect'
+                            + ' shaded min–max envelope'
                             + (share[what] ? ' · right axis: share of all traffic' : '');
+                        hint.textContent = HINT_READ;
                         const raw = share[what]?.raw;
                         const div = raw && span ? raw.reduce((s, v) => s + v, 0) * scale / span : null;
                         wrap.appendChild(seriesChart(unit, entries, wrap, view, div));
@@ -3081,15 +3204,36 @@
                             .filter(what => recs[m]?.[what])
                             .map(what => {
                                 const rec = recs[m][what];
-                                return [rec.file, `${base}/first_mirror/${rec.file}`, true,
+                                return [rec.file, `${base}/first_mirror/${rec.file}`,
+                                    `first${m}-${rec.file.split('/').pop()}`,
                                     rec.bytes ? fmtBytes(rec.bytes) : null];
                             })),
-                        ...[`${day}.packets.svg`, `${day}.packets.pdf`,
-                            `${day}.bits.svg`, `${day}.bits.pdf`, 'total.svg', 'total.pdf']
-                            .filter(f => plotFiles.includes(f))
-                            .map(f => [`plots/${f}`, `${base}/first_mirror/plots/${f}`, true, null])
                     ]);
+                };
+
+                for (const day of dayNums) {
+                    const line = document.createElement('div');
+                    line.className = 'plot-line';
+                    const label = document.createElement('b');
+                    label.textContent = `${dayLabel(day)}:`;
+                    line.appendChild(label);
+                    for (const [what, short] of [['octets', 'Bit rate'], ['packets', 'Packet rate']]) {
+                        if (!ms.some(m => dayFiles[day][m]?.[what]))
+                            continue;
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.textContent = short;
+                        button.addEventListener('click', () => {
+                            selectPlotButton(selector, button);
+                            render(day, what, button);
+                        });
+                        line.appendChild(button);
+                    }
+                    if (line.querySelector('button'))
+                        selector.appendChild(line);
                 }
+
+                selector.querySelector('button')?.click();
             }
 
             async function showElephants(request) {
@@ -3113,6 +3257,7 @@
                 const figure = document.createElement('div');
                 figure.className = 'series-block';
                 const img = document.createElement('img');
+                img.className = 'schema';
                 img.src = `${base}/elephants/schema.svg`;
                 img.alt = 'Flowcharts of the first, threshold and sampling algorithms';
                 figure.appendChild(img);
@@ -3372,7 +3517,6 @@
                 if (kind === 'svg') {
                     const image = document.createElement('img');
                     setAction(viewSvg, artifact);
-                    setAction(viewPdf, artifact.replace(/\.svg$/, '.pdf'));
                     image.src = artifact;
                     image.alt = li.textContent;
                     image.addEventListener('error', () => {
@@ -3380,11 +3524,6 @@
                             setMessage('Artifact not available.');
                     });
                     artifactDisplay.replaceChildren(image);
-                } else if (kind === 'pdf') {
-                    const embed = document.createElement('embed');
-                    embed.src = artifact;
-                    embed.type = 'application/pdf';
-                    artifactDisplay.replaceChildren(embed);
                 } else if (kind === 'download') {
                     setMessage(`Binary file. Use the Download button to fetch ${artifact}.`);
                     setAction(downloadFile, artifact);
