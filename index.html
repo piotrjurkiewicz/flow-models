@@ -1147,7 +1147,7 @@
                     if (listDir(artifactPath('first_mirror/plots')).some(file => file.endsWith('.svg')))
                         addItem('Mirroring simulation', 'first_mirror/plots', 'plot-group');
                     const firstMirrorBase = artifactPath('first_mirror');
-                    const hasMirrorData = (DIRS[currentDataset] || []).some(path =>
+                    const hasMirrorData = [...(DIRS[currentDataset] || [])].some(path =>
                         path.startsWith(`${firstMirrorBase}/`) && /^\d+$/.test(path.slice(firstMirrorBase.length + 1))
                         && listDir(path).some(file => file.endsWith('_mirrored')));
                     if (hasMirrorData)
