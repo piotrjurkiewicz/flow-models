@@ -29,8 +29,10 @@ following command:
 
 A detailed documentation, including usage examples, is available at: https://flow-models.readthedocs.io
 
+## Flow models library web interface
+
 Apart from the framework, the Git repository also contains a library of flow models created with it, including
-histograms and fitted mixture models.
+histograms and fitted mixture models: https://www.flow-models.org
 
 ## Provided tools
 
@@ -49,12 +51,14 @@ The framework currently includes the following tools:
 Following the Unix philosophy, each tool is a separate Python program aimed at a single purpose. Features provided
 by the tools are orthogonal and they are tailored to be used sequentially in data-processing pipelines.
 
-## Models library
+## Datasets in flow models library
 
 The `data` directory contains a library of flow models. They consist of histogram CSV files, fitted mixture JSON
 files and plots. Full flow records are also included in smaller models. The following models are currently available:
 
 ### agh_2015
+
+https://www.flow-models.org?dataset=agh_2015
 
 Please cite as:
 
@@ -108,6 +112,8 @@ this model can also be considered as representative of residential traffic.
 | Octets  | 88.57% | 11.27% |  0.1% |
 
 ### agh_2015061019_IPv4_anon
+
+https://www.flow-models.org?dataset=agh_2015061019_IPv4_anon
 
 Please cite as:
 
