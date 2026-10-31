@@ -10,3 +10,4 @@
 .vscode
 .venv
 __pycache__
+docs/_build/
