@@ -6,10 +6,18 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from matplotlib.ticker import FuncFormatter
 
-from flow_models.lib.plot import matplotlib_config, save_figure
+from flow_models.lib.plot import FM_MAX_POINTS, _fm_add, matplotlib_config, save_figure
 
 ROLL = 30          # rolling-mean window [s]
 MARGIN = 600       # padding around the nonzero data span [s]
+
+
+def decimate(y, n=FM_MAX_POINTS):
+    """Return ``(x, y)`` evenly decimated to at most ``n`` samples."""
+    if len(y) <= n:
+        return np.arange(len(y)), np.asarray(y)
+    idx = np.linspace(0, len(y) - 1, n).astype(int)
+    return idx, np.asarray(y)[idx]
 
 
 def hhmm(sec):
@@ -21,6 +29,15 @@ def fmt_suffix(v, _):
         if abs(v) >= f:
             return f'{v / f:g}{u}'
     return f'{v:g}'
+
+
+def envelope(v, bins=1400):
+    """Per-bin min/max envelope of raw samples, mimicking the per-pixel band."""
+    v = np.asarray(v, dtype=float)
+    k = max(1, len(v) // bins)
+    n = len(v) // k
+    v = v[:n * k].reshape(n, k)
+    return np.arange(n) * k + k / 2, v.min(axis=1), v.max(axis=1)
 
 
 with matplotlib_config():
@@ -61,22 +78,28 @@ with matplotlib_config():
             fig, ax = plt.subplots(figsize=(8, 3.2))
             dorms = f.parent / 'dorms' / f.name
             has_dorms = dorms.exists()
-            ax.plot(s.index, s.rolling(ROLL, min_periods=1).mean(), 'k-', lw=0.4,
-                    label='all' if has_dorms else None)
+            ax.fill_between(*envelope(s.to_numpy()), color='k', alpha=0.15, lw=0)
+            line, = ax.plot(*decimate(s.rolling(ROLL, min_periods=1).mean().to_numpy()), 'k-', lw=0.4,
+                            label='all' if has_dorms else None)
+            _fm_add('data', *decimate(s.rolling(ROLL, min_periods=1).mean().to_numpy()),
+                    label='all' if has_dorms else None, what=what, artists=[line])
             print(title, what, sum(s))
             if has_dorms:
                 sd = pd.read_csv(dorms, header=None)[0]
                 if suffix == 'octets':
                     sd = sd * 8
-                ax.plot(sd.index, sd.rolling(ROLL, min_periods=1).mean(), '-', lw=0.4,
-                        color='tab:red', label='dorms')
+                ax.fill_between(*envelope(sd.to_numpy()), color='tab:red', alpha=0.15, lw=0)
+                line, = ax.plot(*decimate(sd.rolling(ROLL, min_periods=1).mean().to_numpy()), '-', lw=0.4,
+                                color='tab:red', label='dorms')
+                _fm_add('data', *decimate(sd.rolling(ROLL, min_periods=1).mean().to_numpy()),
+                        label='dorms', what=what, artists=[line])
                 print(' ' * len(title), f'dorms {what}', sum(sd))
                 ax.legend(loc='upper left')
 
             step = next(t for t in (300, 600, 900, 1800, 3600, 7200, 14400) if (hi - lo) / t <= 10)
             ticks = np.arange(np.ceil(lo / step) * step, hi + 1, step)
             ax.set_xticks(ticks, [hhmm(t) for t in ticks])
-            ax.set(xlim=(lo, hi), title=title,
+            ax.set(xlim=(lo, hi),
                    xlabel='Time of day [UTC]', ylabel=f'{what.capitalize()[:-1]} rate [{what}/s]')
             ax.set_ylim(bottom=0)
             ax.yaxis.set_major_formatter(FuncFormatter(fmt_suffix))
