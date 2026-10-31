@@ -1112,11 +1112,14 @@
                 const mixtures = ['length', 'size'].flatMap(x => listDir(artifactPath(`mixtures/${x}`))
                     .map(file => [x, file]));
                 const hasSummary = listDir(artifactPath('summary')).length || listDir(artifactPath('histograms')).length;
-                const hasSeries = listDir(artifactPath('series')).length || listDir(artifactPath('series/dorms')).length;
+                const rawSeries = file => /\.(flows|packets|octets)$/.test(file);
+                const hasSeries = listDir(artifactPath('series')).some(rawSeries)
+                    || listDir(artifactPath('series/dorms')).some(rawSeries);
+                const hasSeriesPlots = listDir(artifactPath('series')).some(file => file.endsWith('.svg'));
                 const hasRecords = listDir(artifactPath('sorted')).length > 0;
-                if (hasSummary || hasSeries || hasRecords) {
+                if (hasSummary || hasSeries || hasSeriesPlots || hasRecords) {
                     addCategory('Analysis');
-                    if (listDir(artifactPath('series')).some(file => file.endsWith('.svg')))
+                    if (hasSeriesPlots)
                         addItem('Time series', 'series', 'plot-group');
                     if (hasSeries)
                         addItem('Time series (data)', 'series-data', 'series');
@@ -1143,7 +1146,12 @@
                     addItem('Introduction', 'first_mirror/intro', 'first-mirror-intro');
                     if (listDir(artifactPath('first_mirror/plots')).some(file => file.endsWith('.svg')))
                         addItem('Mirroring simulation', 'first_mirror/plots', 'plot-group');
-                    addItem('Mirroring simulation (data)', 'first_mirror-data', 'first-mirror');
+                    const firstMirrorBase = artifactPath('first_mirror');
+                    const hasMirrorData = (DIRS[currentDataset] || []).some(path =>
+                        path.startsWith(`${firstMirrorBase}/`) && /^\d+$/.test(path.slice(firstMirrorBase.length + 1))
+                        && listDir(path).some(file => file.endsWith('_mirrored')));
+                    if (hasMirrorData)
+                        addItem('Mirroring simulation (data)', 'first_mirror-data', 'first-mirror');
                 }
 
                 const elephants = listDir(artifactPath('elephants'));
