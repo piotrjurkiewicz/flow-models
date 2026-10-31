@@ -19,6 +19,7 @@ from .mix import avg, cdf, cdf_comp, pdf, pdf_comp
 from .util import logmsg
 
 PDF_NONE = {'Creator': None, 'Producer': None, 'CreationDate': None}
+SVG_NONE = {'Creator': None, 'Date': None}
 MODES_MIXTURE = ['comp', 'comp_stack', 'comp_labels']
 MODES_PDF = ['points', 'hist', 'kde', *MODES_MIXTURE]
 MODES_CDF = MODES_MIXTURE
@@ -40,6 +41,8 @@ def _fm_total(what, value, ax=None):
     _, info = _fm_axis_data(ax)
     info['totals'][what] = _fm_num(value)
 
+FM_MAX_POINTS = 2048   # cap on embedded curve resolution (svg metadata size)
+
 def _fm_add(kind, x, y, label=None, what=None, component=None, ax=None, artists=()):
     ax, info = _fm_axis_data(ax)
     fig = ax.figure
@@ -47,11 +50,16 @@ def _fm_add(kind, x, y, label=None, what=None, component=None, ax=None, artists=
     gid = 'fm-c%d' % fig._fm_n
     for artist in artists:
         artist.set_gid(gid)
+    x = np.asarray(x, dtype=float).ravel()
+    y = np.asarray(y, dtype=float).ravel()
+    if x.size > FM_MAX_POINTS:
+        idx = np.linspace(0, x.size - 1, FM_MAX_POINTS).astype(int)
+        x, y = x[idx], y[idx]
     entry = {
         'id': gid,
         'kind': kind,
-        'x': [_fm_num(v) for v in np.asarray(x, dtype=float).ravel()],
-        'y': [_fm_num(v) for v in np.asarray(y, dtype=float).ravel()],
+        'x': [_fm_num(v) for v in x],
+        'y': [_fm_num(v) for v in y],
     }
     if label:
         entry['label'] = label
@@ -104,8 +112,7 @@ def _fm_slim(text):
     return text
 
 def save_figure(figure, fname, ext='pdf', **kwargs):
-    if ext == 'pdf':
-        kwargs['metadata'] = PDF_NONE
+    kwargs['metadata'] = PDF_NONE if ext == 'pdf' else SVG_NONE
     # svg keeps the exact figure canvas so the axes rect is identical across
     # plots; pdf expands to include labels drawn outside the axes
     figure.savefig(f'{fname}.{ext}', bbox_inches=None if ext == 'svg' else 'tight', **kwargs)
@@ -140,6 +147,7 @@ def matplotlib_config(latex=False):
         matplotlib.rcParams['font.family'] = 'sans-serif'
         matplotlib.rcParams['font.sans-serif'] = ['Helvetica', 'Arial', 'Liberation Sans', 'sans-serif']
         matplotlib.rcParams['svg.fonttype'] = 'none'
+        matplotlib.rcParams['svg.hashsalt'] = 'flow-models'
 
         if latex:
             matplotlib.rcParams['text.usetex'] = True
