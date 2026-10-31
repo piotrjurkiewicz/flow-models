@@ -18,11 +18,19 @@ import numpy as np
 import pandas as pd
 from matplotlib.ticker import FuncFormatter
 
-from flow_models.lib.plot import matplotlib_config, save_figure
+from flow_models.lib.plot import FM_MAX_POINTS, _fm_add, matplotlib_config, save_figure
 
 ROLL = 30          # rolling-mean window [s]
 MARGIN = 600       # padding around the nonzero data span [s]
 FIGSIZE = [8, 3.2]
+
+
+def decimate(y, n=FM_MAX_POINTS):
+    """Return ``(x, y)`` evenly decimated to at most ``n`` samples."""
+    if len(y) <= n:
+        return np.arange(len(y)), np.asarray(y)
+    idx = np.linspace(0, len(y) - 1, n).astype(int)
+    return idx, np.asarray(y)[idx]
 
 METRICS = {'packets': ('packets_mirrored', 1, 'Mirrored packet rate [packets/s]'),
            'bits': ('octets_mirrored', 8, 'Mirrored bit rate [bits/s]')}
@@ -59,6 +67,15 @@ def load(dirs):
                     pd.read_csv(f, header=None)[0].to_numpy()
     return data
 
+def envelope(v, bins=1400):
+    """Per-bin min/max envelope of raw samples, mimicking the per-pixel band."""
+    v = np.asarray(v, dtype=float)
+    k = max(1, len(v) // bins)
+    n = len(v) // k
+    v = v[:n * k].reshape(n, k)
+    return np.arange(n) * k + k / 2, v.min(axis=1), v.max(axis=1)
+
+
 def load_traffic(series, days):
     """Overall traffic per-second series per ``{day: {metric: series}}``."""
     traffic = {}
@@ -88,12 +105,15 @@ def plot_day(data, day, metric, out, fmt, traffic=None):
         lo, hi = max(lo - MARGIN, 0), min(hi + MARGIN, n)
     fig, ax = plt.subplots(figsize=FIGSIZE)
     for count, s in series:
-        ax.plot(np.arange(n + 1), pd.Series(s).rolling(ROLL, min_periods=1).mean(),
-                lw=0.5, label=f'first {count}')
+        rolled = pd.Series(s).rolling(ROLL, min_periods=1).mean()
+        xd, yd = decimate(rolled.to_numpy())
+        line, = ax.plot(xd, yd, lw=0.5, label=f'first {count}')
+        _fm_add('data', xd, yd, label=f'first {count}', what=metric, artists=[line])
+        ax.fill_between(*envelope(s), color=line.get_color(), alpha=0.15, lw=0)
     step = next(t for t in (300, 600, 900, 1800, 3600, 7200, 14400) if (hi - lo) / t <= 10)
     ticks = np.arange(np.ceil(lo / step) * step, hi + 1, step)
     ax.set_xticks(ticks, [hhmm(t) for t in ticks])
-    ax.set(xlim=(lo, hi), title=day_title(day), xlabel='Time of day [UTC]', ylabel=ylabel)
+    ax.set(xlim=(lo, hi), xlabel='Time of day [UTC]', ylabel=ylabel)
     ax.set_ylim(bottom=0)
     ax.yaxis.set_major_formatter(FuncFormatter(fmt_suffix))
     ax.legend()
@@ -105,19 +125,21 @@ def plot_day(data, day, metric, out, fmt, traffic=None):
     save_fig(fig, out / f'{day}.{metric}', fmt)
     plt.close(fig)
 
-def plot_total(data, out, fmt):
+def plot_total(data, out, fmt, traffic=None):
     counts = sorted(n for n, days in data.items() if days)
     if not counts:
         return
     def total(n, suffix):
         return sum(s.sum() for days in data[n].values()
                    for name, s in days.items() if name == suffix)
-    fig, ax = plt.subplots(figsize=[FIGSIZE[0] * 0.66, FIGSIZE[1]])
+    fig, ax = plt.subplots(figsize=FIGSIZE)
     tx = ax.twinx()
-    ax.plot(counts, [total(n, 'packets_mirrored') for n in counts], 'o-',
-            color='tab:red', label='mirrored packets')
-    tx.plot(counts, [total(n, 'octets_mirrored') for n in counts], 's-',
-            color='tab:blue', label='mirrored octets')
+    pk = [total(n, 'packets_mirrored') for n in counts]
+    oc = [total(n, 'octets_mirrored') for n in counts]
+    line, = ax.plot(counts, pk, 'o-', color='tab:red', label='mirrored packets')
+    _fm_add('data', counts, pk, label='mirrored packets', what='packets', ax=ax, artists=[line])
+    line, = tx.plot(counts, oc, 's-', color='tab:blue', label='mirrored octets')
+    _fm_add('data', counts, oc, label='mirrored octets', what='octets', ax=tx, artists=[line])
     ax.set_xticks(counts)
     ax.set(xlabel='Packets mirrored per flow [N]', ylabel='Packets [per day]')
     tx.set_ylabel('Octets [per day]')
@@ -131,6 +153,27 @@ def plot_total(data, out, fmt):
     save_fig(fig, out / 'total', fmt)
     plt.close(fig)
 
+    if not traffic:
+        return
+    pk_all = sum(t['packets'].sum() for t in traffic.values() if 'packets' in t)
+    oc_all = sum(t['bits'].sum() for t in traffic.values() if 'bits' in t)
+    if not pk_all or not oc_all:
+        return
+    fig, ax = plt.subplots(figsize=FIGSIZE)
+    pk = [total(n, 'packets_mirrored') / pk_all * 100 for n in counts]
+    oc = [total(n, 'octets_mirrored') / oc_all * 100 for n in counts]
+    line, = ax.plot(counts, pk, 'o-', color='tab:red', label='mirrored packets')
+    _fm_add('data', counts, pk, label='mirrored packets', what='packets', ax=ax, artists=[line])
+    line, = ax.plot(counts, oc, 's-', color='tab:blue', label='mirrored octets')
+    _fm_add('data', counts, oc, label='mirrored octets', what='octets', ax=ax, artists=[line])
+    ax.set_xticks(counts)
+    ax.set(xlabel='Packets mirrored per flow [N]', ylabel='Mirrored share')
+    ax.set_ylim(bottom=0)
+    ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f'{v:g}%'))
+    ax.legend()
+    save_fig(fig, out / 'total_share', fmt)
+    plt.close(fig)
+
 def plot(dirs, fmt='pdf', out='.', series=None):
     data = load(dirs)
     out = pathlib.Path(out)
@@ -140,7 +183,7 @@ def plot(dirs, fmt='pdf', out='.', series=None):
     for day in days:
         for metric in METRICS:
             plot_day(data, day, metric, out, fmt, traffic.get(day, {}).get(metric))
-    plot_total(data, out, fmt)
+    plot_total(data, out, fmt, traffic)
 
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
