@@ -462,11 +462,7 @@ def main():
         print(dataframe.info())
         print(dataframe.to_string())
         if app_args.save:
-            dataframe.to_string(open(method + '.txt', 'w'))
             dataframe.to_csv(method + '.csv')
-            dataframe.to_pickle(method + '.df')
-            dataframe.to_html(method + '.html')
-            dataframe.to_latex(method + '.tex', float_format='%.2f')
 
     logmsg('Finished')
 
